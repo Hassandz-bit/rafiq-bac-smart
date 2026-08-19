@@ -1,0 +1,27 @@
+import { Button } from "@/components/ui/button";
+import { Maximize2, Minus, Move, Plus, RotateCcw } from "lucide-react";
+import { useMemo, useState } from "react";
+
+type NodeTone = "concept" | "formula" | "method" | "example" | "warning" | "error" | "bac";
+type MapNode = { id: string; label: string; tone: NodeTone; x: number; y: number };
+const nodes: MapNode[] = [
+  { id: "root", label: "خريطة الدرس", tone: "concept", x: 45, y: 43 },
+  { id: "concept", label: "مفهوم", tone: "concept", x: 16, y: 20 },
+  { id: "formula", label: "صيغة", tone: "formula", x: 15, y: 70 },
+  { id: "method", label: "طريقة", tone: "method", x: 76, y: 20 },
+  { id: "warning", label: "تنبيه", tone: "warning", x: 77, y: 69 },
+  { id: "bac", label: "مهارة BAC", tone: "bac", x: 46, y: 82 },
+];
+const edges = [["root", "concept"], ["root", "formula"], ["root", "method"], ["root", "warning"], ["root", "bac"]];
+const toneClass: Record<NodeTone, string> = { concept: "bg-blue-100 text-blue-800 ring-blue-200", formula: "bg-violet-100 text-violet-800 ring-violet-200", method: "bg-cyan-100 text-cyan-800 ring-cyan-200", example: "bg-emerald-100 text-emerald-800 ring-emerald-200", warning: "bg-amber-100 text-amber-800 ring-amber-200", error: "bg-rose-100 text-rose-800 ring-rose-200", bac: "bg-indigo-100 text-indigo-800 ring-indigo-200" };
+
+export function MindMapCanvas() {
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState<{ startX: number; startY: number; baseX: number; baseY: number } | null>(null);
+  const [full, setFull] = useState(false);
+  const connectorPaths = useMemo(() => edges.map(([fromId, toId]) => { const from = nodes.find(node => node.id === fromId)!; const to = nodes.find(node => node.id === toId)!; return { key: `${fromId}-${toId}`, d: `M ${from.x + 5} ${from.y + 4} C ${(from.x + to.x) / 2} ${from.y + 4}, ${(from.x + to.x) / 2} ${to.y + 4}, ${to.x + 5} ${to.y + 4}` }; }), []);
+  const reset = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
+  return <section className={`${full ? "fixed inset-0 z-50 rounded-none" : "relative"} overflow-hidden rounded-[1.5rem] border border-blue-100 bg-[#f8fbff]`} dir="rtl"><div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between border-b border-blue-100/80 bg-white/85 px-4 py-3 backdrop-blur"><div className="flex items-center gap-2"><Move className="h-4 w-4 text-blue-700"/><p className="text-sm font-black text-slate-800">خريطة المفاهيم</p><span className="hidden text-xs text-slate-500 sm:inline">اسحب للتنقل · استخدم التكبير للتفاصيل</span></div><div className="flex items-center gap-1"><Button variant="ghost" size="icon" onClick={() => setZoom(value => Math.max(.6, value - .15))} aria-label="تصغير الخريطة"><Minus className="h-4 w-4"/></Button><span className="min-w-10 text-center text-xs font-bold text-slate-500">{Math.round(zoom * 100)}%</span><Button variant="ghost" size="icon" onClick={() => setZoom(value => Math.min(1.6, value + .15))} aria-label="تكبير الخريطة"><Plus className="h-4 w-4"/></Button><Button variant="ghost" size="icon" onClick={reset} aria-label="إعادة ضبط الخريطة"><RotateCcw className="h-4 w-4"/></Button><Button variant="ghost" size="icon" onClick={() => setFull(value => !value)} aria-label="عرض بملء الشاشة"><Maximize2 className="h-4 w-4"/></Button></div></div><div className="map-surface relative h-[370px] overflow-hidden pt-14" onPointerDown={event => { (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId); setDragging({ startX: event.clientX, startY: event.clientY, baseX: pan.x, baseY: pan.y }); }} onPointerMove={event => { if (dragging) setPan({ x: dragging.baseX + event.clientX - dragging.startX, y: dragging.baseY + event.clientY - dragging.startY }); }} onPointerUp={() => setDragging(null)} onKeyDown={event => { if (event.key === "+") setZoom(value => Math.min(1.6, value + .15)); if (event.key === "-") setZoom(value => Math.max(.6, value - .15)); }} tabIndex={0} role="application" aria-label="مساحة خريطة مفاهيم تفاعلية"><div className="absolute inset-0 opacity-70 [background-image:radial-gradient(circle_at_1px_1px,#a8c4e8_1px,transparent_0)] [background-size:20px_20px]"/><div className="absolute inset-0 transition-transform duration-150" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "center" }}><svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">{connectorPaths.map(path => <path key={path.key} d={path.d} fill="none" stroke="#8faed9" strokeWidth="0.45" strokeDasharray="1.5 1" />)}</svg>{nodes.map(node => <button key={node.id} className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-2xl px-3 py-2 text-xs font-black shadow-sm ring-1 transition hover:-translate-y-[55%] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${toneClass[node.tone]}`} style={{ left: `${node.x}%`, top: `${node.y}%` }} aria-label={`عقدة ${node.label}`}>{node.label}</button>)}</div></div><div className="absolute bottom-3 right-4 flex flex-wrap gap-1.5"><Legend tone="concept" label="مفهوم"/><Legend tone="formula" label="صيغة"/><Legend tone="method" label="طريقة"/><Legend tone="warning" label="تنبيه"/></div></section>;
+}
+function Legend({ tone, label }: { tone: NodeTone; label: string }) { return <span className={`rounded-md px-2 py-1 text-[10px] font-bold ${toneClass[tone]}`}>{label}</span>; }

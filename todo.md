@@ -1,0 +1,24 @@
+# Project TODO
+
+- [x] Establish project documentation: PRD, architecture, sitemap, design system, and recovery plan.
+- [ ] Add a Git remote repository and document a reproducible recovery path.
+- [x] Define a versioned 2026–2027 curriculum data model for subjects, units, lessons, concepts, skills, prerequisites, and dependencies.
+- [x] Define the official source registry with authority, URL, publication metadata, academic year, verification state, and source gate.
+- [x] Create database migrations for curriculum, sources, learning content, assessments, learning progress, subscriptions, and content workflow.
+- [x] Implement the four application roles: Admin, Content Editor, Academic Reviewer, and Student, with protected routes and server-side authorization.
+- [x] Build a full Arabic RTL design system and a responsive student-facing shell.
+- [x] Build the student home with today’s study session, continue learning, daily review, subjects, attention insight, and progress.
+- [x] Build the curriculum explorer for Mathematics, Physics, and Natural Sciences without publishing unverified academic content.
+- [x] Implement the educational slide engine types and KaTeX-ready rendering architecture.
+- [x] Implement the interactive RTL mind-map canvas with zoom, pan, fullscreen, node types, and keyboard support.
+- [ ] Implement the exercise engine covering MCQ, multi-select, true/false, fill, matching, ordering, numeric, math expression, and interactive-image structures. (الهيكل والواجهات جاهزة؛ يلزم تدفق الإجابة والتصحيح المستمر.)
+- [ ] Implement graduated hints, paper-and-pen reveal flow, and error classification by subject. (واجهة المحرك جاهزة؛ يلزم ربط المحاولات بالتلميحات وسجل الخطأ.)
+- [ ] Implement the error notebook, mastery states, and spaced-review queue. (البنية وقواعد الحساب جاهزة؛ يلزم ربطها بواجهات وإجراءات الطالب.)
+- [ ] Implement BAC focus mode, results analysis model, and rescue-plan foundations without AI tutoring. (واجهة التركيز والقواعد الأولية جاهزة؛ يلزم الحفظ والإرسال والتحليل المستمر.)
+- [ ] Build Content Studio with curriculum management, source records, approval workflow, and a current-official-book upload intake. (سجل المصادر ورفع PDF الآمن جاهزان؛ يلزم CRUD الكامل وإجراءات المراجعة والنشر.)
+- [ ] Add subscription architecture, plans, entitlement model, and free-unit support without payment processing. (المخطط جاهز؛ يلزم منطق الوصول وواجهات الإدارة.)
+- [ ] Add original scientific SVG visual assets and accessible annotations without importing unlicensed images. (الرسومات الأصلية موجودة؛ يلزم محرر/عارض التعليقات التوضيحية.)
+- [ ] Create automated tests for authorization, source gating, learning rules, and key user flows.
+- [ ] Validate RTL/mobile/accessibility/build quality, create a recovery drill record, and capture the final checkpoint.
+- [x] Implement an explicit four-role route access matrix with distinct Admin, Content Editor, Academic Reviewer, and Student destinations, plus forbidden-access tests.
+- [x] Add a dedicated «نقطة تحتاج اهتمامًا» insight card to the student home, driven by academic-source gate or learning-progress data.

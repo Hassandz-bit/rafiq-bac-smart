@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787168742774,
+      "tag": "0000_keen_viper",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1787169127415,
+      "tag": "0001_moaning_forge",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787169327405,
+      "tag": "0002_flashy_the_anarchist",
+      "breakpoints": true
+    }
+  ]
 }
