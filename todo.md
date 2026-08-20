@@ -44,7 +44,7 @@
 - [x] Add a student-facing smart-assessment panel with personalized strengths, priority attention point, and a practical next-review recommendation.
 - [x] Test the smart-assessment payload, authorization boundary, fallback behavior, and Arabic UI rendering.
 - [ ] Add admin-configurable product definitions for الباقة التجريبية، باقة الموسم، وباقة الحسم with editable pricing, subject bundles, duration, and feature access.
-- [ ] Seed the approved product configuration: free trial, season bundles (2900/4900/6900 DZD), and Hasm bundles (1200/2100/2900 DZD) without payment processing.
+- [x] Seed the approved product configuration: free trial, season bundles (2900/4900/6900 DZD), and Hasm bundles (1200/2100/2900 DZD) without payment processing.
 - [ ] Implement automatic season-to-Hasm entitlement grants per enrolled subject and the subject-count upgrade rules. (قاعدة المنح والتخزين جاهزان؛ يلزم ربطهما بواجهة الإدارة والتحقق التشغيلي.)
 - [ ] Create Batch 1 source-traceable curriculum packages for two eligible units per subject, keeping source-review-required items unavailable for publication.
 - [ ] Build the Hasm entrance, short diagnostic, transparent priority engine, adaptive plan, final-memory cards, BAC sprint, simulation recommendations, and calm final-night experience.
