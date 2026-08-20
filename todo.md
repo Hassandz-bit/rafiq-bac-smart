@@ -81,3 +81,6 @@
 - [ ] Persist student plan assignments so assigning a Season plan automatically stores matching Hasm entitlements, with end-to-end subject-count upgrade coverage. (السجل والمعاملة موجودان؛ يلزم مسار تشغيل واجهة الإدارة وتحقق بيانات حقيقية آمن.)
 - [ ] Wire persisted plan assignment to the product administration UI and record a safe operational verification of the stored assignment and derived Hasm claims.
 - [x] Persist explicit editable subject-bundle composition for trial, Season, and Hassem plans, with protected UI and regression coverage.
+- [x] Add protected persisted 10/20-minute Hassem focus sessions with explicit start and completion actions, preserving the review-first diagnostic gate.
+- [x] Add Arabic failure feedback for starting or completing Hassem focus sessions and test both 10- and 20-minute actions.
+- [x] Add a component test that verifies Arabic feedback when completing a persisted Hassem focus session fails.

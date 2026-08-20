@@ -13,6 +13,7 @@ import { grantPlanAccess } from "./subscriptionGrants";
 import { autosaveBacSession, startBacSession, submitBacSession } from "./bacSessions";
 import { getStudentProgressSummary } from "./studentProgress";
 import { generateSmartAssessment } from "./smartAssessment";
+import { completeHassemFocusSession, getLatestHassemFocusSession, startHassemFocusSession } from "./hassemFocusSessions";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -81,6 +82,15 @@ export const appRouter = router({
   progress: router({
     summary: protectedProcedure.query(({ ctx }) => getStudentProgressSummary(ctx.user.id)),
     smartAssessment: protectedProcedure.query(({ ctx }) => generateSmartAssessment(ctx.user.id)),
+  }),
+  hassem: router({
+    latestSession: protectedProcedure.query(({ ctx }) => getLatestHassemFocusSession(ctx.user.id)),
+    startSession: protectedProcedure.input(z.object({ durationMinutes: z.union([z.literal(10), z.literal(20)]) })).mutation(({ ctx, input }) => startHassemFocusSession(ctx.user.id, input.durationMinutes)),
+    completeSession: protectedProcedure.input(z.object({ sessionId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+      const completed = await completeHassemFocusSession({ userId: ctx.user.id, sessionId: input.sessionId });
+      if (!completed) throw new TRPCError({ code: "NOT_FOUND", message: "جلسة الحسم غير موجودة أو لا تخص هذا الحساب." });
+      return completed;
+    }),
   }),
   administration: router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
