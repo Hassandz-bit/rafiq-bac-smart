@@ -49,3 +49,6 @@
 - [ ] Create Batch 1 source-traceable curriculum packages for two eligible units per subject, keeping source-review-required items unavailable for publication.
 - [ ] Build the Hasm entrance, short diagnostic, transparent priority engine, adaptive plan, final-memory cards, BAC sprint, simulation recommendations, and calm final-night experience.
 - [ ] Verify the production batch with academic QA, UI QA, exercise QA, mobile QA, and source-gate regression tests before any publication expansion.
+- [x] Define the exact two-unit internal Batch 1 scope per subject from the approved working-reference source packs.
+- [ ] Create structured draft-only Batch 1 packages with objectives, prerequisites, diagnostics, maps, original slides, practice, quiz, BAC-style practice, errors, summary, quick review, and source links.
+- [ ] Produce a Batch 1 academic review board that lists every draft item, source reference, workflow state, and publication block.
