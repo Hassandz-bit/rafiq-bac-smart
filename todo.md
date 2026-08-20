@@ -112,3 +112,4 @@
 - [ ] Link BAC Focus scoring and rescue analysis to real approved published BAC session content once academic material is available.
 - [ ] Add an end-to-end BAC Focus regression for a completed published session that derives its result and rescue plan from saved responses and student progress.
 - [x] Add an academic-reviewer-only source-verification note workflow that can update source evidence without publishing content or promoting an internal pilot.
+- [x] Add two reviewed-only interactive visual prototypes for nuclear transformations and protein structure-function, with persisted internal metadata and no student route exposure.

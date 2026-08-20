@@ -1,5 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { BrandMark } from "@/components/BrandMark";
+import { ReviewOnlyVisualModels } from "@/components/ReviewOnlyVisualModels";
 import { RoleGate } from "@/components/RoleGate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -128,6 +129,8 @@ function StudioContent() {
               <div className="border-b border-slate-100 p-5"><h2 className="font-black">تحقق المصدر</h2><p className="mt-1 text-xs text-slate-500">يسجل المراجع الأدلة وحالة التحقق فقط. لا يملك هذا الإجراء أي مسار للنشر، ولا يمكنه ترقية Pilot داخلي إلى مصدر رسمي حالي.</p></div>
               <div className="divide-y divide-slate-100">{sources?.map(source => <SourceVerificationEditor key={source.id} source={source} saving={sourceVerificationMutation.isPending} onSave={input => sourceVerificationMutation.mutate(input)} />)}{!isLoading && !sources?.length && <div className="p-6 text-center text-sm text-slate-500">لا توجد مصادر لتسجيل تحققها.</div>}</div>
             </section>}
+
+            <ReviewOnlyVisualModels />
 
             <section className="soft-panel mt-6 overflow-hidden">
               <div className="flex items-center justify-between border-b border-slate-100 p-5"><div><h2 className="font-black">طابور المراجعة الأكاديمية</h2><p className="mt-1 text-xs text-slate-500">قرار بشري موثق: اعتماد أو إعادة للمسودة فقط. لا توجد أي عملية نشر في هذا المسار.</p></div><Badge variant="outline" className="border-blue-100 bg-blue-50 text-blue-700">{reviewQueueLoading ? "جارٍ التحميل" : `${reviewQueue?.length ?? 0} عناصر`}</Badge></div>
