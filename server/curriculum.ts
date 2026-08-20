@@ -49,6 +49,38 @@ export async function getCurrentCurriculumOverview() {
   };
 }
 
+export async function getStudioReviewQueue() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({ id: learningItems.id, sourceId: learningItems.sourceId, titleAr: learningItems.titleAr, type: learningItems.type, body: learningItems.body, workflowState: learningItems.workflowState, subjectNameAr: subjects.nameAr, unitTitleAr: units.titleAr, lessonTitleAr: lessons.titleAr, sourceTitle: sources.documentTitle, sourceAuthority: sources.sourceAuthority, sourceStatus: sources.verificationStatus, isInternalPilot: sources.isInternalPilot })
+    .from(learningItems)
+    .innerJoin(lessons, eq(lessons.id, learningItems.lessonId))
+    .innerJoin(units, eq(units.id, lessons.unitId))
+    .innerJoin(subjects, eq(subjects.id, units.subjectId))
+    .leftJoin(sources, eq(sources.id, learningItems.sourceId))
+    .where(eq(learningItems.workflowState, "in_review"))
+    .orderBy(asc(subjects.sortOrder), asc(units.sortOrder), asc(lessons.sortOrder), asc(learningItems.id))
+    .limit(100);
+  const componentRows = rows.filter(row => (row.body as { draftComponent?: boolean } | null)?.draftComponent === true);
+  return rows.filter(row => row.type === "batch_review_package").map(row => {
+    const body = row.body as { publicationBlocked?: boolean; sourceReviewRequired?: boolean; reviewComponentState?: string } | null;
+    const reviewComponents = componentRows
+      .filter(component => (component.body as { parentPackageId?: number } | null)?.parentPackageId === row.id)
+      .map(component => {
+        const componentBody = component.body as { componentKey?: string; publicationBlocked?: boolean; sourceReviewRequired?: boolean; componentState?: string; contentStatus?: string; draftContent?: { contentAr?: string } } | null;
+        return { id: component.id, titleAr: component.titleAr, type: component.type, sourceId: component.sourceId, workflowState: component.workflowState, componentKey: componentBody?.componentKey ?? component.type, componentState: componentBody?.componentState ?? null, contentStatus: componentBody?.contentStatus ?? null, draftContentAr: componentBody?.draftContent?.contentAr ?? null, publicationBlocked: componentBody?.publicationBlocked === true, sourceReviewRequired: componentBody?.sourceReviewRequired === true };
+      });
+    return {
+      ...row,
+      publicationBlocked: body?.publicationBlocked === true,
+      sourceReviewRequired: body?.sourceReviewRequired === true,
+      reviewComponentState: body?.reviewComponentState ?? null,
+      reviewComponents,
+    };
+  });
+}
+
 export type StudentLearningItem = {
   id: number;
   subjectCode: string;

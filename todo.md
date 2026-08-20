@@ -51,7 +51,7 @@
 - [ ] Verify the production batch with academic QA, UI QA, exercise QA, mobile QA, and source-gate regression tests before any publication expansion.
 - [x] Define the exact two-unit internal Batch 1 scope per subject from the approved working-reference source packs.
 - [ ] Create structured draft-only Batch 1 packages with objectives, prerequisites, diagnostics, maps, original slides, practice, quiz, BAC-style practice, errors, summary, quick review, and source links.
-- [ ] Produce a Batch 1 academic review board that lists every draft item, source reference, workflow state, and publication block.
+- [x] Produce a Batch 1 academic review board that lists every draft item, source reference, workflow state, and publication block.
 - [ ] Complete all six Batch 1 internal drafts before presenting any individual unit for review, then submit one consolidated academic review board.
 - [x] Move the six user-approved Batch 1 units to internal `in_review` while preserving the publication block and source-review requirement.
 - [x] Create a concise Arabic project-status report suitable for sharing with ChatGPT, including achievements, guards, current review state, and remaining work.
@@ -84,3 +84,8 @@
 - [x] Add protected persisted 10/20-minute Hassem focus sessions with explicit start and completion actions, preserving the review-first diagnostic gate.
 - [x] Add Arabic failure feedback for starting or completing Hassem focus sessions and test both 10- and 20-minute actions.
 - [x] Add a component test that verifies Arabic feedback when completing a persisted Hassem focus session fails.
+- [x] Create a consolidated Batch 1 review board that enumerates all draft components for the six units with source reference, workflow state, and publication block.
+- [x] Verify on real data that the Content Studio board contains the complete Batch 1 component set and render that publication-block metadata in a UI regression test.
+- [x] Persist real Batch 1 draft component records for objectives, prerequisites, diagnostics, maps, slides, practice, quiz, BAC-style practice, errors, summaries, quick reviews, and source links across the six in-review units.
+- [x] Populate original Arabic outline content in every persisted Batch 1 draft component while retaining in_review, source-review-required, and publication-blocked states.
+- [x] Render each persisted Batch 1 component as an explicit Content Studio review-board row with source, workflow, and publication-block fields, and test all six units in one UI scenario.

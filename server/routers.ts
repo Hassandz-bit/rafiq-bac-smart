@@ -5,7 +5,7 @@ import { hasAnyRole, type AppRole } from "./authorization";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { getCurrentCurriculumOverview, getSourceRegistryForStudio, getStudentAccessibleExercises, getStudentPublishedLearningItems, getStudentVisibleVisualAssets } from "./curriculum";
+import { getCurrentCurriculumOverview, getSourceRegistryForStudio, getStudioReviewQueue, getStudentAccessibleExercises, getStudentPublishedLearningItems, getStudentVisibleVisualAssets } from "./curriculum";
 import { setUserRole } from "./db";
 import { recordStudentAttempt } from "./studentAttempts";
 import { getPlanCatalog, updatePlanConfiguration } from "./subscriptions";
@@ -52,6 +52,7 @@ export const appRouter = router({
   }),
   studio: router({
     sourceRegistry: contentStudioProcedure.query(() => getSourceRegistryForStudio()),
+    reviewQueue: contentStudioProcedure.query(() => getStudioReviewQueue()),
   }),
   attempts: router({
     accessibleExercises: protectedProcedure.query(({ ctx }) => getStudentAccessibleExercises(ctx.user.id)),

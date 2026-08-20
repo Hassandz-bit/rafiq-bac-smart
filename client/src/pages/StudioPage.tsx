@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { ArrowRight, BookUp, CheckCircle2, ClipboardList, FileUp, GitPullRequest, LibraryBig, ShieldAlert, UploadCloud } from "lucide-react";
-import { ChangeEvent, useRef, useState } from "react";
+import React, { ChangeEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+
+const reviewComponentLabels: Record<string, string> = { objectives: "أهداف التعلم", prerequisites: "المتطلبات", diagnostic: "التشخيص", mind_map: "خريطة مفاهيم", original_slides: "شرائح أصلية", practice: "تدريب", quiz: "اختبار قصير", bac_style_practice: "تدريب BAC", error_patterns: "أنماط الخطأ", summary: "ملخص", quick_review: "مراجعة سريعة", source_links: "روابط المصدر" };
 
 export default function StudioPage() {
   return <RoleGate allowed={["admin", "content_editor", "academic_reviewer"]} title="Content Studio محمي"><StudioContent /></RoleGate>;
@@ -17,6 +19,7 @@ function StudioContent() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { data: sources, isLoading } = trpc.studio.sourceRegistry.useQuery();
+  const { data: reviewQueue, isLoading: reviewQueueLoading } = trpc.studio.reviewQueue.useQuery();
   const curriculum = trpc.curriculum.overview.useQuery();
   const fileInput = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -87,7 +90,7 @@ function StudioContent() {
 
             <section className="mt-8 grid gap-4 md:grid-cols-3">
               <Metric icon={ShieldAlert} label="بوابة المصدر" value="3" sub="مواد بانتظار الكتاب الحالي" tone="amber" />
-              <Metric icon={GitPullRequest} label="في المراجعة" value="0" sub="لا توجد مواد جاهزة للمراجعة" tone="blue" />
+              <Metric icon={GitPullRequest} label="في المراجعة" value={reviewQueueLoading ? "…" : String(reviewQueue?.length ?? 0)} sub={reviewQueue?.length ? "مواد داخلية بانتظار القرار الأكاديمي" : "لا توجد مواد جاهزة للمراجعة"} tone="blue" />
               <Metric icon={CheckCircle2} label="منشور" value="0" sub="الحارس يمنع النشر بلا مصدر" tone="emerald" />
             </section>
 
@@ -103,6 +106,11 @@ function StudioContent() {
                 </div>)}
                 {!isLoading && !sources?.length && <div className="p-10 text-center text-sm text-slate-500">لا توجد مصادر مسجلة بعد.</div>}
               </div>
+            </section>
+
+            <section className="soft-panel mt-6 overflow-hidden">
+              <div className="flex items-center justify-between border-b border-slate-100 p-5"><div><h2 className="font-black">طابور المراجعة الأكاديمية</h2><p className="mt-1 text-xs text-slate-500">عرض للقرار البشري فقط؛ لا يتيح هذا المسار نشرًا أو تغيير حالة.</p></div><Badge variant="outline" className="border-blue-100 bg-blue-50 text-blue-700">{reviewQueueLoading ? "جارٍ التحميل" : `${reviewQueue?.length ?? 0} عناصر`}</Badge></div>
+              <div className="divide-y divide-slate-100">{reviewQueue?.map(item => <div key={item.id} className="p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold text-slate-900">{item.titleAr}</p><p className="mt-1 text-xs text-slate-500">{item.subjectNameAr} · {item.unitTitleAr} · {item.lessonTitleAr} · {item.type}</p><p className="mt-1 text-xs text-slate-500">{item.sourceTitle ?? "مصدر غير مكتمل"} · {item.sourceAuthority ?? "غير موثق"}</p><p className="mt-2 text-xs font-bold text-slate-600">{item.reviewComponents.length} مكوّنات مسودة فعلية · {item.reviewComponentState === "outline_only" ? "مقيّدة بالنشر حتى الاعتماد" : "تحتاج جردًا"}</p></div><div className="flex flex-wrap gap-2"><Badge className="border-0 bg-violet-50 text-violet-700 hover:bg-violet-50">in_review</Badge><Badge variant="outline" className="border-amber-100 bg-amber-50 text-amber-800">{item.sourceStatus ?? "غير متحقق"}</Badge>{item.isInternalPilot && <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">داخلي</Badge>}{item.publicationBlocked && <Badge variant="outline" className="border-rose-100 bg-rose-50 text-rose-700">قفل الحزمة</Badge>}</div></div><div className="mt-4 grid gap-2 md:grid-cols-2">{item.reviewComponents.map(component => <article key={component.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-black text-slate-800">{reviewComponentLabels[component.componentKey] ?? component.componentKey}</p><div className="flex gap-1.5"><Badge variant="outline" className="border-blue-100 bg-white text-[10px] text-blue-700">{component.workflowState}</Badge><Badge variant="outline" className="border-rose-100 bg-white text-[10px] text-rose-700">قفل النشر</Badge></div></div><p className="mt-2 text-xs leading-5 text-slate-600">{component.draftContentAr ?? "لا توجد حمولة مسودة بعد."}</p><p className="mt-2 text-[10px] font-bold text-slate-500">المصدر: {item.sourceTitle ?? "غير مكتمل"} · سجل {component.sourceId ?? "—"} · {component.contentStatus ?? "مسودة"}</p></article>)}</div></div>)}{!reviewQueueLoading && !reviewQueue?.length && <div className="p-10 text-center text-sm text-slate-500">لا توجد عناصر بانتظار المراجعة حاليًا.</div>}</div>
             </section>
 
             <section className="mt-6 rounded-[1.5rem] border border-dashed border-blue-200 bg-blue-50/60 p-6">
