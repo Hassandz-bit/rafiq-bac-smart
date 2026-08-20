@@ -91,7 +91,12 @@ export const appRouter = router({
   bac: router({
     start: protectedProcedure.input(z.object({ subjectId: z.number().int().positive() })).mutation(({ ctx, input }) => startBacSession(ctx.user.id, input.subjectId)),
     autosave: protectedProcedure.input(z.object({ sessionId: z.number().int().positive(), elapsedSeconds: z.number().int().min(0) })).mutation(({ ctx, input }) => autosaveBacSession({ userId: ctx.user.id, ...input })),
-    submit: protectedProcedure.input(z.object({ sessionId: z.number().int().positive(), elapsedSeconds: z.number().int().min(0), score: z.number().min(0).max(100), masteryAverage: z.number().min(0).max(100), incompleteLessons: z.number().int().min(0), remainingDays: z.number().int().min(0) })).mutation(({ ctx, input }) => submitBacSession({ userId: ctx.user.id, ...input })),
+    submit: protectedProcedure.input(z.object({ sessionId: z.number().int().positive(), elapsedSeconds: z.number().int().min(0), score: z.number().min(0).max(100), remainingDays: z.number().int().min(0).max(3650) })).mutation(async ({ ctx, input }) => {
+      const progress = await getStudentProgressSummary(ctx.user.id);
+      const masteryAverage = progress.mastery.length ? progress.mastery.reduce((total, record) => total + Number(record.score), 0) / progress.mastery.length : 0;
+      const incompleteLessons = progress.errors.length + progress.reviews.length;
+      return submitBacSession({ userId: ctx.user.id, ...input, masteryAverage, incompleteLessons });
+    }),
   }),
   progress: router({
     summary: protectedProcedure.query(({ ctx }) => getStudentProgressSummary(ctx.user.id)),

@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { bacSessions } from "../drizzle/schema";
-import { rescuePlanLevel } from "./bacRules";
+import { analyzeBacResult } from "./bacRules";
 import { getDb } from "./db";
 
 export async function startBacSession(userId: number, subjectId: number) {
@@ -27,9 +27,6 @@ export async function submitBacSession(input: { userId: number; sessionId: numbe
     .update(bacSessions)
     .set({ elapsedSeconds: Math.max(0, input.elapsedSeconds), score: String(Math.max(0, Math.min(100, input.score))), submittedAt: new Date(), status: "analyzed" })
     .where(and(eq(bacSessions.id, input.sessionId), eq(bacSessions.userId, input.userId), eq(bacSessions.status, "in_progress")));
-  return {
-    score: Math.max(0, Math.min(100, input.score)),
-    elapsedSeconds: Math.max(0, input.elapsedSeconds),
-    rescueLevel: rescuePlanLevel({ remainingDays: input.remainingDays, masteryAverage: input.masteryAverage, incompleteLessons: input.incompleteLessons }),
-  } as const;
+  const analysis = analyzeBacResult(input);
+  return { ...analysis, analysis } as const;
 }

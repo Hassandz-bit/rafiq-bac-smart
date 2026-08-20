@@ -14,7 +14,7 @@
 - [x] Implement the exercise engine covering MCQ, multi-select, true/false, fill, matching, ordering, numeric, math expression, and interactive-image structures.
 - [x] Implement graduated hints, paper-and-pen reveal flow, and error classification by subject.
 - [x] Implement the error notebook, mastery states, and spaced-review queue.
-- [ ] Implement BAC focus mode, results analysis model, and rescue-plan foundations without AI tutoring. (حفظ الجلسة موجود؛ يلزم ربط النتائج بمحتوى BAC منشور وقياسات الطالب الفعلية.)
+- [ ] Implement BAC focus mode, results analysis model, and rescue-plan foundations without AI tutoring. (النتائج والخطة جاهزتان؛ يلزم ربطهما بمحتوى BAC منشور ومعتمد عند توفره.)
 - [ ] Build Content Studio with curriculum management, source records, approval workflow, and a current-official-book upload intake. (سجل المصادر ورفع PDF الآمن جاهزان؛ يلزم CRUD الكامل وإجراءات المراجعة والنشر.)
 - [x] Add subscription architecture, plans, entitlement model, and free-unit support without payment processing.
 - [x] Add original scientific SVG visual assets and accessible annotations without importing unlicensed images.
@@ -108,3 +108,6 @@
 - [x] Add representative approved-exercise UI tests for the remaining answerDefinition-driven response types.
 - [x] Add an approved fill-exercise UI regression proving its answerDefinition placeholder is rendered instead of the generic fallback.
 - [x] Add live AssessmentLab UI regressions for approved multi-select, true/false, numeric, and math-expression answer definitions.
+- [x] Replace BAC Focus placeholder submission values with entered session results, progress-derived mastery, and an explicit transparent rescue-plan analysis.
+- [ ] Link BAC Focus scoring and rescue analysis to real approved published BAC session content once academic material is available.
+- [ ] Add an end-to-end BAC Focus regression for a completed published session that derives its result and rescue plan from saved responses and student progress.
