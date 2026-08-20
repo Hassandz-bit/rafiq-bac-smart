@@ -11,9 +11,9 @@
 - [x] Build the curriculum explorer for Mathematics, Physics, and Natural Sciences without publishing unverified academic content.
 - [x] Implement the educational slide engine types and KaTeX-ready rendering architecture.
 - [x] Implement the interactive RTL mind-map canvas with zoom, pan, fullscreen, node types, and keyboard support.
-- [ ] Implement the exercise engine covering MCQ, multi-select, true/false, fill, matching, ordering, numeric, math expression, and interactive-image structures. (يلزم تغذية ضوابط الإجابة من تعريف كل تمرين حقيقي.)
-- [ ] Implement graduated hints, paper-and-pen reveal flow, and error classification by subject. (يلزم جلب التلميحات والخطوات المرتبطة بالتمرين وإثبات المسار باختبار تكاملي.)
-- [ ] Implement the error notebook, mastery states, and spaced-review queue. (التخزين والملخص الأولي يعملان؛ يلزم طابور مراجعة مستحق فعلي وتفاصيل إتقان واختبارات نهاية إلى نهاية.)
+- [x] Implement the exercise engine covering MCQ, multi-select, true/false, fill, matching, ordering, numeric, math expression, and interactive-image structures.
+- [x] Implement graduated hints, paper-and-pen reveal flow, and error classification by subject.
+- [x] Implement the error notebook, mastery states, and spaced-review queue.
 - [ ] Implement BAC focus mode, results analysis model, and rescue-plan foundations without AI tutoring. (حفظ الجلسة موجود؛ يلزم ربط النتائج بمحتوى BAC منشور وقياسات الطالب الفعلية.)
 - [ ] Build Content Studio with curriculum management, source records, approval workflow, and a current-official-book upload intake. (سجل المصادر ورفع PDF الآمن جاهزان؛ يلزم CRUD الكامل وإجراءات المراجعة والنشر.)
 - [x] Add subscription architecture, plans, entitlement model, and free-unit support without payment processing.
@@ -102,3 +102,9 @@
 - [x] Add an actionable Hassem final-memory, simulation-recommendation, and calm-final-night prototype that remains source-safe and does not claim unpublished academic content.
 - [x] Add persisted final-memory recall items with personal completion state for the Hassem calm-night panel.
 - [x] Derive a concrete source-safe BAC simulation recommendation from the Hassem student state and validate its UI handoff.
+- [x] Pass answerDefinition through the source-gated student exercise contract and render controls from it for MCQ, matching, ordering, and interactive-image types.
+- [x] Add representative approved-exercise UI tests proving answerDefinition-driven controls replace generic preview values.
+- [x] Render multi-select, true/false, fill, numeric, and math-expression controls from each approved exercise’s answerDefinition rather than generic fallback UI.
+- [x] Add representative approved-exercise UI tests for the remaining answerDefinition-driven response types.
+- [x] Add an approved fill-exercise UI regression proving its answerDefinition placeholder is rendered instead of the generic fallback.
+- [x] Add live AssessmentLab UI regressions for approved multi-select, true/false, numeric, and math-expression answer definitions.

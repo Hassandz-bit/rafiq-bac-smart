@@ -1,5 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
-import { contentAssets, curriculumVersions, exercises, learningItemAssets, learningItems, lessons, sources, studentEntitlements, subjectSourceGates, subjects, units } from "../drizzle/schema";
+import { contentAssets, curriculumVersions, exerciseHints, exercises, learningItemAssets, learningItems, lessons, sources, studentEntitlements, subjectSourceGates, subjects, units } from "../drizzle/schema";
 import { getDb } from "./db";
 import { resolveUnitAccess } from "./entitlementRules";
 
@@ -95,6 +95,9 @@ export type StudentExercise = {
   subjectCode: string;
   type: string;
   prompt: unknown;
+  answerDefinition: unknown;
+  hints: string[];
+  revealSteps: string[];
   provenance: "official_current" | "user_approved_working_reference";
 };
 
@@ -221,6 +224,8 @@ export async function getStudentAccessibleExercises(userId: number): Promise<Stu
       subjectCode: subjects.code,
       type: exercises.type,
       prompt: exercises.prompt,
+      answerDefinition: exercises.answerDefinition,
+      solution: exercises.solution,
       workflowState: exercises.workflowState,
       sourceStatus: sources.verificationStatus,
       isInternalPilot: sources.isInternalPilot,
@@ -236,7 +241,32 @@ export async function getStudentAccessibleExercises(userId: number): Promise<Stu
     .innerJoin(subjectSourceGates, eq(subjectSourceGates.subjectId, subjects.id))
     .where(eq(exercises.workflowState, "published"))
     .limit(100);
-  return filterStudentAccessibleItems(rows, entitlements).map(row => ({ id: row.id, subjectCode: row.subjectCode, type: row.type, prompt: row.prompt, provenance: row.isUserApprovedWorkingReference ? "user_approved_working_reference" : "official_current" }));
+  const accessibleRows = filterStudentAccessibleItems(rows, entitlements);
+  return Promise.all(accessibleRows.map(async row => {
+    const hints = await db.select({ ordinal: exerciseHints.ordinal, body: exerciseHints.body }).from(exerciseHints).where(eq(exerciseHints.exerciseId, row.id)).orderBy(asc(exerciseHints.ordinal)).limit(3);
+    return {
+      id: row.id,
+      subjectCode: row.subjectCode,
+      type: row.type,
+      prompt: row.prompt,
+      answerDefinition: row.answerDefinition,
+      hints: hints.map(hint => textFromGuidance(hint.body)).filter((hint): hint is string => Boolean(hint)),
+      revealSteps: stepsFromSolution(row.solution),
+      provenance: row.isUserApprovedWorkingReference ? "user_approved_working_reference" : "official_current",
+    };
+  }));
+}
+
+function textFromGuidance(value: unknown): string | null {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && "textAr" in value && typeof (value as { textAr?: unknown }).textAr === "string") return (value as { textAr: string }).textAr;
+  if (value && typeof value === "object" && "bodyAr" in value && typeof (value as { bodyAr?: unknown }).bodyAr === "string") return (value as { bodyAr: string }).bodyAr;
+  return null;
+}
+
+function stepsFromSolution(solution: unknown): string[] {
+  if (!solution || typeof solution !== "object" || !("steps" in solution) || !Array.isArray((solution as { steps?: unknown }).steps)) return [];
+  return (solution as { steps: unknown[] }).steps.map(textFromGuidance).filter((step): step is string => Boolean(step)).slice(0, 20);
 }
 
 export async function getSourceRegistryForStudio() {
