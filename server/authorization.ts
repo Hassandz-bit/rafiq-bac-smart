@@ -21,16 +21,18 @@ export function canPublishContent(input: {
   role: AppRole;
   workflowState: WorkflowState;
   sourceStatus: SourceStatus | null;
+  isInternalPilot?: boolean;
   reviewerApproved: boolean;
 }) {
   return (
     canReviewContent(input.role) &&
     input.workflowState === "approved" &&
     input.sourceStatus === "current_official" &&
+    input.isInternalPilot !== true &&
     input.reviewerApproved
   );
 }
 
-export function sourceAllowsAcademicPublishing(status: SourceStatus | null) {
-  return status === "current_official";
+export function sourceAllowsAcademicPublishing(status: SourceStatus | null, isInternalPilot = false) {
+  return status === "current_official" && !isInternalPilot;
 }

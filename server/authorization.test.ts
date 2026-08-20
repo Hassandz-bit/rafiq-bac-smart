@@ -26,4 +26,17 @@ describe("مصفوفة الصلاحيات وبوابة المصدر", () => {
     ).toBe(false);
     expect(sourceAllowsAcademicPublishing("unverified")).toBe(false);
   });
+
+  it("يحظر نشر المصدر التجريبي الداخلي حتى لو تغيّرت حالة المصدر لاحقًا", () => {
+    expect(
+      canPublishContent({
+        role: "academic_reviewer",
+        workflowState: "approved",
+        sourceStatus: "current_official",
+        isInternalPilot: true,
+        reviewerApproved: true,
+      }),
+    ).toBe(false);
+    expect(sourceAllowsAcademicPublishing("current_official", true)).toBe(false);
+  });
 });

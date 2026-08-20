@@ -1,0 +1,1 @@
+ALTER TABLE `sources` ADD `isInternalPilot` boolean DEFAULT false NOT NULL;

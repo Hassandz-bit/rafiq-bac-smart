@@ -5,7 +5,7 @@ import { hasAnyRole, type AppRole } from "./authorization";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { getCurrentCurriculumOverview, getSourceRegistryForStudio } from "./curriculum";
+import { getCurrentCurriculumOverview, getSourceRegistryForStudio, getStudentPublishedLearningItems } from "./curriculum";
 import { setUserRole } from "./db";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -37,6 +37,9 @@ export const appRouter = router({
   }),
   curriculum: router({
     overview: publicProcedure.query(() => getCurrentCurriculumOverview()),
+    // This is the authenticated student-safe feed. Students consume it directly; staff may call the same
+    // restricted feed for preview, but it never returns drafts, internal pilots, or unverified sources.
+    studentLearningItems: protectedProcedure.query(() => getStudentPublishedLearningItems()),
   }),
   studio: router({
     sourceRegistry: contentStudioProcedure.query(() => getSourceRegistryForStudio()),

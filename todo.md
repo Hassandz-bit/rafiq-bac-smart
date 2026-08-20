@@ -26,3 +26,13 @@
 - [x] Download and analyze the five user-provided reference book copies without treating their hosting site as an official source.
 - [ ] Create Academic Source Packs for mathematics, physics, and natural sciences with bibliography, full table of contents, page ranges, concepts, skills, terminology, diagrams, and exercise types.
 - [x] Deliver a verification report identifying the actual edition, uncertainty, and suitability for Academic Pilots before inserting any full curriculum content.
+- [x] Register the approved working copies as internal-only pilot sources with current-edition confirmation still blocked.
+- [x] Create a non-published mathematics pilot for one source-traceable unit with an original concept card, formula card, guided example outline, mind-map nodes, and exercise specifications.
+- [x] Create non-published physics and natural-sciences pilots with original source-traceable learning structures and no copied book text or images.
+- [x] Verify that the source gate and review workflow prevent the Academic Pilots from being published to student routes.
+- [x] Add explicit internal-only pilot source fields and enforce them in source-gate publication checks.
+- [x] Wire internal-pilot and source-gate checks into student curriculum retrieval procedures.
+- [x] Add an integration test proving that student retrieval excludes internal pilot content even if its workflow state is approved.
+- [x] Add a router-level test for the student learning-items procedure and document its authenticated student-facing semantics.
+- [x] Restore the intended student dashboard route and verify it renders instead of the 404 screen.
+- [x] Verify the mathematics pilot mind-map nodes and edges, and add a regression check covering draft state, source tracing, and guided-example presence.

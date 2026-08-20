@@ -205,6 +205,7 @@ export const sources = mysqlTable(
     subjectId: int("subjectId").references(() => subjects.id),
     edition: varchar("edition", { length: 120 }),
     sourceVersion: varchar("sourceVersion", { length: 120 }),
+    isInternalPilot: boolean("isInternalPilot").default(false).notNull(),
     verificationStatus: mysqlEnum("verificationStatus", sourceStatusValues).default("unverified").notNull(),
     verificationDate: timestamp("verificationDate"),
     verificationNotes: text("verificationNotes"),
