@@ -8,6 +8,8 @@ import Home from "./pages/Home";
 import AssessmentLab from "./pages/AssessmentLab";
 import BacPage from "./pages/BacPage";
 import LearningLab from "./pages/LearningLab";
+import FreeDiagnostic from "./pages/FreeDiagnostic";
+import HassemPage from "./pages/HassemPage";
 import StudentHome from "./pages/StudentHome";
 import StudioPage from "./pages/StudioPage";
 import SubjectsPage from "./pages/SubjectsPage";
@@ -18,6 +20,8 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/diagnostic"} component={FreeDiagnostic} />
+      <Route path={"/hassem"} component={HassemPage} />
       <Route path={"/app"} component={StudentHome} />
       <Route path={"/student"} component={StudentHome} />
       <Route path={"/subjects"} component={SubjectsPage} />

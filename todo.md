@@ -55,3 +55,11 @@
 - [ ] Complete all six Batch 1 internal drafts before presenting any individual unit for review, then submit one consolidated academic review board.
 - [x] Move the six user-approved Batch 1 units to internal `in_review` while preserving the publication block and source-review requirement.
 - [x] Create a concise Arabic project-status report suitable for sharing with ChatGPT, including achievements, guards, current review state, and remaining work.
+- [ ] Produce complete original learning experiences for the six Batch 1 units while retaining `in_review`, source-review-required, and publication-blocked states.
+- [ ] Add original visual assets with unit, concept, source-reference, reviewer-status, and version metadata; include one meaningful interactive visual per physics/sciences unit.
+- [ ] Build Hasm MVP: entry, Batch-1 diagnostic, transparent priority score, adaptive plans, 10/20-minute sessions, BAC Sprint, simulation recommendations, and calm final-night prototype.
+- [ ] Build a no-sign-in free diagnostic and conversion funnel to the free experience, Season, or Hasm without personal-data storage before consent.
+- [ ] Complete product administration for pricing, subject combinations, access periods, active states, promotions, upgrades, and future local-payment abstraction without activating payment.
+- [ ] Extend automated coverage for Batch 1 access, unpublished hiding, Hasm priority/plans, Season-to-Hasm grants, free-diagnostic transfer, upgrades, and product administration.
+- [ ] Run student-account, RTL/mobile, accessibility, performance, production-build, backup/export, SHA/tag, and final phase QA without starting Batch 2.
+- [x] Fix the free-diagnostic mobile RTL overflow and verify the 390px experience remains fully visible and touch-friendly.
