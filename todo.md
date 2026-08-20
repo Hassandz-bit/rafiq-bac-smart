@@ -54,3 +54,4 @@
 - [ ] Produce a Batch 1 academic review board that lists every draft item, source reference, workflow state, and publication block.
 - [ ] Complete all six Batch 1 internal drafts before presenting any individual unit for review, then submit one consolidated academic review board.
 - [x] Move the six user-approved Batch 1 units to internal `in_review` while preserving the publication block and source-review requirement.
+- [x] Create a concise Arabic project-status report suitable for sharing with ChatGPT, including achievements, guards, current review state, and remaining work.
