@@ -20,6 +20,8 @@ const mockedReviewQueue = vi.hoisted(() => {
   }));
 });
 const mockedReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedSourceVerificationMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedSources = vi.hoisted(() => [{ id: 30001, documentTitle: "نسخة عمل الرياضيات", sourceAuthority: "نسخة عمل مرجعية", subjectNameAr: "الرياضيات", url: "https://example.edu/math", isUserApprovedWorkingReference: true, isInternalPilot: true, verificationStatus: "historical_official" as const, verificationNotes: "الطبعة المرجعية تحتاج تحققًا لاحقًا." }]);
 
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
@@ -28,12 +30,13 @@ vi.mock("wouter", () => ({ useLocation: () => ["/studio", vi.fn()] }));
 vi.mock("@/lib/trpc", () => ({
   trpc: {
     studio: {
-      sourceRegistry: { useQuery: () => ({ data: [], isLoading: false }) },
+      sourceRegistry: { useQuery: () => ({ data: mockedSources, isLoading: false }) },
       reviewQueue: { useQuery: () => ({ data: mockedReviewQueue, isLoading: false }) },
       reviewLearningItem: { useMutation: () => mockedReviewMutation },
+      updateSourceVerification: { useMutation: () => mockedSourceVerificationMutation },
     },
     curriculum: { overview: { useQuery: () => ({ data: { subjects: [] } }) } },
-    useUtils: () => ({ studio: { reviewQueue: { invalidate: vi.fn() } } }),
+    useUtils: () => ({ studio: { reviewQueue: { invalidate: vi.fn() }, sourceRegistry: { invalidate: vi.fn() } } }),
   },
 }));
 
@@ -51,6 +54,9 @@ describe("طابور مراجعة Content Studio", () => {
     expect(screen.getAllByText("قفل النشر")).toHaveLength(72);
     expect(screen.getAllByRole("button", { name: "اعتماد أكاديمي" })).toHaveLength(6);
     expect(screen.getAllByRole("button", { name: "إعادة للمسودة" })).toHaveLength(6);
+    expect(screen.getByText("تحقق المصدر")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "حفظ التحقق" })).toBeTruthy();
+    expect(screen.getByLabelText("ملاحظة نسخة عمل الرياضيات")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /نشر/i })).toBeNull();
   });
 });

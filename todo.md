@@ -46,13 +46,13 @@
 - [x] Add admin-configurable product definitions for الباقة التجريبية، باقة الموسم، وباقة الحسم with editable pricing, subject bundles, duration, and feature access.
 - [x] Seed the approved product configuration: free trial, season bundles (2900/4900/6900 DZD), and Hasm bundles (1200/2100/2900 DZD) without payment processing.
 - [ ] Implement automatic season-to-Hasm entitlement grants per enrolled subject and the subject-count upgrade rules. (قاعدة المنح والتخزين جاهزان؛ يلزم ربطهما بواجهة الإدارة والتحقق التشغيلي.)
-- [ ] Create Batch 1 source-traceable curriculum packages for two eligible units per subject, keeping source-review-required items unavailable for publication.
+- [x] Create Batch 1 source-traceable curriculum packages for two eligible units per subject, keeping source-review-required items unavailable for publication.
 - [ ] Build the Hasm entrance, short diagnostic, transparent priority engine, adaptive plan, final-memory cards, BAC sprint, simulation recommendations, and calm final-night experience.
 - [ ] Verify the production batch with academic QA, UI QA, exercise QA, mobile QA, and source-gate regression tests before any publication expansion.
 - [x] Define the exact two-unit internal Batch 1 scope per subject from the approved working-reference source packs.
 - [x] Create structured draft-only Batch 1 packages with objectives, prerequisites, diagnostics, maps, original slides, practice, quiz, BAC-style practice, errors, summary, quick review, and source links.
 - [x] Produce a Batch 1 academic review board that lists every draft item, source reference, workflow state, and publication block.
-- [ ] Complete all six Batch 1 internal drafts before presenting any individual unit for review, then submit one consolidated academic review board.
+- [x] Complete all six Batch 1 internal drafts before presenting any individual unit for review, then submit one consolidated academic review board.
 - [x] Move the six user-approved Batch 1 units to internal `in_review` while preserving the publication block and source-review requirement.
 - [x] Create a concise Arabic project-status report suitable for sharing with ChatGPT, including achievements, guards, current review state, and remaining work.
 - [ ] Produce complete original learning experiences for the six Batch 1 units while retaining `in_review`, source-review-required, and publication-blocked states.
@@ -111,3 +111,4 @@
 - [x] Replace BAC Focus placeholder submission values with entered session results, progress-derived mastery, and an explicit transparent rescue-plan analysis.
 - [ ] Link BAC Focus scoring and rescue analysis to real approved published BAC session content once academic material is available.
 - [ ] Add an end-to-end BAC Focus regression for a completed published session that derives its result and rescue plan from saved responses and student progress.
+- [x] Add an academic-reviewer-only source-verification note workflow that can update source evidence without publishing content or promoting an internal pilot.

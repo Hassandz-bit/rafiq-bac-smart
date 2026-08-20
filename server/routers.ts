@@ -17,6 +17,7 @@ import { completeHassemFocusSession, getLatestHassemFocusSession, startHassemFoc
 import { reviewLearningItem } from "./contentReview";
 import { getHassemPlanForStudent } from "./hassemStudentPlan";
 import { getHassemFinalMemory, toggleHassemFinalMemory } from "./hassemFinalMemory";
+import { updateSourceVerification } from "./sourceVerification";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -66,6 +67,13 @@ export const appRouter = router({
     reviewLearningItem: academicReviewerProcedure
       .input(z.object({ learningItemId: z.number().int().positive(), decision: z.enum(["approved", "changes_requested", "rejected"]), noteAr: z.string().trim().max(2000).optional() }))
       .mutation(({ ctx, input }) => reviewLearningItem({ reviewerUserId: ctx.user.id, role: ctx.user.role, ...input })),
+    updateSourceVerification: academicReviewerProcedure
+      .input(z.object({ sourceId: z.number().int().positive(), verificationStatus: z.enum(["unverified", "current_official", "official_but_version_unconfirmed", "historical_official"]), verificationNotes: z.string().trim().min(3).max(4000) }))
+      .mutation(async ({ ctx, input }) => {
+        const result = await updateSourceVerification({ ...input, reviewerUserId: ctx.user.id });
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "المصدر غير موجود." });
+        return result;
+      }),
   }),
   attempts: router({
     accessibleExercises: protectedProcedure.query(({ ctx }) => getStudentAccessibleExercises(ctx.user.id)),
