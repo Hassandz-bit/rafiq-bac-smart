@@ -9,6 +9,7 @@ import { getCurrentCurriculumOverview, getSourceRegistryForStudio, getStudentAcc
 import { setUserRole } from "./db";
 import { recordStudentAttempt } from "./studentAttempts";
 import { getPlanCatalog } from "./subscriptions";
+import { grantPlanAccess } from "./subscriptionGrants";
 import { autosaveBacSession, startBacSession, submitBacSession } from "./bacSessions";
 import { getStudentProgressSummary } from "./studentProgress";
 import { generateSmartAssessment } from "./smartAssessment";
@@ -83,6 +84,9 @@ export const appRouter = router({
   }),
   administration: router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
+    grantPlanAccess: adminOnlyProcedure
+      .input(z.object({ userId: z.number().int().positive(), planCode: z.enum(["season_one_subject", "season_two_subjects", "season_three_subjects", "hasm_one_subject", "hasm_two_subjects", "hasm_three_subjects"]), subjects: z.array(z.enum(["math", "physics", "natural_sciences"])).min(1).max(3), expiresAt: z.date().nullable().optional() }))
+      .mutation(({ input }) => grantPlanAccess(input)),
     setRole: adminOnlyProcedure
       .input(z.object({ userId: z.number().int().positive(), role: z.enum(["admin", "content_editor", "academic_reviewer", "student"]) }))
       .mutation(async ({ input }) => {

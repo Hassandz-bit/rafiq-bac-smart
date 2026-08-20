@@ -360,6 +360,21 @@ export const studentEntitlements = mysqlTable(
   table => ({ userEntitlementUnique: uniqueIndex("student_entitlement_unique").on(table.userId, table.entitlement) }),
 );
 
+export const studentPlanAssignments = mysqlTable(
+  "student_plan_assignments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    planId: int("planId").notNull().references(() => plans.id),
+    productTier: varchar("productTier", { length: 40 }).notNull(),
+    selectedSubjects: json("selectedSubjects").notNull(),
+    isActive: boolean("isActive").default(true).notNull(),
+    assignedAt: timestamp("assignedAt").defaultNow().notNull(),
+    expiresAt: timestamp("expiresAt"),
+  },
+  table => ({ userTierActiveIndex: index("student_plan_assignment_user_tier_index").on(table.userId, table.productTier, table.isActive) }),
+);
+
 export const plans = mysqlTable("plans", {
   id: int("id").autoincrement().primaryKey(),
   code: varchar("code", { length: 80 }).notNull().unique(),
