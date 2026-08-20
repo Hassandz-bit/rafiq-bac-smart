@@ -63,3 +63,5 @@
 - [ ] Extend automated coverage for Batch 1 access, unpublished hiding, Hasm priority/plans, Season-to-Hasm grants, free-diagnostic transfer, upgrades, and product administration.
 - [ ] Run student-account, RTL/mobile, accessibility, performance, production-build, backup/export, SHA/tag, and final phase QA without starting Batch 2.
 - [x] Fix the free-diagnostic mobile RTL overflow and verify the 390px experience remains fully visible and touch-friendly.
+- [x] Assemble a unified internal visual-review board for all Batch 1 visual assets, including unit, concept, source linkage, reviewer status, version, and publication block.
+- [ ] Verify that every visual asset remains original, source-traceable, and unavailable to student publication pending academic review.
