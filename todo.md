@@ -23,3 +23,6 @@
 - [x] Implement an explicit four-role route access matrix with distinct Admin, Content Editor, Academic Reviewer, and Student destinations, plus forbidden-access tests.
 - [x] Add a dedicated «نقطة تحتاج اهتمامًا» insight card to the student home, driven by academic-source gate or learning-progress data.
 - [x] Create and connect a private GitHub repository for durable source control and recovery.
+- [x] Download and analyze the five user-provided reference book copies without treating their hosting site as an official source.
+- [ ] Create Academic Source Packs for mathematics, physics, and natural sciences with bibliography, full table of contents, page ranges, concepts, skills, terminology, diagrams, and exercise types.
+- [x] Deliver a verification report identifying the actual edition, uncertainty, and suitability for Academic Pilots before inserting any full curriculum content.
