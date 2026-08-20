@@ -113,3 +113,4 @@
 - [ ] Add an end-to-end BAC Focus regression for a completed published session that derives its result and rescue plan from saved responses and student progress.
 - [x] Add an academic-reviewer-only source-verification note workflow that can update source evidence without publishing content or promoting an internal pilot.
 - [x] Add two reviewed-only interactive visual prototypes for nuclear transformations and protein structure-function, with persisted internal metadata and no student route exposure.
+- [x] Fix the 390px RTL overflow on protected BAC Focus and Assessment access-gate screens and re-verify their mobile layouts.
