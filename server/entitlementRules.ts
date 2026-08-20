@@ -1,4 +1,13 @@
 export const subjectEntitlements = { math: "subject:math:access", physics: "subject:physics:access", natural_sciences: "subject:science:access" } as const;
+export const hasmEntitlements = { math: "hasm:math", physics: "hasm:physics", natural_sciences: "hasm:natural_sciences" } as const;
+
+export function grantHasmFromSeason(entitlements: string[]) {
+  const grants: string[] = [];
+  (Object.keys(subjectEntitlements) as Array<keyof typeof subjectEntitlements>).forEach(subject => {
+    if (entitlements.includes(subjectEntitlements[subject])) grants.push(hasmEntitlements[subject]);
+  });
+  return grants;
+}
 export function canAccessSubject(input: { subject: keyof typeof subjectEntitlements; entitlements: string[]; hasFreeUnit: boolean }) {
   return input.hasFreeUnit || input.entitlements.includes(subjectEntitlements[input.subject]);
 }
