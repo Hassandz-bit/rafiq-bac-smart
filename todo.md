@@ -52,3 +52,5 @@
 - [x] Define the exact two-unit internal Batch 1 scope per subject from the approved working-reference source packs.
 - [ ] Create structured draft-only Batch 1 packages with objectives, prerequisites, diagnostics, maps, original slides, practice, quiz, BAC-style practice, errors, summary, quick review, and source links.
 - [ ] Produce a Batch 1 academic review board that lists every draft item, source reference, workflow state, and publication block.
+- [ ] Complete all six Batch 1 internal drafts before presenting any individual unit for review, then submit one consolidated academic review board.
+- [x] Move the six user-approved Batch 1 units to internal `in_review` while preserving the publication block and source-review requirement.
