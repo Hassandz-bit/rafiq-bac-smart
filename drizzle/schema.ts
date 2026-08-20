@@ -484,6 +484,21 @@ export const bacSessions = mysqlTable("bac_sessions", {
   status: mysqlEnum("status", ["in_progress", "submitted", "analyzed"]).default("in_progress").notNull(),
 });
 
+export const hassemFinalMemoryItems = mysqlTable(
+  "hassem_final_memory_items",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    memoryKey: varchar("memoryKey", { length: 40 }).notNull(),
+    titleAr: varchar("titleAr", { length: 160 }).notNull(),
+    promptAr: text("promptAr").notNull(),
+    completedAt: timestamp("completedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({ userMemoryUnique: uniqueIndex("hassem_final_memory_user_key_unique").on(table.userId, table.memoryKey) }),
+);
+
 export const contentReviews = mysqlTable(
   "content_reviews",
   {

@@ -8,15 +8,17 @@ const navigate = vi.fn();
 const startSession = vi.fn();
 const completeSession = vi.fn();
 const completeReview = vi.fn();
+const toggleFinalMemory = vi.fn();
 let progressData: { reviews: Array<{ id: number; reason: string; dueAt: Date }>; errors: []; mastery: [] } | undefined;
 let latestSession: { id: number; durationMinutes: number; status: string } | null = null;
 let startError: Error | null = null;
 let completionError: Error | null = null;
 let hassemPriorities = [{ unitId: 1, unitTitleAr: "الرياضيات", state: "priority" as const, explanationAr: "الإتقان 32% · الأخطاء المتكررة 3 · المراجعات المستحقة 2 · الضغط الزمني محسوب على 20 يومًا.", nextActionAr: "ابدأ بمراجعة خطأ متكرر ثم جلسة حسم قصيرة." }];
+let finalMemoryItems = [{ id: 501, titleAr: "بطاقاتك الشخصية", promptAr: "استرجع ثلاث أفكار كتبتها أنت.", completedAt: null }];
 
 vi.mock("wouter", () => ({ useLocation: () => ["/hassem", navigate] }));
 vi.mock("@/lib/trpc", () => ({
-  trpc: { useUtils: () => ({ progress: { summary: { invalidate: vi.fn() } }, hassem: { plan: { invalidate: vi.fn() }, latestSession: { invalidate: vi.fn() } } }), progress: { summary: { useQuery: () => ({ data: progressData, isLoading: false }) }, completeReview: { useMutation: () => ({ mutate: completeReview, isPending: false, error: null }) } }, hassem: { plan: { useQuery: ({ availableDays }: { availableDays: number }) => ({ data: { availableDays, priorities: hassemPriorities }, isLoading: false }) }, latestSession: { useQuery: () => ({ data: latestSession }) }, startSession: { useMutation: () => ({ mutate: startSession, isPending: false, error: startError }) }, completeSession: { useMutation: () => ({ mutate: completeSession, isPending: false, error: completionError }) } } },
+  trpc: { useUtils: () => ({ progress: { summary: { invalidate: vi.fn() } }, hassem: { plan: { invalidate: vi.fn() }, finalMemory: { invalidate: vi.fn() }, latestSession: { invalidate: vi.fn() } } }), progress: { summary: { useQuery: () => ({ data: progressData, isLoading: false }) }, completeReview: { useMutation: () => ({ mutate: completeReview, isPending: false, error: null }) } }, hassem: { plan: { useQuery: ({ availableDays }: { availableDays: number }) => ({ data: { availableDays, priorities: hassemPriorities }, isLoading: false }) }, finalMemory: { useQuery: () => ({ data: finalMemoryItems, isLoading: false }) }, toggleFinalMemory: { useMutation: () => ({ mutate: toggleFinalMemory, isPending: false }) }, latestSession: { useQuery: () => ({ data: latestSession }) }, startSession: { useMutation: () => ({ mutate: startSession, isPending: false, error: startError }) }, completeSession: { useMutation: () => ({ mutate: completeSession, isPending: false, error: completionError }) } } },
 }));
 
 afterEach(() => {
@@ -25,11 +27,13 @@ afterEach(() => {
   startSession.mockReset();
   completeSession.mockReset();
   completeReview.mockReset();
+  toggleFinalMemory.mockReset();
   progressData = undefined;
   latestSession = null;
   startError = null;
   completionError = null;
   hassemPriorities = [{ unitId: 1, unitTitleAr: "الرياضيات", state: "priority", explanationAr: "الإتقان 32% · الأخطاء المتكررة 3 · المراجعات المستحقة 2 · الضغط الزمني محسوب على 20 يومًا.", nextActionAr: "ابدأ بمراجعة خطأ متكرر ثم جلسة حسم قصيرة." }];
+  finalMemoryItems = [{ id: 501, titleAr: "بطاقاتك الشخصية", promptAr: "استرجع ثلاث أفكار كتبتها أنت.", completedAt: null }];
 });
 
 describe("Hassem diagnostic handoff", () => {
@@ -116,5 +120,17 @@ describe("Hassem diagnostic handoff", () => {
     expect(screen.getByText("ابدأ بمراجعة خطأ متكرر ثم جلسة حسم قصيرة.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "10 يومًا" }));
     expect(screen.getByText("الأيام المتبقية:").parentElement?.textContent).toContain("10");
+  });
+
+  it("يفتح قائمة الليلة الهادئة ويحفظ بطاقة ذاكرة شخصية ويوجه محاكاة مشتقة من الأولوية", () => {
+    progressData = { reviews: [], errors: [], mastery: [] };
+    render(<HassemPage />);
+    fireEvent.click(screen.getByRole("button", { name: "افتح قائمة هادئة" }));
+    expect(screen.getByText("ثبّت، لا تفتح جديدًا.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /بطاقاتك الشخصية/ }));
+    expect(toggleFinalMemory).toHaveBeenCalledWith({ itemId: 501 });
+    expect(screen.getByText(/ابدأ محاكاة BAC قصيرة بعد تثبيت الرياضيات/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "ابدأ محاكاة مقترحة" }));
+    expect(navigate).toHaveBeenCalledWith("/bac");
   });
 });

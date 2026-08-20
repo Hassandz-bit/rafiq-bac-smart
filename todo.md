@@ -99,3 +99,6 @@
 - [x] Add a regression scenario that refreshes the progress queue after completing the final due review and proves the Hassem diagnostic CTA unlocks.
 - [x] Add protected-router coverage for progress.completeReview ownership.
 - [x] Add a cross-contract integration test that completes the final review and proves the refreshed Hassem sequence unlocks the diagnostic after the protected mutation.
+- [x] Add an actionable Hassem final-memory, simulation-recommendation, and calm-final-night prototype that remains source-safe and does not claim unpublished academic content.
+- [x] Add persisted final-memory recall items with personal completion state for the Hassem calm-night panel.
+- [x] Derive a concrete source-safe BAC simulation recommendation from the Hassem student state and validate its UI handoff.
