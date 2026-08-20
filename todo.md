@@ -1,7 +1,7 @@
 # Project TODO
 
 - [x] Establish project documentation: PRD, architecture, sitemap, design system, and recovery plan.
-- [ ] Add a Git remote repository and document a reproducible recovery path.
+- [x] Add a Git remote repository and document a reproducible recovery path.
 - [x] Define a versioned 2026–2027 curriculum data model for subjects, units, lessons, concepts, skills, prerequisites, and dependencies.
 - [x] Define the official source registry with authority, URL, publication metadata, academic year, verification state, and source gate.
 - [x] Create database migrations for curriculum, sources, learning content, assessments, learning progress, subscriptions, and content workflow.
@@ -22,3 +22,4 @@
 - [ ] Validate RTL/mobile/accessibility/build quality, create a recovery drill record, and capture the final checkpoint.
 - [x] Implement an explicit four-role route access matrix with distinct Admin, Content Editor, Academic Reviewer, and Student destinations, plus forbidden-access tests.
 - [x] Add a dedicated «نقطة تحتاج اهتمامًا» insight card to the student home, driven by academic-source gate or learning-progress data.
+- [x] Create and connect a private GitHub repository for durable source control and recovery.
