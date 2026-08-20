@@ -68,3 +68,13 @@
 - [ ] Enforce visual-asset publication through the parent learning-record gate and prove with automated tests that internal-review assets never reach student retrieval. (يلزم اختبار تكاملي غير محاكى.)
 - [ ] Persist the four Batch 1 visual assets as source-linked internal-review records and verify that student retrieval excludes them. (يلزم تحقق من ناتج التغذية الآمنة على البيانات الفعلية.)
 - [ ] Add a protected student-safe visual-asset procedure and end-to-end test proving the four persisted in-review Batch 1 assets are excluded. (الإجراء موجود؛ يلزم استدعاء تكاملي للبيانات المثبتة.)
+- [x] Prioritize a student’s due review queue in the Hassem daily sequence before any BAC diagnostic action.
+- [x] Present the BAC short diagnostic as the next unlocked Hassem action after due reviews are completed or unavailable.
+- [x] Add regression coverage for the review-first, diagnostic-second Hassem decision order.
+- [x] Prioritize a student’s due review queue in the Hassem daily sequence before any BAC diagnostic action.
+- [x] Present the BAC short diagnostic as the next unlocked Hassem action after due reviews are completed or unavailable.
+- [x] Add regression coverage for the review-first, diagnostic-second Hassem decision order.
+- [x] Wire the Hassem BAC diagnostic CTA to the real diagnostic flow and prove its handoff unlocks only when due reviews are absent or completed.
+- [x] Add a component-level Hassem handoff test and a BAC-specific short-diagnostic destination for the unlocked CTA.
+- [x] Fix the 390px mobile overflow on the dedicated Hassem BAC diagnostic screen and re-verify its RTL layout.
+- [x] Record inspectable 360px/390px/430px mobile QA evidence for the Hassem diagnostic and add a responsive regression guard.

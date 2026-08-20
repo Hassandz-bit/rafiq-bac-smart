@@ -10,6 +10,7 @@ import BacPage from "./pages/BacPage";
 import LearningLab from "./pages/LearningLab";
 import FreeDiagnostic from "./pages/FreeDiagnostic";
 import HassemPage from "./pages/HassemPage";
+import HassemDiagnostic from "./pages/HassemDiagnostic";
 import StudentHome from "./pages/StudentHome";
 import StudioPage from "./pages/StudioPage";
 import SubjectsPage from "./pages/SubjectsPage";
@@ -21,6 +22,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/diagnostic"} component={FreeDiagnostic} />
+      <Route path={"/hassem/diagnostic"} component={HassemDiagnostic} />
       <Route path={"/hassem"} component={HassemPage} />
       <Route path={"/app"} component={StudentHome} />
       <Route path={"/student"} component={StudentHome} />
