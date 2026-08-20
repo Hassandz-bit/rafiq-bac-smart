@@ -64,7 +64,7 @@ export async function getStudioReviewQueue() {
     .limit(100);
   const componentRows = rows.filter(row => (row.body as { draftComponent?: boolean } | null)?.draftComponent === true);
   return rows.filter(row => row.type === "batch_review_package").map(row => {
-    const body = row.body as { publicationBlocked?: boolean; sourceReviewRequired?: boolean; reviewComponentState?: string } | null;
+    const body = row.body as { publicationBlocked?: boolean; sourceReviewRequired?: boolean; reviewComponentState?: string; unitSpecificFocus?: string } | null;
     const reviewComponents = componentRows
       .filter(component => (component.body as { parentPackageId?: number } | null)?.parentPackageId === row.id)
       .map(component => {
@@ -76,6 +76,7 @@ export async function getStudioReviewQueue() {
       publicationBlocked: body?.publicationBlocked === true,
       sourceReviewRequired: body?.sourceReviewRequired === true,
       reviewComponentState: body?.reviewComponentState ?? null,
+      unitSpecificFocus: body?.unitSpecificFocus ?? null,
       reviewComponents,
     };
   });
