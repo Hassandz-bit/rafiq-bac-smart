@@ -64,7 +64,7 @@
 - [ ] Run student-account, RTL/mobile, accessibility, performance, production-build, backup/export, SHA/tag, and final phase QA without starting Batch 2.
 - [x] Fix the free-diagnostic mobile RTL overflow and verify the 390px experience remains fully visible and touch-friendly.
 - [x] Assemble a unified internal visual-review board for all Batch 1 visual assets, including unit, concept, source linkage, reviewer status, version, and publication block.
-- [ ] Verify that every visual asset remains original, source-traceable, and unavailable to student publication pending academic review. (يلزم تسجيل تحقق مباشر من تغذية الطالب الفعلية.)
+- [x] Verify that every visual asset remains original, source-traceable, and unavailable to student publication pending academic review.
 - [x] Enforce visual-asset publication through the parent learning-record gate and prove with automated tests that internal-review assets never reach student retrieval.
 - [x] Persist the four Batch 1 visual assets as source-linked internal-review records and verify that student retrieval excludes them.
 - [x] Add a protected student-safe visual-asset procedure and end-to-end test proving the four persisted in-review Batch 1 assets are excluded.
