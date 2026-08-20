@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { canRevealSolution, gradeExercise, nextHintIndex } from "./exerciseEngine";
 import { errorTypesForSubject } from "./errorClassification";
-import { canAccessSubject } from "./entitlementRules";
+import { canAccessSubject, resolveUnitAccess, subscriptionPlans } from "./entitlementRules";
 import { canTransitionContent } from "./workflowRules";
 
 describe("محرك التمرين والتعلم", () => {
@@ -17,6 +17,9 @@ describe("محرك التمرين والتعلم", () => {
   it("يفصل أنواع الخطأ حسب المادة ويطبق الوصول المجاني", () => {
     expect(errorTypesForSubject("physics")).toContain("unit_conversion");
     expect(canAccessSubject({ subject: "math", entitlements: [], hasFreeUnit: true })).toBe(true);
+    expect(resolveUnitAccess({ subject: "physics", entitlements: [], isFreeUnit: false })).toEqual({ allowed: false, reason: "subscription_required" });
+    expect(resolveUnitAccess({ subject: "natural_sciences", entitlements: [], isFreeUnit: true })).toEqual({ allowed: true, reason: "free_unit" });
+    expect(subscriptionPlans.three_subjects.subjectCount).toBe(3);
   });
   it("يمنع النشر عند غياب المصدر الحالي", () => {
     expect(canTransitionContent({ role: "academic_reviewer", from: "approved", to: "published", sourceStatus: "official_but_version_unconfirmed", reviewerApproved: true })).toBe(false);

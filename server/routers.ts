@@ -7,6 +7,8 @@ import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { getCurrentCurriculumOverview, getSourceRegistryForStudio, getStudentPublishedLearningItems } from "./curriculum";
 import { setUserRole } from "./db";
+import { recordStudentAttempt } from "./studentAttempts";
+import { getPlanCatalog } from "./subscriptions";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -39,12 +41,32 @@ export const appRouter = router({
     overview: publicProcedure.query(() => getCurrentCurriculumOverview()),
     // This is the authenticated student-safe feed. Students consume it directly; staff may call the same
     // restricted feed for preview, but it never returns drafts, internal pilots, or unverified sources.
-    studentLearningItems: protectedProcedure.query(() => getStudentPublishedLearningItems()),
+    studentLearningItems: protectedProcedure.query(({ ctx }) => getStudentPublishedLearningItems(ctx.user.id)),
   }),
   studio: router({
     sourceRegistry: contentStudioProcedure.query(() => getSourceRegistryForStudio()),
   }),
+  attempts: router({
+    submit: protectedProcedure
+      .input(
+        z.object({
+          exerciseId: z.number().int().positive(),
+          answerPayload: z.union([z.string(), z.number(), z.boolean(), z.array(z.union([z.string(), z.number(), z.boolean()]))]),
+          hintsUsed: z.number().int().min(0).max(3),
+          durationSeconds: z.number().int().min(0).max(24 * 60 * 60),
+          errorType: z.string().min(1).max(80).optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const result = await recordStudentAttempt({ userId: ctx.user.id, ...input, answerPayload: input.answerPayload as import("./exerciseEngine").ExerciseAnswer });
+        if (!result) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "التمرين غير متاح لحساب الطالب أو ما زال قيد المراجعة." });
+        }
+        return result;
+      }),
+  }),
   administration: router({
+    planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
     setRole: adminOnlyProcedure
       .input(z.object({ userId: z.number().int().positive(), role: z.enum(["admin", "content_editor", "academic_reviewer", "student"]) }))
       .mutation(async ({ input }) => {

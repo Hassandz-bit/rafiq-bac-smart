@@ -29,6 +29,13 @@
       "when": 1787226320181,
       "tag": "0003_normal_war_machine",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1787227543597,
+      "tag": "0004_clumsy_george_stacy",
+      "breakpoints": true
     }
   ]
 }

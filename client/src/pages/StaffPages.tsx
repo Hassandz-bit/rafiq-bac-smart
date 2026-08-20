@@ -2,12 +2,21 @@ import { BrandMark } from "@/components/BrandMark";
 import { RoleGate } from "@/components/RoleGate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";
 import { ClipboardPenLine, FilePenLine, ShieldCheck, UsersRound } from "lucide-react";
 import { useLocation } from "wouter";
 
 export function EditorPage() { return <StaffWorkspace allowed={["admin", "content_editor"]} eyebrow="مساحة المحرر" title="حرّر المحتوى، ولا تتجاوز المراجعة." description="ينشئ المحرر العناصر في Draft ويرسلها للمراجعة، لكنه لا يملك مسار النشر النهائي." icon={FilePenLine} action="إنشاء مسودة" />; }
 export function ReviewerPage() { return <StaffWorkspace allowed={["admin", "academic_reviewer"]} eyebrow="المراجعة الأكاديمية" title="اعتماد بشري قبل أي نشر." description="تتحقق المراجعة من المصدر الحالي، مطابقة المنهج، وصلاحية المحتوى قبل القرار الأكاديمي." icon={ClipboardPenLine} action="فتح طابور المراجعة" />; }
-export function AdminPage() { return <StaffWorkspace allowed={["admin"]} eyebrow="إدارة المنصة" title="الحوكمة والصلاحيات في يدك." description="يدير المدير الأدوار والسياسات وسجل المصادر والخطط، مع حظر أي تجاوز لحارس المصدر." icon={UsersRound} action="إدارة الأدوار" />; }
+export function AdminPage() {
+  return <RoleGate allowed={["admin"]} title="إدارة المنصة محمية"><AdminContent /></RoleGate>;
+}
+
+function AdminContent() {
+  const [, setLocation] = useLocation();
+  const { data: plans, isLoading } = trpc.administration.planCatalog.useQuery();
+  return <div className="min-h-screen bg-[#f6f8ff]" dir="rtl"><header className="flex h-20 items-center justify-between border-b border-slate-200/70 bg-white px-5 sm:px-8"><BrandMark /><Button variant="outline" onClick={() => setLocation("/studio")} className="rounded-xl font-bold">العودة إلى الاستوديو</Button></header><main className="mx-auto max-w-5xl p-5 sm:p-8"><section className="soft-panel p-7 sm:p-10"><p className="section-kicker">إدارة المنصة</p><h1 className="mt-2 text-3xl font-black text-slate-950">الاشتراكات جاهزة كهيكل وصول.</h1><p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">لا توجد بوابة دفع أو تسعير فعّال. تعرض هذه الصفحة حزم الوصول وقواعدها للمراجعة الإدارية فقط، بينما تبقى الوحدة المجانية متاحة وفق حقل المنهج.</p><Badge className="mt-5 border-0 bg-emerald-50 px-3 py-2 text-emerald-700 hover:bg-emerald-50">لا توجد عمليات دفع أو تحصيل</Badge></section><section className="mt-6 grid gap-4 md:grid-cols-3">{isLoading ? <div className="soft-panel p-5 text-sm text-slate-500">جارٍ تحميل الخطط…</div> : plans?.map(plan => <div key={plan.id} className="soft-panel p-5"><p className="text-xs font-bold text-slate-500">{plan.code}</p><h2 className="mt-3 font-black text-slate-950">{plan.nameAr}</h2><p className="mt-2 text-xs text-slate-500">{plan.entitlements.length} صلاحيات مادة · {plan.isActive ? "مفعّلة" : "موقوفة"}</p><div className="mt-4 flex flex-wrap gap-2">{plan.entitlements.map(item => <Badge key={item} variant="outline" className="border-blue-100 bg-blue-50 text-blue-700">{item}</Badge>)}</div></div>)}</section><section className="mt-6 rounded-[1.5rem] border border-emerald-100 bg-emerald-50 p-6"><div className="flex gap-3"><ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600"/><p className="text-sm leading-6 text-emerald-900">تقرر طبقة الوصول بين «وحدة مجانية» و«مادة مشمولة بالاستحقاق» قبل إعادة أي محتوى منشور. لا يغير المدير صلاحيات طالب من هذه النسخة؛ إذ يتطلب ذلك مسارًا تشغيليًا منفصلًا ومدققًا.</p></div></section></main></div>;
+}
 
 function StaffWorkspace({ allowed, eyebrow, title, description, icon: Icon, action }: { allowed: Array<"admin" | "content_editor" | "academic_reviewer">; eyebrow: string; title: string; description: string; icon: typeof FilePenLine; action: string }) {
   const [, setLocation] = useLocation();

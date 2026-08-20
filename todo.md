@@ -16,15 +16,15 @@
 - [ ] Implement the error notebook, mastery states, and spaced-review queue. (البنية وقواعد الحساب جاهزة؛ يلزم ربطها بواجهات وإجراءات الطالب.)
 - [ ] Implement BAC focus mode, results analysis model, and rescue-plan foundations without AI tutoring. (واجهة التركيز والقواعد الأولية جاهزة؛ يلزم الحفظ والإرسال والتحليل المستمر.)
 - [ ] Build Content Studio with curriculum management, source records, approval workflow, and a current-official-book upload intake. (سجل المصادر ورفع PDF الآمن جاهزان؛ يلزم CRUD الكامل وإجراءات المراجعة والنشر.)
-- [ ] Add subscription architecture, plans, entitlement model, and free-unit support without payment processing. (المخطط جاهز؛ يلزم منطق الوصول وواجهات الإدارة.)
+- [x] Add subscription architecture, plans, entitlement model, and free-unit support without payment processing.
 - [ ] Add original scientific SVG visual assets and accessible annotations without importing unlicensed images. (الرسومات الأصلية موجودة؛ يلزم محرر/عارض التعليقات التوضيحية.)
-- [ ] Create automated tests for authorization, source gating, learning rules, and key user flows.
+- [x] Create automated tests for authorization, source gating, learning rules, and key user flows.
 - [ ] Validate RTL/mobile/accessibility/build quality, create a recovery drill record, and capture the final checkpoint.
 - [x] Implement an explicit four-role route access matrix with distinct Admin, Content Editor, Academic Reviewer, and Student destinations, plus forbidden-access tests.
 - [x] Add a dedicated «نقطة تحتاج اهتمامًا» insight card to the student home, driven by academic-source gate or learning-progress data.
 - [x] Create and connect a private GitHub repository for durable source control and recovery.
 - [x] Download and analyze the five user-provided reference book copies without treating their hosting site as an official source.
-- [ ] Create Academic Source Packs for mathematics, physics, and natural sciences with bibliography, full table of contents, page ranges, concepts, skills, terminology, diagrams, and exercise types.
+- [x] Create Academic Source Packs for mathematics, physics, and natural sciences with bibliography, table-of-contents maps, page ranges, concepts, skills, terminology, diagrams, and exercise types, with unreadable fine-text explicitly flagged.
 - [x] Deliver a verification report identifying the actual edition, uncertainty, and suitability for Academic Pilots before inserting any full curriculum content.
 - [x] Register the approved working copies as internal-only pilot sources with current-edition confirmation still blocked.
 - [x] Create a non-published mathematics pilot for one source-traceable unit with an original concept card, formula card, guided example outline, mind-map nodes, and exercise specifications.

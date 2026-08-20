@@ -100,6 +100,7 @@ export const units = mysqlTable(
     titleAr: varchar("titleAr", { length: 220 }).notNull(),
     summaryAr: text("summaryAr"),
     sortOrder: int("sortOrder").default(0).notNull(),
+    isFreeUnit: boolean("isFreeUnit").default(false).notNull(),
     workflowState: mysqlEnum("workflowState", workflowValues).default("draft").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

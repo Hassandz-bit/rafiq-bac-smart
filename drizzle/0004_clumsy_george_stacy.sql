@@ -1,0 +1,1 @@
+ALTER TABLE `units` ADD `isFreeUnit` boolean DEFAULT false NOT NULL;

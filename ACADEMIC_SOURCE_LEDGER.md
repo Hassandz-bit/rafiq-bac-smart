@@ -39,3 +39,9 @@ Each document must be inspected for cover, title, level, stream, authorship, Min
 ## Mathematics table-of-contents evidence
 
 The visual table of contents on pages 3–4 of M1 confirms the full eight-topic sequence captured in the source-analysis record: limits and continuity (p. 5), differentiability (p. 39), exponential and logarithmic functions (p. 75), comparative growth (p. 119), antiderivatives (p. 145), integral calculus (p. 165), conditional probabilities (p. 199), and probability laws (p. 231). It also confirms the recurring learning pattern—activities, lesson and methods, directed work, BAC preparation, exercises, and self-check—throughout the volume.
+
+## Additional physics opening-page evidence
+
+Pages 4–5 of P1 describe the repeated instructional architecture of a unit rather than a table of contents. The visually readable components are prior knowledge, unit entry, preparatory activities, lesson, experiment and exploration, media technology, conclusion, self-assessment, solved exercises, exercises, BAC-oriented practice, and correction. This supports the platform’s content-template taxonomy but does not fill the still-missing detailed titles for physics units 1–2.
+
+The table-of-contents material visible on pages 6–7 completes the initial two physics units: **Unit 1: تطور كميات المتفاعلات والنواتج خلال تحول كيميائي في محلول مائي** (starts p. 10) and **Unit 2: التحولات النووية** (starts p. 66). The readable subtopics cover reaction duration and progress, concentration and temperature factors, and for the nuclear unit: nuclear stability, radioactive activity and decay, nuclear reactions, fission and fusion. Page 7 confirms **Unit 3: دراسة ظواهر كهربائية** and its RC/RL sections, making the P1 unit sequence 1–3 visually traceable.

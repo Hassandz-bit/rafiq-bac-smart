@@ -1,6 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
-import { curriculumVersions, learningItems, lessons, sources, subjectSourceGates, subjects, units } from "../drizzle/schema";
+import { curriculumVersions, learningItems, lessons, sources, studentEntitlements, subjectSourceGates, subjects, units } from "../drizzle/schema";
 import { getDb } from "./db";
+import { resolveUnitAccess } from "./entitlementRules";
 
 const CURRENT_CURRICULUM_CODE = "BAC_2027_SCIENCES_EXPERIMENTALES";
 
@@ -67,9 +68,25 @@ export function filterStudentVisibleItems<
   );
 }
 
-export async function getStudentPublishedLearningItems(): Promise<StudentLearningItem[]> {
+export function filterStudentAccessibleItems<
+  T extends { workflowState: string; sourceStatus: string | null; isInternalPilot: boolean | null; sourceGate: string | null; subjectCode: string; isFreeUnit: boolean },
+>(items: T[], entitlements: string[]) {
+  return filterStudentVisibleItems(items).filter(item => {
+    if (item.subjectCode !== "math" && item.subjectCode !== "physics" && item.subjectCode !== "natural_sciences") return false;
+    return resolveUnitAccess({ subject: item.subjectCode, entitlements, isFreeUnit: item.isFreeUnit }).allowed;
+  });
+}
+
+export async function getStudentPublishedLearningItems(userId: number): Promise<StudentLearningItem[]> {
   const db = await getDb();
   if (!db) return [];
+
+  const entitlementRows = await db
+    .select({ entitlement: studentEntitlements.entitlement })
+    .from(studentEntitlements)
+    .where(eq(studentEntitlements.userId, userId))
+    .limit(100);
+  const entitlements = entitlementRows.map(row => row.entitlement);
 
   const rows = await db
     .select({
@@ -81,6 +98,7 @@ export async function getStudentPublishedLearningItems(): Promise<StudentLearnin
       sourceStatus: sources.verificationStatus,
       isInternalPilot: sources.isInternalPilot,
       sourceGate: subjectSourceGates.status,
+      isFreeUnit: units.isFreeUnit,
     })
     .from(learningItems)
     .innerJoin(lessons, eq(learningItems.lessonId, lessons.id))
@@ -98,7 +116,7 @@ export async function getStudentPublishedLearningItems(): Promise<StudentLearnin
     )
     .limit(100);
 
-  return filterStudentVisibleItems(rows).map(({ id, subjectCode, titleAr, type }) => ({ id, subjectCode, titleAr, type }));
+  return filterStudentAccessibleItems(rows, entitlements).map(({ id, subjectCode, titleAr, type }) => ({ id, subjectCode, titleAr, type }));
 }
 
 export async function getSourceRegistryForStudio() {
@@ -113,6 +131,7 @@ export async function getSourceRegistryForStudio() {
       url: sources.url,
       academicYear: sources.academicYear,
       verificationStatus: sources.verificationStatus,
+      isInternalPilot: sources.isInternalPilot,
       verificationDate: sources.verificationDate,
       verificationNotes: sources.verificationNotes,
       subjectNameAr: subjects.nameAr,

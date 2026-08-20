@@ -47,7 +47,7 @@ describe("curriculum.studentLearningItems", () => {
     const result = await caller.curriculum.studentLearningItems();
 
     expect(result).toEqual([{ id: 900, subjectCode: "math", titleAr: "عنصر مرخص للطالب", type: "concept" }]);
-    expect(curriculumMocks.getStudentPublishedLearningItems).toHaveBeenCalledOnce();
+    expect(curriculumMocks.getStudentPublishedLearningItems).toHaveBeenCalledWith(42);
   });
 
   it("يرفض الاستدعاء غير المصدق ويُبقي تغذية الموظف ضمن نفس البيانات الآمنة", async () => {
