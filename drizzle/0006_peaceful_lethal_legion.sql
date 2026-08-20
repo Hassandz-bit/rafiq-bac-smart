@@ -1,0 +1,1 @@
+ALTER TABLE `student_attempts` ADD `revealedSteps` int DEFAULT 0 NOT NULL;

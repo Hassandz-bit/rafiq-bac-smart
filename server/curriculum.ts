@@ -1,5 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
-import { curriculumVersions, learningItems, lessons, sources, studentEntitlements, subjectSourceGates, subjects, units } from "../drizzle/schema";
+import { curriculumVersions, exercises, learningItems, lessons, sources, studentEntitlements, subjectSourceGates, subjects, units } from "../drizzle/schema";
 import { getDb } from "./db";
 import { resolveUnitAccess } from "./entitlementRules";
 
@@ -54,22 +54,32 @@ export type StudentLearningItem = {
   subjectCode: string;
   titleAr: string;
   type: string;
+  provenance: "official_current" | "user_approved_working_reference";
+};
+
+export type StudentExercise = {
+  id: number;
+  subjectCode: string;
+  type: string;
+  prompt: unknown;
+  provenance: "official_current" | "user_approved_working_reference";
 };
 
 export function filterStudentVisibleItems<
-  T extends { workflowState: string; sourceStatus: string | null; isInternalPilot: boolean | null; sourceGate: string | null },
+  T extends { workflowState: string; sourceStatus: string | null; isInternalPilot: boolean | null; isUserApprovedWorkingReference: boolean | null; sourceGate: string | null },
 >(items: T[]) {
   return items.filter(
     item =>
       item.workflowState === "published" &&
-      item.sourceStatus === "current_official" &&
-      item.isInternalPilot !== true &&
-      item.sourceGate === "verified",
+      (
+        (item.sourceStatus === "current_official" && item.isInternalPilot !== true && item.sourceGate === "verified") ||
+        item.isUserApprovedWorkingReference === true
+      ),
   );
 }
 
 export function filterStudentAccessibleItems<
-  T extends { workflowState: string; sourceStatus: string | null; isInternalPilot: boolean | null; sourceGate: string | null; subjectCode: string; isFreeUnit: boolean },
+  T extends { workflowState: string; sourceStatus: string | null; isInternalPilot: boolean | null; isUserApprovedWorkingReference: boolean | null; sourceGate: string | null; subjectCode: string; isFreeUnit: boolean },
 >(items: T[], entitlements: string[]) {
   return filterStudentVisibleItems(items).filter(item => {
     if (item.subjectCode !== "math" && item.subjectCode !== "physics" && item.subjectCode !== "natural_sciences") return false;
@@ -97,6 +107,7 @@ export async function getStudentPublishedLearningItems(userId: number): Promise<
       workflowState: learningItems.workflowState,
       sourceStatus: sources.verificationStatus,
       isInternalPilot: sources.isInternalPilot,
+      isUserApprovedWorkingReference: sources.isUserApprovedWorkingReference,
       sourceGate: subjectSourceGates.status,
       isFreeUnit: units.isFreeUnit,
     })
@@ -106,17 +117,39 @@ export async function getStudentPublishedLearningItems(userId: number): Promise<
     .innerJoin(subjects, eq(units.subjectId, subjects.id))
     .innerJoin(sources, eq(learningItems.sourceId, sources.id))
     .innerJoin(subjectSourceGates, eq(subjectSourceGates.subjectId, subjects.id))
-    .where(
-      and(
-        eq(learningItems.workflowState, "published"),
-        eq(sources.verificationStatus, "current_official"),
-        eq(sources.isInternalPilot, false),
-        eq(subjectSourceGates.status, "verified"),
-      ),
-    )
+    .where(eq(learningItems.workflowState, "published"))
     .limit(100);
 
-  return filterStudentAccessibleItems(rows, entitlements).map(({ id, subjectCode, titleAr, type }) => ({ id, subjectCode, titleAr, type }));
+  return filterStudentAccessibleItems(rows, entitlements).map(({ id, subjectCode, titleAr, type, isUserApprovedWorkingReference }) => ({ id, subjectCode, titleAr, type, provenance: isUserApprovedWorkingReference ? "user_approved_working_reference" : "official_current" }));
+}
+
+export async function getStudentAccessibleExercises(userId: number): Promise<StudentExercise[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const entitlementRows = await db.select({ entitlement: studentEntitlements.entitlement }).from(studentEntitlements).where(eq(studentEntitlements.userId, userId)).limit(100);
+  const entitlements = entitlementRows.map(row => row.entitlement);
+  const rows = await db
+    .select({
+      id: exercises.id,
+      subjectCode: subjects.code,
+      type: exercises.type,
+      prompt: exercises.prompt,
+      workflowState: exercises.workflowState,
+      sourceStatus: sources.verificationStatus,
+      isInternalPilot: sources.isInternalPilot,
+      isUserApprovedWorkingReference: sources.isUserApprovedWorkingReference,
+      sourceGate: subjectSourceGates.status,
+      isFreeUnit: units.isFreeUnit,
+    })
+    .from(exercises)
+    .innerJoin(lessons, eq(exercises.lessonId, lessons.id))
+    .innerJoin(units, eq(lessons.unitId, units.id))
+    .innerJoin(subjects, eq(units.subjectId, subjects.id))
+    .innerJoin(sources, eq(exercises.sourceId, sources.id))
+    .innerJoin(subjectSourceGates, eq(subjectSourceGates.subjectId, subjects.id))
+    .where(eq(exercises.workflowState, "published"))
+    .limit(100);
+  return filterStudentAccessibleItems(rows, entitlements).map(row => ({ id: row.id, subjectCode: row.subjectCode, type: row.type, prompt: row.prompt, provenance: row.isUserApprovedWorkingReference ? "user_approved_working_reference" : "official_current" }));
 }
 
 export async function getSourceRegistryForStudio() {
@@ -132,6 +165,7 @@ export async function getSourceRegistryForStudio() {
       academicYear: sources.academicYear,
       verificationStatus: sources.verificationStatus,
       isInternalPilot: sources.isInternalPilot,
+      isUserApprovedWorkingReference: sources.isUserApprovedWorkingReference,
       verificationDate: sources.verificationDate,
       verificationNotes: sources.verificationNotes,
       subjectNameAr: subjects.nameAr,

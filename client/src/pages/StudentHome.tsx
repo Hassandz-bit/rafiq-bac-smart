@@ -15,10 +15,12 @@ const subjectStyles = {
 
 export default function StudentHome() {
   const overview = trpc.curriculum.overview.useQuery();
-  return <RoleGate allowed={["student"]} title="لوحتك التعليمية تنتظرك"><StudentWorkspace data={overview.data} /></RoleGate>;
+  const learningItems = trpc.curriculum.studentLearningItems.useQuery();
+  const progress = trpc.progress.summary.useQuery();
+  return <RoleGate allowed={["student"]} title="لوحتك التعليمية تنتظرك"><StudentWorkspace data={overview.data} learningItems={learningItems.data} progress={progress.data} /></RoleGate>;
 }
 
-function StudentWorkspace({ data }: { data?: { curriculum: { code: string; title: string; academicYear: string; track: string } | null; subjects: Array<{ id: number; code: string; nameAr: string; taglineAr: string | null; sourceGate: string; sourceGateNote: string | null }> } }) {
+function StudentWorkspace({ data, learningItems, progress }: { data?: { curriculum: { code: string; title: string; academicYear: string; track: string } | null; subjects: Array<{ id: number; code: string; nameAr: string; taglineAr: string | null; sourceGate: string; sourceGateNote: string | null }> }; learningItems?: Array<{ id: number; subjectCode: string; titleAr: string; type: string; provenance: "official_current" | "user_approved_working_reference" }>; progress?: { errors: Array<{ id: number; errorType: string; occurrences: number }>; reviews: Array<{ id: number; reason: string }>; mastery: Array<{ conceptNameAr: string; status: string; score: string }> } }) {
   const [, setLocation] = useLocation();
   const subjects = data?.subjects?.length ? data.subjects : [
     { id: 1, code: "math", nameAr: "الرياضيات", taglineAr: "اختيار الطريق الصحيح قبل كثرة الحسابات.", sourceGate: "waiting_for_current_official_book", sourceGateNote: null },
@@ -59,7 +61,7 @@ function StudentWorkspace({ data }: { data?: { curriculum: { code: string; title
           <section className="relative overflow-hidden rounded-[2rem] bg-blue-950 px-6 py-7 text-white shadow-xl shadow-blue-950/15 sm:px-9 sm:py-8">
             <div className="absolute left-0 top-0 h-full w-2/5 opacity-50 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:18px_18px]" />
             <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
-              <div><Badge className="border-0 bg-white/10 px-3 py-1 text-blue-100 hover:bg-white/10">جلسة اليوم</Badge><h1 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">البداية الصحيحة تحتاج مصدرًا صحيحًا.</h1><p className="mt-2 max-w-xl text-sm leading-6 text-blue-200">جهّزنا لك المسار والتدريب والمراجعة. عند اعتماد الكتب الرسمية الحالية، ستظهر وحدتك الأولى هنا.</p></div>
+              <div><Badge className="border-0 bg-white/10 px-3 py-1 text-blue-100 hover:bg-white/10">جلسة اليوم</Badge><h1 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">البداية الصحيحة تحتاج مسارًا واضحًا.</h1><p className="mt-2 max-w-xl text-sm leading-6 text-blue-200">تظهر لك الآن بطاقات مبنية على مراجع العمل التي اعتمدها صاحب المنصة، مع وسم واضح لمصدرها.</p></div>
               <Button onClick={() => setLocation("/subjects")} className="h-11 shrink-0 rounded-xl bg-cyan-300 px-5 font-bold text-blue-950 hover:bg-cyan-200">استكشف المواد <ArrowLeft className="mr-2 h-4 w-4" /></Button>
             </div>
           </section>
@@ -67,17 +69,17 @@ function StudentWorkspace({ data }: { data?: { curriculum: { code: string; title
           <div className="mt-8 grid gap-5 xl:grid-cols-[1.45fr_.85fr]">
             <section className="soft-panel p-5 sm:p-6">
               <div className="flex items-center justify-between"><div><p className="section-kicker">نقطة اليوم</p><h2 className="mt-1 text-xl font-black">أكمل من حيث توقفت</h2></div><MoreHorizontal className="h-5 w-5 text-slate-400" /></div>
-              <div className="mt-6 flex items-center gap-4 rounded-2xl bg-slate-50 p-4">
+              <div className="mt-6 space-y-3">{learningItems?.length ? learningItems.slice(0, 3).map(item => <div key={item.id} className="flex items-center gap-4 rounded-2xl bg-slate-50 p-4"><div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-emerald-100 text-emerald-700"><BookOpenCheck className="h-5 w-5" /></div><div className="min-w-0 flex-1"><p className="font-bold">{item.titleAr}</p><p className="mt-1 text-xs leading-5 text-slate-500">{subjectStyles[item.subjectCode as keyof typeof subjectStyles]?.label ?? "مادة"} · {item.type}</p></div><Badge className="border-0 bg-emerald-50 text-[10px] text-emerald-700 hover:bg-emerald-50">مرجع عمل معتمد</Badge></div>) : <div className="flex items-center gap-4 rounded-2xl bg-slate-50 p-4">
                 <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-100 text-amber-700"><CircleHelp className="h-5 w-5" /></div>
-                <div className="min-w-0 flex-1"><p className="font-bold">بانتظار أول وحدة معتمدة</p><p className="mt-1 text-xs leading-5 text-slate-500">لن نعرض درسًا بكتاب قديم أو مصدر غير موثّق.</p></div>
+                <div className="min-w-0 flex-1"><p className="font-bold">بانتظار أول بطاقة متاحة</p><p className="mt-1 text-xs leading-5 text-slate-500">ستظهر البطاقات هنا عند تهيئتها لمسار الطالب.</p></div>
                 <span className="hidden rounded-lg bg-white px-2.5 py-1 text-xs font-bold text-slate-500 sm:block">قريبًا</span>
-              </div>
+              </div>}</div>
             </section>
             <section className="rounded-[1.5rem] bg-gradient-to-br from-[#ffeadb] to-[#fff6ed] p-5 sm:p-6">
               <div className="flex items-center gap-2 text-orange-700"><BrainCircuit className="h-5 w-5" /><span className="text-sm font-black">مراجعة اليوم</span></div>
               <p className="mt-3 text-lg font-black text-slate-900">خلّينا نثبتها قبل ما تنساها.</p>
               <p className="mt-2 text-sm leading-6 text-slate-600">ستتولد القائمة من الأخطاء المتكررة، المفاهيم الضعيفة، والتدريبات المكتملة.</p>
-              <div className="mt-5 flex items-center justify-between border-t border-orange-200/70 pt-4 text-xs font-bold text-orange-800"><span>لا توجد عناصر مستحقة الآن</span><span>0</span></div>
+              <div className="mt-5 border-t border-orange-200/70 pt-4 text-xs font-bold text-orange-800"><div className="flex items-center justify-between"><span>{progress?.reviews?.length ? "عناصر مراجعة مستحقة" : "لا توجد عناصر مستحقة الآن"}</span><span>{progress?.reviews?.length ?? 0}</span></div>{progress?.reviews?.map(review => <p key={review.id} className="mt-2 text-orange-700">{review.reason === "solution_reveal" ? "راجِع سؤالًا كُشفت له خطوات الحل" : review.reason === "heavy_hint_usage" ? "راجِع سؤالًا استُخدمت فيه تلميحات كثيرة" : "راجِع سؤالًا أخطأت فيه"}</p>)}</div>
             </section>
           </div>
 
@@ -91,8 +93,8 @@ function StudentWorkspace({ data }: { data?: { curriculum: { code: string; title
           </section>
 
           <section className="mt-8 grid gap-5 md:grid-cols-2">
-            <div className="soft-panel p-6"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-violet-100 text-violet-700"><ClipboardCheck className="h-5 w-5" /></div><div><p className="font-black">دفتر أخطائي</p><p className="text-xs text-slate-500">كل خطأ يصبح فرصة تصحيح.</p></div></div><div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-500">سيظهر هنا تحليل نوع الخطأ وتكراره وخطوة المراجعة المناسبة بعد أول تدريب منشور.</div></div>
-            <div className="soft-panel p-6"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-100 text-emerald-700"><Target className="h-5 w-5" /></div><div><p className="font-black">تقدمك</p><p className="text-xs text-slate-500">الإتقان يُقاس بالفهم والتطبيق.</p></div></div><div className="mt-6"><div className="flex justify-between text-xs font-bold text-slate-500"><span>ستظهر نسبة الإتقان هنا</span><span>—</span></div><Progress value={0} className="mt-3 h-2.5 bg-slate-100" /></div></div>
+            <div className="soft-panel p-6"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-violet-100 text-violet-700"><ClipboardCheck className="h-5 w-5" /></div><div><p className="font-black">دفتر أخطائي</p><p className="text-xs text-slate-500">كل خطأ يصبح فرصة تصحيح.</p></div></div><div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-500">{progress?.errors?.length ? progress.errors.map(error => <p key={error.id}>{error.errorType} · تكرر {error.occurrences} مرات</p>) : "لا توجد أخطاء مسجلة بعد."}</div></div>
+            <div className="soft-panel p-6"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-100 text-emerald-700"><Target className="h-5 w-5" /></div><div><p className="font-black">تقدمك</p><p className="text-xs text-slate-500">الإتقان يُقاس بالفهم والتطبيق.</p></div></div><div className="mt-6"><div className="flex justify-between text-xs font-bold text-slate-500"><span>{progress?.mastery?.length ? "سجل إتقان المفاهيم" : "ستظهر نسبة الإتقان هنا"}</span><span>{progress?.mastery?.length ?? "—"}</span></div><Progress value={Math.min(100, (progress?.mastery?.length ?? 0) * 20)} className="mt-3 h-2.5 bg-slate-100" />{progress?.mastery?.length ? <div className="mt-3 space-y-1.5">{progress.mastery.map(item => <p key={item.conceptNameAr} className="flex justify-between text-xs text-slate-600"><span>{item.conceptNameAr}</span><span>{item.status} · {item.score}%</span></p>)}</div> : null}</div></div>
           </section>
         </div>
       </main>

@@ -9,6 +9,16 @@ describe("محرك التمرين والتعلم", () => {
     expect(gradeExercise({ type: "numeric", answer: 3.14, tolerance: .01 }, 3.145)).toBe(true);
     expect(gradeExercise({ type: "multi_select", answer: ["a", "c"] }, ["c", "a"])).toBe(true);
   });
+  it("يدعم كل أنواع الإجابة المطلوبة دون تغيير دلالتها", () => {
+    expect(gradeExercise({ type: "mcq", answer: "b" }, "B")).toBe(true);
+    expect(gradeExercise({ type: "true_false", answer: "صحيح" }, "صحيح")).toBe(true);
+    expect(gradeExercise({ type: "fill", answer: "المعادلة" }, "المعادلة")).toBe(true);
+    expect(gradeExercise({ type: "matching", answer: ["أ:1", "ب:2"] }, ["ب:2", "أ:1"])).toBe(true);
+    expect(gradeExercise({ type: "ordering", answer: ["أ", "ب", "ج"] }, ["أ", "ب", "ج"])).toBe(true);
+    expect(gradeExercise({ type: "ordering", answer: ["أ", "ب", "ج"] }, ["ب", "أ", "ج"])).toBe(false);
+    expect(gradeExercise({ type: "math_expression", answer: "x^2" }, "x^2")).toBe(true);
+    expect(gradeExercise({ type: "interactive_image", answer: "region-4" }, "region-4")).toBe(true);
+  });
   it("يتدرج في التلميحات قبل كشف الحل", () => {
     expect(nextHintIndex(1, 3)).toBe(1);
     expect(canRevealSolution(2, 3)).toBe(false);

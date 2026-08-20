@@ -99,7 +99,7 @@ function StudioContent() {
               <div className="divide-y divide-slate-100">
                 {sources?.map(source => <div key={source.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
                   <div><p className="font-bold text-slate-900">{source.documentTitle}</p><p className="mt-1 text-xs text-slate-500">{source.sourceAuthority} · {source.subjectNameAr ?? "غير مرتبط بمادة"}</p></div>
-                  <div className="flex items-center gap-3"><Badge className={`border-0 hover:bg-inherit ${source.isInternalPilot ? "bg-violet-50 text-violet-700" : "bg-amber-50 text-amber-700"}`}>{source.isInternalPilot ? "Pilot داخلي — غير قابل للنشر" : "النسخة غير مؤكدة"}</Badge><a href={source.url} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-700">فتح المصدر</a></div>
+                  <div className="flex items-center gap-3"><Badge className={`border-0 hover:bg-inherit ${source.isUserApprovedWorkingReference ? "bg-emerald-50 text-emerald-700" : source.isInternalPilot ? "bg-violet-50 text-violet-700" : "bg-amber-50 text-amber-700"}`}>{source.isUserApprovedWorkingReference ? "مرجع عمل معتمد من المستخدم" : source.isInternalPilot ? "Pilot داخلي — غير قابل للنشر" : "النسخة غير مؤكدة"}</Badge><a href={source.url} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-700">فتح المصدر</a></div>
                 </div>)}
                 {!isLoading && !sources?.length && <div className="p-10 text-center text-sm text-slate-500">لا توجد مصادر مسجلة بعد.</div>}
               </div>

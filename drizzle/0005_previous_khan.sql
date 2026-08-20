@@ -1,0 +1,1 @@
+ALTER TABLE `sources` ADD `isUserApprovedWorkingReference` boolean DEFAULT false NOT NULL;

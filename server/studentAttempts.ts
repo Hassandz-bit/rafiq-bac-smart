@@ -2,7 +2,9 @@ import { and, eq } from "drizzle-orm";
 import {
   errorNotebookEntries,
   exercises,
+  lessonConcepts,
   lessons,
+  masteryRecords,
   reviewQueueItems,
   sources,
   studentAttempts,
@@ -13,20 +15,23 @@ import {
 import { errorTypesForSubject } from "./errorClassification";
 import { ExerciseAnswer, ExerciseDefinition, gradeExercise } from "./exerciseEngine";
 import { getDb } from "./db";
+import { deriveMasteryState } from "./learningRules";
 
 type StudentSafeExercise = {
   workflowState: string;
   sourceStatus: string;
   isInternalPilot: boolean;
+  isUserApprovedWorkingReference: boolean;
   sourceGate: string;
 };
 
 export function isStudentSafeExercise(exercise: StudentSafeExercise) {
   return (
     exercise.workflowState === "published" &&
-    exercise.sourceStatus === "current_official" &&
-    !exercise.isInternalPilot &&
-    exercise.sourceGate === "verified"
+    (
+      (exercise.sourceStatus === "current_official" && !exercise.isInternalPilot && exercise.sourceGate === "verified") ||
+      exercise.isUserApprovedWorkingReference
+    )
   );
 }
 
@@ -35,6 +40,7 @@ type AttemptInput = {
   exerciseId: number;
   answerPayload: ExerciseAnswer;
   hintsUsed: number;
+  revealedSteps: number;
   durationSeconds: number;
   errorType?: string;
 };
@@ -46,11 +52,13 @@ export async function recordStudentAttempt(input: AttemptInput) {
   const rows = await db
     .select({
       id: exercises.id,
+      lessonId: exercises.lessonId,
       type: exercises.type,
       answerDefinition: exercises.answerDefinition,
       workflowState: exercises.workflowState,
       sourceStatus: sources.verificationStatus,
       isInternalPilot: sources.isInternalPilot,
+      isUserApprovedWorkingReference: sources.isUserApprovedWorkingReference,
       sourceGate: subjectSourceGates.status,
       subjectCode: subjects.code,
     })
@@ -85,11 +93,19 @@ export async function recordStudentAttempt(input: AttemptInput) {
     answerPayload: input.answerPayload,
     isCorrect,
     hintsUsed: Math.max(0, input.hintsUsed),
+    revealedSteps: Math.max(0, input.revealedSteps),
     durationSeconds: Math.max(0, input.durationSeconds),
     errorType: isCorrect ? null : input.errorType ?? errorTypesForSubject(exercise.subjectCode as "math" | "physics" | "natural_sciences")[0],
   });
 
-  const shouldReview = !isCorrect || input.hintsUsed >= 2;
+  const linkedConcepts = await db.select({ conceptId: lessonConcepts.conceptId }).from(lessonConcepts).where(eq(lessonConcepts.lessonId, exercise.lessonId)).limit(20);
+  const attemptScore = isCorrect ? Math.max(55, 100 - input.hintsUsed * 12) : 30;
+  const masteryStatus = deriveMasteryState({ accuracy: attemptScore, averageHints: input.hintsUsed, completedReviews: 0, attempted: 1 });
+  for (const linked of linkedConcepts) {
+    await db.insert(masteryRecords).values({ userId: input.userId, conceptId: linked.conceptId, score: String(attemptScore), status: masteryStatus }).onDuplicateKeyUpdate({ set: { score: String(attemptScore), status: masteryStatus } });
+  }
+
+  const shouldReview = !isCorrect || input.hintsUsed >= 2 || input.revealedSteps >= 2;
   if (!isCorrect) {
     const errorType = input.errorType ?? errorTypesForSubject(exercise.subjectCode as "math" | "physics" | "natural_sciences")[0];
     const existing = await db
@@ -118,7 +134,7 @@ export async function recordStudentAttempt(input: AttemptInput) {
     await db.insert(reviewQueueItems).values({
       userId: input.userId,
       exerciseId: exercise.id,
-      reason: !isCorrect ? "failed_question" : "heavy_hint_usage",
+      reason: !isCorrect ? "failed_question" : input.revealedSteps >= 2 ? "solution_reveal" : "heavy_hint_usage",
       dueAt: new Date(Date.now() + (isCorrect ? 48 : 24) * 60 * 60 * 1000),
     });
   }

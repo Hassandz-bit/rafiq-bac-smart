@@ -11,13 +11,13 @@
 - [x] Build the curriculum explorer for Mathematics, Physics, and Natural Sciences without publishing unverified academic content.
 - [x] Implement the educational slide engine types and KaTeX-ready rendering architecture.
 - [x] Implement the interactive RTL mind-map canvas with zoom, pan, fullscreen, node types, and keyboard support.
-- [ ] Implement the exercise engine covering MCQ, multi-select, true/false, fill, matching, ordering, numeric, math expression, and interactive-image structures. (الهيكل والواجهات جاهزة؛ يلزم تدفق الإجابة والتصحيح المستمر.)
-- [ ] Implement graduated hints, paper-and-pen reveal flow, and error classification by subject. (واجهة المحرك جاهزة؛ يلزم ربط المحاولات بالتلميحات وسجل الخطأ.)
-- [ ] Implement the error notebook, mastery states, and spaced-review queue. (البنية وقواعد الحساب جاهزة؛ يلزم ربطها بواجهات وإجراءات الطالب.)
-- [ ] Implement BAC focus mode, results analysis model, and rescue-plan foundations without AI tutoring. (واجهة التركيز والقواعد الأولية جاهزة؛ يلزم الحفظ والإرسال والتحليل المستمر.)
+- [ ] Implement the exercise engine covering MCQ, multi-select, true/false, fill, matching, ordering, numeric, math expression, and interactive-image structures. (يلزم تغذية ضوابط الإجابة من تعريف كل تمرين حقيقي.)
+- [ ] Implement graduated hints, paper-and-pen reveal flow, and error classification by subject. (يلزم جلب التلميحات والخطوات المرتبطة بالتمرين وإثبات المسار باختبار تكاملي.)
+- [ ] Implement the error notebook, mastery states, and spaced-review queue. (التخزين والملخص الأولي يعملان؛ يلزم طابور مراجعة مستحق فعلي وتفاصيل إتقان واختبارات نهاية إلى نهاية.)
+- [ ] Implement BAC focus mode, results analysis model, and rescue-plan foundations without AI tutoring. (حفظ الجلسة موجود؛ يلزم ربط النتائج بمحتوى BAC منشور وقياسات الطالب الفعلية.)
 - [ ] Build Content Studio with curriculum management, source records, approval workflow, and a current-official-book upload intake. (سجل المصادر ورفع PDF الآمن جاهزان؛ يلزم CRUD الكامل وإجراءات المراجعة والنشر.)
 - [x] Add subscription architecture, plans, entitlement model, and free-unit support without payment processing.
-- [ ] Add original scientific SVG visual assets and accessible annotations without importing unlicensed images. (الرسومات الأصلية موجودة؛ يلزم محرر/عارض التعليقات التوضيحية.)
+- [x] Add original scientific SVG visual assets and accessible annotations without importing unlicensed images.
 - [x] Create automated tests for authorization, source gating, learning rules, and key user flows.
 - [ ] Validate RTL/mobile/accessibility/build quality, create a recovery drill record, and capture the final checkpoint.
 - [x] Implement an explicit four-role route access matrix with distinct Admin, Content Editor, Academic Reviewer, and Student destinations, plus forbidden-access tests.
@@ -36,3 +36,6 @@
 - [x] Add a router-level test for the student learning-items procedure and document its authenticated student-facing semantics.
 - [x] Restore the intended student dashboard route and verify it renders instead of the 404 screen.
 - [x] Verify the mathematics pilot mind-map nodes and edges, and add a regression check covering draft state, source tracing, and guided-example presence.
+- [x] Mark the user-provided book links as user-approved working references and apply that policy consistently without mislabeling them as current official editions.
+- [x] Enable controlled learner-facing flows for user-approved working references while keeping their provenance labels visible.
+- [x] Update public source-policy copy to distinguish user-approved working references from current official editions without contradicting the active learner flow.
