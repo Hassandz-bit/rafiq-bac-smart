@@ -39,7 +39,7 @@
 - [x] Mark the user-provided book links as user-approved working references and apply that policy consistently without mislabeling them as current official editions.
 - [x] Enable controlled learner-facing flows for user-approved working references while keeping their provenance labels visible.
 - [x] Update public source-policy copy to distinguish user-approved working references from current official editions without contradicting the active learner flow.
-- [ ] Define a structured smart-assessment contract that analyzes only the student’s recorded attempts, hints, reveals, errors, review queue, and mastery data.
-- [ ] Implement a protected server-side AI assessment procedure with structured Arabic feedback, deterministic safety fallbacks, and rate-conscious model selection.
-- [ ] Add a student-facing smart-assessment panel with personalized strengths, priority attention point, and a practical next-review recommendation.
+- [x] Define a structured smart-assessment contract that analyzes only the student’s recorded attempts, hints, reveals, errors, review queue, and mastery data.
+- [x] Implement a protected server-side AI assessment procedure with structured Arabic feedback, deterministic safety fallbacks, and rate-conscious model selection.
+- [x] Add a student-facing smart-assessment panel with personalized strengths, priority attention point, and a practical next-review recommendation.
 - [ ] Test the smart-assessment payload, authorization boundary, fallback behavior, and Arabic UI rendering.
