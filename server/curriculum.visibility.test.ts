@@ -25,8 +25,11 @@ describe("استرجاع الطالب للمحتوى الأكاديمي", () => 
     expect(accessible.map(item => item.id)).toEqual([1, 2]);
   });
 
-  it("يسمح بالمرجع العامل الذي اعتمده المستخدم مع بقاء وسمه مختلفًا عن المصدر الرسمي الحالي", () => {
-    const visible = filterStudentVisibleItems([{ id: 9, workflowState: "published", sourceStatus: "historical_official", isInternalPilot: true, isUserApprovedWorkingReference: true, sourceGate: "waiting_for_current_official_book" }]);
+  it("يسمح بمرجع عمل معتمد غير داخلي، لكنه لا يسمح لصفة مرجع العمل بتجاوز قفل التجربة الداخلية", () => {
+    const visible = filterStudentVisibleItems([
+      { id: 9, workflowState: "published", sourceStatus: "historical_official", isInternalPilot: false, isUserApprovedWorkingReference: true, sourceGate: "waiting_for_current_official_book" },
+      { id: 10, workflowState: "published", sourceStatus: "historical_official", isInternalPilot: true, isUserApprovedWorkingReference: true, sourceGate: "waiting_for_current_official_book" },
+    ]);
     expect(visible.map(item => item.id)).toEqual([9]);
   });
 

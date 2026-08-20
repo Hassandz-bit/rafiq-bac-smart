@@ -28,8 +28,9 @@ type StudentSafeExercise = {
 export function isStudentSafeExercise(exercise: StudentSafeExercise) {
   return (
     exercise.workflowState === "published" &&
+    exercise.isInternalPilot !== true &&
     (
-      (exercise.sourceStatus === "current_official" && !exercise.isInternalPilot && exercise.sourceGate === "verified") ||
+      (exercise.sourceStatus === "current_official" && exercise.sourceGate === "verified") ||
       exercise.isUserApprovedWorkingReference
     )
   );

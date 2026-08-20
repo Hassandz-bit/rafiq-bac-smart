@@ -112,8 +112,9 @@ export function filterStudentVisibleItems<
   return items.filter(
     item =>
       item.workflowState === "published" &&
+      item.isInternalPilot !== true &&
       (
-        (item.sourceStatus === "current_official" && item.isInternalPilot !== true && item.sourceGate === "verified") ||
+        (item.sourceStatus === "current_official" && item.sourceGate === "verified") ||
         item.isUserApprovedWorkingReference === true
       ),
   );

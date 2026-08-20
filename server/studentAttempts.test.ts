@@ -9,6 +9,7 @@ describe("بوابة محاولة الطالب", () => {
     expect(isStudentSafeExercise({ ...visible, isInternalPilot: true })).toBe(false);
     expect(isStudentSafeExercise({ ...visible, sourceStatus: "historical_official" })).toBe(false);
     expect(isStudentSafeExercise({ ...visible, sourceGate: "waiting_for_current_official_book" })).toBe(false);
-    expect(isStudentSafeExercise({ ...visible, isInternalPilot: true, isUserApprovedWorkingReference: true, sourceStatus: "historical_official", sourceGate: "waiting_for_current_official_book" })).toBe(true);
+    expect(isStudentSafeExercise({ ...visible, isInternalPilot: false, isUserApprovedWorkingReference: true, sourceStatus: "historical_official", sourceGate: "waiting_for_current_official_book" })).toBe(true);
+    expect(isStudentSafeExercise({ ...visible, isInternalPilot: true, isUserApprovedWorkingReference: true, sourceStatus: "historical_official", sourceGate: "waiting_for_current_official_book" })).toBe(false);
   });
 });
