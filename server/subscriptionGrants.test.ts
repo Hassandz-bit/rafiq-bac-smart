@@ -15,7 +15,7 @@ describe("التفعيل الداخلي للاستحقاقات", () => {
     const assignmentValues = vi.fn().mockResolvedValue(undefined);
     const insert = vi.fn().mockReturnValueOnce({ values: assignmentValues }).mockReturnValueOnce({ values: entitlementValues });
     const update = vi.fn().mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) });
-    const planQuery = { from: () => planQuery, where: () => planQuery, limit: () => Promise.resolve([{ id: 30003 }]) };
+    const planQuery = { from: () => planQuery, where: () => planQuery, limit: () => Promise.resolve([{ id: 30003, subjectBundle: ["math", "physics"] }]) };
     const tx = { select: vi.fn().mockReturnValue(planQuery), update, insert };
     mocks.getDb.mockResolvedValue({ transaction: (callback: (database: typeof tx) => Promise<unknown>) => callback(tx) });
     mocks.resolvePlanEntitlementGrant.mockReturnValue({ subjects: ["math", "physics"], entitlements: ["subject:math:access", "subject:physics:access", "hasm:math", "hasm:physics"] });
@@ -35,5 +35,16 @@ describe("التفعيل الداخلي للاستحقاقات", () => {
   it("يتوقف بوضوح عند تعذر قاعدة البيانات", async () => {
     mocks.getDb.mockResolvedValue(null);
     await expect(grantPlanAccess({ userId: 42, planCode: "hasm_one_subject", subjects: ["math"] })).rejects.toThrow("Database unavailable");
+  });
+
+  it("يرفض اختيار مادة لا تدخل ضمن تشكيل الحزمة المحفوظ", async () => {
+    const update = vi.fn();
+    const planQuery = { from: () => planQuery, where: () => planQuery, limit: () => Promise.resolve([{ id: 30002, subjectBundle: ["math"] }]) };
+    const tx = { select: vi.fn().mockReturnValue(planQuery), update, insert: vi.fn() };
+    mocks.getDb.mockResolvedValue({ transaction: (callback: (database: typeof tx) => Promise<unknown>) => callback(tx) });
+    mocks.resolvePlanEntitlementGrant.mockReturnValue({ subjects: ["physics"], entitlements: ["subject:physics:access", "hasm:physics"] });
+
+    await expect(grantPlanAccess({ userId: 42, planCode: "season_one_subject", subjects: ["physics"] })).rejects.toThrow("اختيار المواد لا يطابق تشكيل الحزمة المعتمد");
+    expect(update).not.toHaveBeenCalled();
   });
 });

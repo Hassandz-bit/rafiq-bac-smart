@@ -15,8 +15,10 @@ export async function grantPlanAccess(input: { userId: number; planCode: Grantab
   const productTier = input.planCode.startsWith("season_") ? "season" : "hasm";
 
   await db.transaction(async tx => {
-    const plan = await tx.select({ id: plans.id }).from(plans).where(eq(plans.code, input.planCode)).limit(1);
+    const plan = await tx.select({ id: plans.id, subjectBundle: plans.subjectBundle }).from(plans).where(eq(plans.code, input.planCode)).limit(1);
     if (!plan[0]) throw new Error("الخطة المطلوبة غير مهيأة في كتالوج المنتجات.");
+    const allowedSubjects = Array.isArray(plan[0].subjectBundle) ? plan[0].subjectBundle.filter((subject): subject is EntitledSubject => subject === "math" || subject === "physics" || subject === "natural_sciences") : [];
+    if (!allowedSubjects.length || !grant.subjects.every(subject => allowedSubjects.includes(subject))) throw new Error("اختيار المواد لا يطابق تشكيل الحزمة المعتمد.");
 
     await tx.update(studentPlanAssignments).set({ isActive: false }).where(and(eq(studentPlanAssignments.userId, input.userId), eq(studentPlanAssignments.productTier, productTier), eq(studentPlanAssignments.isActive, true)));
     await tx.insert(studentPlanAssignments).values({ userId: input.userId, planId: plan[0].id, productTier, selectedSubjects: grant.subjects, isActive: true, expiresAt });

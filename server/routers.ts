@@ -8,7 +8,7 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { getCurrentCurriculumOverview, getSourceRegistryForStudio, getStudentAccessibleExercises, getStudentPublishedLearningItems, getStudentVisibleVisualAssets } from "./curriculum";
 import { setUserRole } from "./db";
 import { recordStudentAttempt } from "./studentAttempts";
-import { getPlanCatalog } from "./subscriptions";
+import { getPlanCatalog, updatePlanConfiguration } from "./subscriptions";
 import { grantPlanAccess } from "./subscriptionGrants";
 import { autosaveBacSession, startBacSession, submitBacSession } from "./bacSessions";
 import { getStudentProgressSummary } from "./studentProgress";
@@ -84,6 +84,9 @@ export const appRouter = router({
   }),
   administration: router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
+    updatePlanConfiguration: adminOnlyProcedure
+      .input(z.object({ id: z.number().int().positive(), priceDzd: z.number().int().min(0).max(100000), durationDays: z.number().int().min(0).max(730), subjectLimit: z.number().int().min(0).max(3), subjectBundle: z.array(z.enum(["math", "physics", "natural_sciences"])).min(1).max(3), isActive: z.boolean(), entitlements: z.array(z.string().trim().min(1).max(100)).max(12) }))
+      .mutation(({ input }) => updatePlanConfiguration(input)),
     grantPlanAccess: adminOnlyProcedure
       .input(z.object({ userId: z.number().int().positive(), planCode: z.enum(["season_one_subject", "season_two_subjects", "season_three_subjects", "hasm_one_subject", "hasm_two_subjects", "hasm_three_subjects"]), subjects: z.array(z.enum(["math", "physics", "natural_sciences"])).min(1).max(3), expiresAt: z.date().nullable().optional() }))
       .mutation(({ input }) => grantPlanAccess(input)),

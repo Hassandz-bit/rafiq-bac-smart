@@ -43,7 +43,7 @@
 - [x] Implement a protected server-side AI assessment procedure with structured Arabic feedback, deterministic safety fallbacks, and rate-conscious model selection.
 - [x] Add a student-facing smart-assessment panel with personalized strengths, priority attention point, and a practical next-review recommendation.
 - [x] Test the smart-assessment payload, authorization boundary, fallback behavior, and Arabic UI rendering.
-- [ ] Add admin-configurable product definitions for الباقة التجريبية، باقة الموسم، وباقة الحسم with editable pricing, subject bundles, duration, and feature access.
+- [x] Add admin-configurable product definitions for الباقة التجريبية، باقة الموسم، وباقة الحسم with editable pricing, subject bundles, duration, and feature access.
 - [x] Seed the approved product configuration: free trial, season bundles (2900/4900/6900 DZD), and Hasm bundles (1200/2100/2900 DZD) without payment processing.
 - [ ] Implement automatic season-to-Hasm entitlement grants per enrolled subject and the subject-count upgrade rules. (قاعدة المنح والتخزين جاهزان؛ يلزم ربطهما بواجهة الإدارة والتحقق التشغيلي.)
 - [ ] Create Batch 1 source-traceable curriculum packages for two eligible units per subject, keeping source-review-required items unavailable for publication.
@@ -80,3 +80,4 @@
 - [x] Record inspectable 360px/390px/430px mobile QA evidence for the Hassem diagnostic and add a responsive regression guard.
 - [ ] Persist student plan assignments so assigning a Season plan automatically stores matching Hasm entitlements, with end-to-end subject-count upgrade coverage. (السجل والمعاملة موجودان؛ يلزم مسار تشغيل واجهة الإدارة وتحقق بيانات حقيقية آمن.)
 - [ ] Wire persisted plan assignment to the product administration UI and record a safe operational verification of the stored assignment and derived Hasm claims.
+- [x] Persist explicit editable subject-bundle composition for trial, Season, and Hassem plans, with protected UI and regression coverage.

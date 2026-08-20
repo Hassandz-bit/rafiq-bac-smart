@@ -5,13 +5,13 @@ import { appRouter } from "./routers";
 import { getPlanCatalog } from "./subscriptions";
 
 const expectedCatalog = [
-  { code: "trial_bundle", priceDzd: 0, entitlement: "trial:all" },
-  { code: "season_one_subject", priceDzd: 2900, entitlement: "season:subject" },
-  { code: "season_two_subjects", priceDzd: 4900, entitlement: "season:subjects" },
-  { code: "season_three_subjects", priceDzd: 6900, entitlement: "season:all" },
-  { code: "hasm_one_subject", priceDzd: 1200, entitlement: "hasm:subject" },
-  { code: "hasm_two_subjects", priceDzd: 2100, entitlement: "hasm:subjects" },
-  { code: "hasm_three_subjects", priceDzd: 2900, entitlement: "hasm:all" },
+  { code: "trial_bundle", priceDzd: 0, entitlement: "trial:all", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "season_one_subject", priceDzd: 2900, entitlement: "season:subject", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "season_two_subjects", priceDzd: 4900, entitlement: "season:subjects", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "season_three_subjects", priceDzd: 6900, entitlement: "season:all", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "hasm_one_subject", priceDzd: 1200, entitlement: "hasm:subject", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "hasm_two_subjects", priceDzd: 2100, entitlement: "hasm:subjects", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "hasm_three_subjects", priceDzd: 2900, entitlement: "hasm:all", subjectBundle: ["math", "physics", "natural_sciences"] },
 ];
 
 const admin = { id: 1, openId: "admin-catalog-verification", email: "admin@example.com", name: "مدير", loginMethod: "manus", role: "admin" as const, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() };
@@ -23,9 +23,9 @@ describe("كتالوج المنتجات المحفوظ", () => {
     const catalog = await getPlanCatalog();
     const verified = expectedCatalog.map(expected => {
       const plan = catalog.find(item => item.code === expected.code);
-      return { code: plan?.code, priceDzd: plan?.priceDzd, active: plan?.isActive, entitlement: plan?.entitlements[0] };
+      return { code: plan?.code, priceDzd: plan?.priceDzd, active: plan?.isActive, entitlement: plan?.entitlements[0], subjectBundle: plan?.subjectBundle };
     });
-    expect(verified).toEqual(expectedCatalog.map(item => ({ code: item.code, priceDzd: item.priceDzd, active: true, entitlement: item.entitlement })));
+    expect(verified).toEqual(expectedCatalog.map(item => ({ code: item.code, priceDzd: item.priceDzd, active: true, entitlement: item.entitlement, subjectBundle: item.subjectBundle })));
   });
 
   it("يعرض الكتالوج الحقيقي من الإجراء الإداري المحمي", async () => {

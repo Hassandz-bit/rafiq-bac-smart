@@ -380,6 +380,9 @@ export const plans = mysqlTable("plans", {
   code: varchar("code", { length: 80 }).notNull().unique(),
   nameAr: varchar("nameAr", { length: 160 }).notNull(),
   priceDzd: int("priceDzd").notNull(),
+  durationDays: int("durationDays").default(0).notNull(),
+  subjectLimit: int("subjectLimit").default(0).notNull(),
+  subjectBundle: json("subjectBundle"),
   isActive: boolean("isActive").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
