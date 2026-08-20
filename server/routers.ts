@@ -11,6 +11,7 @@ import { recordStudentAttempt } from "./studentAttempts";
 import { getPlanCatalog } from "./subscriptions";
 import { autosaveBacSession, startBacSession, submitBacSession } from "./bacSessions";
 import { getStudentProgressSummary } from "./studentProgress";
+import { generateSmartAssessment } from "./smartAssessment";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -76,6 +77,7 @@ export const appRouter = router({
   }),
   progress: router({
     summary: protectedProcedure.query(({ ctx }) => getStudentProgressSummary(ctx.user.id)),
+    smartAssessment: protectedProcedure.query(({ ctx }) => generateSmartAssessment(ctx.user.id)),
   }),
   administration: router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
