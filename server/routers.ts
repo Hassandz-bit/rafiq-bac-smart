@@ -11,7 +11,7 @@ import { recordStudentAttempt } from "./studentAttempts";
 import { getPlanCatalog, updatePlanConfiguration } from "./subscriptions";
 import { grantPlanAccess } from "./subscriptionGrants";
 import { autosaveBacSession, startBacSession, submitBacSession } from "./bacSessions";
-import { getStudentProgressSummary } from "./studentProgress";
+import { completeStudentReview, getStudentProgressSummary } from "./studentProgress";
 import { generateSmartAssessment } from "./smartAssessment";
 import { completeHassemFocusSession, getLatestHassemFocusSession, startHassemFocusSession } from "./hassemFocusSessions";
 import { reviewLearningItem } from "./contentReview";
@@ -94,6 +94,11 @@ export const appRouter = router({
   }),
   progress: router({
     summary: protectedProcedure.query(({ ctx }) => getStudentProgressSummary(ctx.user.id)),
+    completeReview: protectedProcedure.input(z.object({ reviewId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+      const completed = await completeStudentReview({ userId: ctx.user.id, reviewId: input.reviewId });
+      if (!completed) throw new TRPCError({ code: "NOT_FOUND", message: "المراجعة غير موجودة أو لا تخص هذا الحساب أو أُنجزت سابقًا." });
+      return completed;
+    }),
     smartAssessment: protectedProcedure.query(({ ctx }) => generateSmartAssessment(ctx.user.id)),
   }),
   hassem: router({

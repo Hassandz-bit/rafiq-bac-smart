@@ -12,3 +12,12 @@ export async function getStudentProgressSummary(userId: number) {
   ]);
   return { errors, reviews, mastery };
 }
+
+export async function completeStudentReview(input: { userId: number; reviewId: number }) {
+  const db = await getDb();
+  if (!db) return null;
+  const review = await db.select({ id: reviewQueueItems.id }).from(reviewQueueItems).where(and(eq(reviewQueueItems.id, input.reviewId), eq(reviewQueueItems.userId, input.userId), isNull(reviewQueueItems.completedAt))).limit(1);
+  if (!review[0]) return null;
+  await db.update(reviewQueueItems).set({ completedAt: new Date() }).where(eq(reviewQueueItems.id, review[0].id));
+  return { reviewId: review[0].id, completed: true } as const;
+}

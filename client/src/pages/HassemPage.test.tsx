@@ -7,6 +7,7 @@ import HassemPage from "./HassemPage";
 const navigate = vi.fn();
 const startSession = vi.fn();
 const completeSession = vi.fn();
+const completeReview = vi.fn();
 let progressData: { reviews: Array<{ id: number; reason: string; dueAt: Date }>; errors: []; mastery: [] } | undefined;
 let latestSession: { id: number; durationMinutes: number; status: string } | null = null;
 let startError: Error | null = null;
@@ -15,7 +16,7 @@ let hassemPriorities = [{ unitId: 1, unitTitleAr: "الرياضيات", state: "
 
 vi.mock("wouter", () => ({ useLocation: () => ["/hassem", navigate] }));
 vi.mock("@/lib/trpc", () => ({
-  trpc: { useUtils: () => ({ hassem: { latestSession: { invalidate: vi.fn() } } }), progress: { summary: { useQuery: () => ({ data: progressData, isLoading: false }) } }, hassem: { plan: { useQuery: ({ availableDays }: { availableDays: number }) => ({ data: { availableDays, priorities: hassemPriorities }, isLoading: false }) }, latestSession: { useQuery: () => ({ data: latestSession }) }, startSession: { useMutation: () => ({ mutate: startSession, isPending: false, error: startError }) }, completeSession: { useMutation: () => ({ mutate: completeSession, isPending: false, error: completionError }) } } },
+  trpc: { useUtils: () => ({ progress: { summary: { invalidate: vi.fn() } }, hassem: { plan: { invalidate: vi.fn() }, latestSession: { invalidate: vi.fn() } } }), progress: { summary: { useQuery: () => ({ data: progressData, isLoading: false }) }, completeReview: { useMutation: () => ({ mutate: completeReview, isPending: false, error: null }) } }, hassem: { plan: { useQuery: ({ availableDays }: { availableDays: number }) => ({ data: { availableDays, priorities: hassemPriorities }, isLoading: false }) }, latestSession: { useQuery: () => ({ data: latestSession }) }, startSession: { useMutation: () => ({ mutate: startSession, isPending: false, error: startError }) }, completeSession: { useMutation: () => ({ mutate: completeSession, isPending: false, error: completionError }) } } },
 }));
 
 afterEach(() => {
@@ -23,6 +24,7 @@ afterEach(() => {
   navigate.mockReset();
   startSession.mockReset();
   completeSession.mockReset();
+  completeReview.mockReset();
   progressData = undefined;
   latestSession = null;
   startError = null;
@@ -38,6 +40,23 @@ describe("Hassem diagnostic handoff", () => {
     expect(button.disabled).toBe(true);
     fireEvent.click(button);
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("يسجل إتمام المراجعة المستحقة بحساب الطالب قبل فتح التشخيص", () => {
+    progressData = { reviews: [{ id: 41, reason: "خطأ متكرر", dueAt: new Date() }], errors: [], mastery: [] };
+    render(<HassemPage />);
+    fireEvent.click(screen.getByRole("button", { name: "إتمام مراجعة: خطأ متكرر" }));
+    expect(completeReview).toHaveBeenCalledWith({ reviewId: 41 });
+    expect((screen.getByRole("button", { name: "التشخيص بعد المراجعات" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("يفتح التشخيص بعد تحديث الطابور وإزالة آخر مراجعة مستحقة", () => {
+    progressData = { reviews: [{ id: 41, reason: "خطأ متكرر", dueAt: new Date() }], errors: [], mastery: [] };
+    const rendered = render(<HassemPage />);
+    fireEvent.click(screen.getByRole("button", { name: "إتمام مراجعة: خطأ متكرر" }));
+    progressData = { reviews: [], errors: [], mastery: [] };
+    rendered.rerender(<HassemPage />);
+    expect((screen.getByRole("button", { name: "ابدأ تشخيص الحسم" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("unlocks and hands off to the dedicated BAC diagnostic when no reviews are due", () => {

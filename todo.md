@@ -95,3 +95,7 @@
 - [x] Add a protected Content Studio academic-review decision that audits approval, requested changes, or rejection and never exposes a publish action.
 - [x] Close the internal-pilot exercise visibility loophole so user-approved working-reference status can never bypass the Batch 1 publication block.
 - [x] Replace static Hassem priority cards with a protected transparent student plan derived from recorded mastery, repeated errors, due reviews, and available days.
+- [x] Add an ownership-scoped completion action for due reviews and connect it to the Hassem diagnostic unlock sequence.
+- [x] Add a regression scenario that refreshes the progress queue after completing the final due review and proves the Hassem diagnostic CTA unlocks.
+- [x] Add protected-router coverage for progress.completeReview ownership.
+- [x] Add a cross-contract integration test that completes the final review and proves the refreshed Hassem sequence unlocks the diagnostic after the protected mutation.
