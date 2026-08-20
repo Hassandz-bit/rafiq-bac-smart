@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/lib/trpc";
+import React from "react";
 import { ArrowLeft, BookOpenCheck, BrainCircuit, CalendarDays, ChevronLeft, CircleHelp, ClipboardCheck, Compass, FlaskConical, FunctionSquare, Leaf, Menu, MoreHorizontal, Sparkles, Target } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
