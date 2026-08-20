@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterStudentAccessibleItems, filterStudentVisibleItems } from "./curriculum";
+import { filterStudentAccessibleItems, filterStudentVisibleItems, filterStudentVisibleVisualAssets } from "./curriculum";
 
 describe("استرجاع الطالب للمحتوى الأكاديمي", () => {
   it("لا يعيد التجربة الداخلية حتى عند وجود حالة نشر في السجل", () => {
@@ -28,5 +28,13 @@ describe("استرجاع الطالب للمحتوى الأكاديمي", () => 
   it("يسمح بالمرجع العامل الذي اعتمده المستخدم مع بقاء وسمه مختلفًا عن المصدر الرسمي الحالي", () => {
     const visible = filterStudentVisibleItems([{ id: 9, workflowState: "published", sourceStatus: "historical_official", isInternalPilot: true, isUserApprovedWorkingReference: true, sourceGate: "waiting_for_current_official_book" }]);
     expect(visible.map(item => item.id)).toEqual([9]);
+  });
+
+  it("لا يرسل أصلاً بصريًا ما لم يكن عنصر التعلم الأب منشورًا ويمر بوابة المصدر", () => {
+    const assets = filterStudentVisibleVisualAssets([
+      { id: 1, workflowState: "in_review", sourceStatus: "historical_official", isInternalPilot: true, isUserApprovedWorkingReference: true, sourceGate: "waiting_for_current_official_book" },
+      { id: 2, workflowState: "published", sourceStatus: "current_official", isInternalPilot: false, isUserApprovedWorkingReference: false, sourceGate: "verified" },
+    ]);
+    expect(assets.map(asset => asset.id)).toEqual([2]);
   });
 });

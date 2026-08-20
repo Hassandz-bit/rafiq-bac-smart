@@ -50,6 +50,13 @@
       "when": 1787229728566,
       "tag": "0006_peaceful_lethal_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1787246668493,
+      "tag": "0007_square_vanisher",
+      "breakpoints": true
     }
   ]
 }

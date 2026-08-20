@@ -249,6 +249,19 @@ export const contentAssets = mysqlTable("content_assets", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+/** Visual and annotation assets inherit delivery eligibility from their parent learning record. */
+export const learningItemAssets = mysqlTable(
+  "learning_item_assets",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    learningItemId: int("learningItemId").notNull().references(() => learningItems.id),
+    assetId: int("assetId").notNull().references(() => contentAssets.id),
+    sourceId: int("sourceId").references(() => sources.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({ relationUnique: uniqueIndex("learning_item_asset_unique").on(table.learningItemId, table.assetId) }),
+);
+
 export const learningItems = mysqlTable(
   "learning_items",
   {

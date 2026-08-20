@@ -1,5 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
-import { curriculumVersions, exercises, learningItems, lessons, sources, studentEntitlements, subjectSourceGates, subjects, units } from "../drizzle/schema";
+import { contentAssets, curriculumVersions, exercises, learningItemAssets, learningItems, lessons, sources, studentEntitlements, subjectSourceGates, subjects, units } from "../drizzle/schema";
 import { getDb } from "./db";
 import { resolveUnitAccess } from "./entitlementRules";
 
@@ -65,6 +65,14 @@ export type StudentExercise = {
   provenance: "official_current" | "user_approved_working_reference";
 };
 
+export type StudentVisualAsset = {
+  id: number;
+  learningItemId: number;
+  fileUrl: string;
+  altTextAr: string | null;
+  provenance: "official_current" | "user_approved_working_reference";
+};
+
 export function filterStudentVisibleItems<
   T extends { workflowState: string; sourceStatus: string | null; isInternalPilot: boolean | null; isUserApprovedWorkingReference: boolean | null; sourceGate: string | null },
 >(items: T[]) {
@@ -85,6 +93,51 @@ export function filterStudentAccessibleItems<
     if (item.subjectCode !== "math" && item.subjectCode !== "physics" && item.subjectCode !== "natural_sciences") return false;
     return resolveUnitAccess({ subject: item.subjectCode, entitlements, isFreeUnit: item.isFreeUnit }).allowed;
   });
+}
+
+/** Visual files inherit their publication eligibility from their linked learning item. */
+export function filterStudentVisibleVisualAssets<
+  T extends { workflowState: string; sourceStatus: string | null; isInternalPilot: boolean | null; isUserApprovedWorkingReference: boolean | null; sourceGate: string | null },
+>(assets: T[]) {
+  return filterStudentVisibleItems(assets);
+}
+
+export async function getStudentVisibleVisualAssets(userId: number): Promise<StudentVisualAsset[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const entitlementRows = await db.select({ entitlement: studentEntitlements.entitlement }).from(studentEntitlements).where(eq(studentEntitlements.userId, userId)).limit(100);
+  const entitlements = entitlementRows.map(row => row.entitlement);
+  const rows = await db
+    .select({
+      id: contentAssets.id,
+      learningItemId: learningItemAssets.learningItemId,
+      fileUrl: contentAssets.fileUrl,
+      altTextAr: contentAssets.altTextAr,
+      workflowState: learningItems.workflowState,
+      sourceStatus: sources.verificationStatus,
+      isInternalPilot: sources.isInternalPilot,
+      isUserApprovedWorkingReference: sources.isUserApprovedWorkingReference,
+      sourceGate: subjectSourceGates.status,
+      subjectCode: subjects.code,
+      isFreeUnit: units.isFreeUnit,
+    })
+    .from(learningItemAssets)
+    .innerJoin(contentAssets, eq(learningItemAssets.assetId, contentAssets.id))
+    .innerJoin(learningItems, eq(learningItemAssets.learningItemId, learningItems.id))
+    .innerJoin(lessons, eq(learningItems.lessonId, lessons.id))
+    .innerJoin(units, eq(lessons.unitId, units.id))
+    .innerJoin(subjects, eq(units.subjectId, subjects.id))
+    .innerJoin(sources, eq(learningItems.sourceId, sources.id))
+    .innerJoin(subjectSourceGates, eq(subjectSourceGates.subjectId, subjects.id))
+    .limit(100);
+
+  return filterStudentAccessibleItems(rows, entitlements).map(row => ({
+    id: row.id,
+    learningItemId: row.learningItemId,
+    fileUrl: row.fileUrl,
+    altTextAr: row.altTextAr,
+    provenance: row.isUserApprovedWorkingReference ? "user_approved_working_reference" : "official_current",
+  }));
 }
 
 export async function getStudentPublishedLearningItems(userId: number): Promise<StudentLearningItem[]> {

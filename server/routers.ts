@@ -5,7 +5,7 @@ import { hasAnyRole, type AppRole } from "./authorization";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { getCurrentCurriculumOverview, getSourceRegistryForStudio, getStudentAccessibleExercises, getStudentPublishedLearningItems } from "./curriculum";
+import { getCurrentCurriculumOverview, getSourceRegistryForStudio, getStudentAccessibleExercises, getStudentPublishedLearningItems, getStudentVisibleVisualAssets } from "./curriculum";
 import { setUserRole } from "./db";
 import { recordStudentAttempt } from "./studentAttempts";
 import { getPlanCatalog } from "./subscriptions";
@@ -45,6 +45,8 @@ export const appRouter = router({
     // This is the authenticated student-safe feed. Students consume it directly; staff may call the same
     // restricted feed for preview, but it never returns drafts, internal pilots, or unverified sources.
     studentLearningItems: protectedProcedure.query(({ ctx }) => getStudentPublishedLearningItems(ctx.user.id)),
+    // Visual assets use the same parent-learning-record gate; internal-review assets cannot bypass it.
+    studentVisualAssets: protectedProcedure.query(({ ctx }) => getStudentVisibleVisualAssets(ctx.user.id)),
   }),
   studio: router({
     sourceRegistry: contentStudioProcedure.query(() => getSourceRegistryForStudio()),
