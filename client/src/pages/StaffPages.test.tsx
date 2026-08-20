@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AdminPage } from "./StaffPages";
 
@@ -13,7 +13,7 @@ vi.mock("@/lib/trpc", () => ({
   trpc: {
     useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() } } }),
     administration: {
-      planCatalog: { useQuery: () => ({ data: [{ id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", priceDzd: 2900, durationDays: 0, subjectLimit: 1, subjectBundle: ["math", "physics", "natural_sciences"], isActive: true, entitlements: ["season:subject"] }], isLoading: false }) },
+      planCatalog: { useQuery: () => ({ data: [{ id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", priceDzd: 2900, durationDays: 0, subjectLimit: 1, subjectBundle: ["math"], isActive: true, entitlements: ["season:subject"] }], isLoading: false }) },
       grantPlanAccess: { useMutation: () => ({ mutate, isPending: false, data: undefined, error: null }) },
       updatePlanConfiguration: { useMutation: () => ({ mutate: updateMutate, isPending: false, data: undefined, error: null }) },
     },
@@ -45,6 +45,15 @@ describe("تعيين خطة الوصول الإداري", () => {
     fireEvent.change(screen.getByLabelText("حد المواد season_one_subject"), { target: { value: "1" } });
     fireEvent.change(screen.getByLabelText("استحقاقات season_one_subject"), { target: { value: "season:subject, hasm:subject" } });
     fireEvent.click(screen.getByRole("button", { name: "حفظ ضبط الحزمة" }));
-    expect(updateMutate).toHaveBeenCalledWith({ id: 30002, priceDzd: 3200, durationDays: 180, subjectLimit: 1, subjectBundle: ["math", "physics", "natural_sciences"], isActive: true, entitlements: ["season:subject", "hasm:subject"] });
+    expect(updateMutate).toHaveBeenCalledWith({ id: 30002, priceDzd: 3200, durationDays: 180, subjectLimit: 1, subjectBundle: ["math"], isActive: true, entitlements: ["season:subject", "hasm:subject"] });
+  });
+
+  it("يعرض في تعيين الطالب المواد التي يسمح بها تشكيل الحزمة المحفوظ فقط", () => {
+    render(<AdminPage />);
+    const assignmentFieldset = screen.getByText("اختر 1 مادة/مواد بالضبط").closest("fieldset");
+    expect(assignmentFieldset).not.toBeNull();
+    expect(within(assignmentFieldset!).getByRole("button", { name: "الرياضيات" })).toBeTruthy();
+    expect(within(assignmentFieldset!).queryByRole("button", { name: "الفيزياء" })).toBeNull();
+    expect(within(assignmentFieldset!).queryByRole("button", { name: "علوم الطبيعة" })).toBeNull();
   });
 });

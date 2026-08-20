@@ -36,6 +36,11 @@ function AdminContent() {
   const [planCode, setPlanCode] = useState<GrantPlanCode>("season_one_subject");
   const [subjects, setSubjects] = useState<GrantSubject[]>(["math"]);
   const selectedPlan = useMemo(() => assignablePlans.find(plan => plan.code === planCode)!, [planCode]);
+  const allowedAssignmentSubjects = useMemo(() => {
+    const configured = plans?.find(plan => plan.code === planCode)?.subjectBundle;
+    const allowed = Array.isArray(configured) && configured.length ? configured : subjectChoices.map(subject => subject.value);
+    return subjectChoices.filter(subject => allowed.includes(subject.value));
+  }, [plans, planCode]);
   const assignment = trpc.administration.grantPlanAccess.useMutation({
     onSuccess: () => undefined,
   });
@@ -43,8 +48,10 @@ function AdminContent() {
   const toggleSubject = (subject: GrantSubject) => setSubjects(current => current.includes(subject) ? current.filter(item => item !== subject) : [...current, subject]);
   const changePlan = (value: GrantPlanCode) => {
     const next = assignablePlans.find(plan => plan.code === value)!;
+    const configured = plans?.find(plan => plan.code === value)?.subjectBundle;
+    const allowed = Array.isArray(configured) && configured.length ? configured : subjectChoices.map(subject => subject.value);
     setPlanCode(value);
-    setSubjects(current => current.slice(0, next.count));
+    setSubjects(current => current.filter(subject => allowed.includes(subject)).slice(0, next.count));
   };
 
   return <div className="min-h-screen bg-[#f6f8ff]" dir="rtl">
@@ -54,7 +61,7 @@ function AdminContent() {
       <section className="mt-6 grid gap-4 md:grid-cols-3">{isLoading ? <div className="soft-panel p-5 text-sm text-slate-500">جارٍ تحميل الخطط…</div> : plans?.map(plan => <ProductConfigCard key={plan.id} plan={plan} />)}</section>
       <section className="mt-6 rounded-[1.5rem] border border-blue-100 bg-white p-5 sm:p-6"><div className="flex gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-700"><UsersRound className="h-5 w-5" /></div><div><p className="font-black text-slate-950">تعيين خطة وصول داخلي</p><p className="mt-1 text-sm leading-6 text-slate-600">إجراء تشغيلي محمي للمدير: يحفظ تعيين الخطة، ويمنح الحسم تلقائيًا لمواد باقة الموسم نفسها. لا يجمع معلومات دفع ولا يؤكد عملية تحصيل.</p></div></div>
         <div className="mt-6 grid gap-4 md:grid-cols-2"><label className="grid gap-2 text-sm font-bold text-slate-700">رقم الطالب الداخلي<input aria-label="رقم الطالب الداخلي" inputMode="numeric" value={studentId} onChange={event => setStudentId(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none ring-blue-300 focus:ring-2" placeholder="مثال: 42" /></label><label className="grid gap-2 text-sm font-bold text-slate-700">الخطة<select aria-label="خطة الوصول" value={planCode} onChange={event => changePlan(event.target.value as GrantPlanCode)} className="h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none ring-blue-300 focus:ring-2">{assignablePlans.map(plan => <option key={plan.code} value={plan.code}>{plan.label}</option>)}</select></label></div>
-        <fieldset className="mt-5"><legend className="text-sm font-bold text-slate-700">اختر {selectedPlan.count} مادة/مواد بالضبط</legend><div className="mt-3 flex flex-wrap gap-2">{subjectChoices.map(subject => <button type="button" key={subject.value} aria-pressed={subjects.includes(subject.value)} onClick={() => toggleSubject(subject.value)} className={`rounded-xl border px-4 py-2 text-sm font-bold transition ${subjects.includes(subject.value) ? "border-blue-600 bg-blue-700 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-blue-300"}`}>{subject.label}</button>)}</div></fieldset>
+        <fieldset className="mt-5"><legend className="text-sm font-bold text-slate-700">اختر {selectedPlan.count} مادة/مواد بالضبط</legend><div className="mt-3 flex flex-wrap gap-2">{allowedAssignmentSubjects.map(subject => <button type="button" key={subject.value} aria-pressed={subjects.includes(subject.value)} onClick={() => toggleSubject(subject.value)} className={`rounded-xl border px-4 py-2 text-sm font-bold transition ${subjects.includes(subject.value) ? "border-blue-600 bg-blue-700 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-blue-300"}`}>{subject.label}</button>)}</div></fieldset>
         <div className="mt-6 flex flex-wrap items-center gap-3"><Button disabled={!isReady || assignment.isPending} onClick={() => assignment.mutate({ userId: Number(studentId), planCode, subjects })} className="h-11 rounded-xl bg-blue-700 px-5 font-black hover:bg-blue-800">{assignment.isPending ? "جارٍ حفظ التعيين…" : "حفظ التعيين ومنح الاستحقاقات"}</Button>{!isReady && <p className="text-xs font-bold text-amber-700">أدخل رقم طالب صحيحًا وطابق عدد المواد مع الخطة.</p>}</div>
         {assignment.data && <div className="mt-5 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950"><p className="font-black">تم الحفظ التشغيلي بنجاح.</p><p className="mt-1">الطبقة: {assignment.data.productTier} · الاستحقاقات: {assignment.data.entitlements.join("، ")}</p></div>}
         {assignment.error && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-4 text-sm font-bold text-rose-800">تعذر حفظ التعيين: {assignment.error.message}</p>}
