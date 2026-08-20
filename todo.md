@@ -90,3 +90,4 @@
 - [x] Populate original Arabic outline content in every persisted Batch 1 draft component while retaining in_review, source-review-required, and publication-blocked states.
 - [x] Render each persisted Batch 1 component as an explicit Content Studio review-board row with source, workflow, and publication-block fields, and test all six units in one UI scenario.
 - [x] Populate distinct unit-specific original Arabic draft content for every Batch 1 component and verify each unit has a non-template payload tied to its own subject and unit.
+- [x] Register and real-data-verify one original source-linked in-review Batch 1 exercise for each of the nine student interaction types, with deterministic answer definitions and publication blocks.
