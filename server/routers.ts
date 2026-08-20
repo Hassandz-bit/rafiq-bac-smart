@@ -14,6 +14,7 @@ import { autosaveBacSession, startBacSession, submitBacSession } from "./bacSess
 import { getStudentProgressSummary } from "./studentProgress";
 import { generateSmartAssessment } from "./smartAssessment";
 import { completeHassemFocusSession, getLatestHassemFocusSession, startHassemFocusSession } from "./hassemFocusSessions";
+import { reviewLearningItem } from "./contentReview";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -25,6 +26,13 @@ const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
 const adminOnlyProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") {
     throw new TRPCError({ code: "FORBIDDEN", message: "هذه العملية متاحة للمدير فقط." });
+  }
+  return next();
+});
+
+const academicReviewerProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (!hasAnyRole(ctx.user.role, ["admin", "academic_reviewer"])) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "قرار المراجعة الأكاديمية متاح للمراجع أو المدير فقط." });
   }
   return next();
 });
@@ -53,6 +61,9 @@ export const appRouter = router({
   studio: router({
     sourceRegistry: contentStudioProcedure.query(() => getSourceRegistryForStudio()),
     reviewQueue: contentStudioProcedure.query(() => getStudioReviewQueue()),
+    reviewLearningItem: academicReviewerProcedure
+      .input(z.object({ learningItemId: z.number().int().positive(), decision: z.enum(["approved", "changes_requested", "rejected"]), noteAr: z.string().trim().max(2000).optional() }))
+      .mutation(({ ctx, input }) => reviewLearningItem({ reviewerUserId: ctx.user.id, role: ctx.user.role, ...input })),
   }),
   attempts: router({
     accessibleExercises: protectedProcedure.query(({ ctx }) => getStudentAccessibleExercises(ctx.user.id)),

@@ -19,6 +19,7 @@ const mockedReviewQueue = vi.hoisted(() => {
     reviewComponents: componentKeys.map((componentKey, index) => ({ id: id * 100 + index, componentKey, titleAr: `مسودة مكوّن: ${componentKey}`, type: `batch1_${componentKey}_draft`, sourceId, workflowState: "in_review", componentState: "outline_only", contentStatus: "original_draft_text", draftContentAr: "مسودة عربية أصلية مقيدة بالنشر حتى اعتماد المصدر.", publicationBlocked: true, sourceReviewRequired: true })),
   }));
 });
+const mockedReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
@@ -29,23 +30,27 @@ vi.mock("@/lib/trpc", () => ({
     studio: {
       sourceRegistry: { useQuery: () => ({ data: [], isLoading: false }) },
       reviewQueue: { useQuery: () => ({ data: mockedReviewQueue, isLoading: false }) },
+      reviewLearningItem: { useMutation: () => mockedReviewMutation },
     },
     curriculum: { overview: { useQuery: () => ({ data: { subjects: [] } }) } },
+    useUtils: () => ({ studio: { reviewQueue: { invalidate: vi.fn() } } }),
   },
 }));
 
 afterEach(cleanup);
 
 describe("طابور مراجعة Content Studio", () => {
-  it("يعرض الوحدات الست ومكوّناتها الـ72 مع قفل النشر دون زر نشر", () => {
+  it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
     render(<StudioPage />);
     expect(screen.getByText("طابور المراجعة الأكاديمية")).toBeTruthy();
     expect(screen.getByText("6 عناصر")).toBeTruthy();
-    expect(screen.getByText("مسودة مراجعة: Batch 1 — النهايات والاستمرارية")).toBeTruthy();
-    expect(screen.getByText("مسودة مراجعة: Batch 1 — العلاقة بين بنية ووظيفة البروتين")).toBeTruthy();
+    expect(screen.getAllByText("مسودة مراجعة: Batch 1 — النهايات والاستمرارية")).toHaveLength(2);
+    expect(screen.getAllByText("مسودة مراجعة: Batch 1 — العلاقة بين بنية ووظيفة البروتين")).toHaveLength(2);
     expect(screen.getAllByText(/12 مكوّنات مسودة فعلية/)).toHaveLength(6);
     expect(screen.getAllByText("أهداف التعلم")).toHaveLength(6);
     expect(screen.getAllByText("قفل النشر")).toHaveLength(72);
+    expect(screen.getAllByRole("button", { name: "اعتماد أكاديمي" })).toHaveLength(6);
+    expect(screen.getAllByRole("button", { name: "إعادة للمسودة" })).toHaveLength(6);
     expect(screen.queryByRole("button", { name: /نشر/i })).toBeNull();
   });
 });

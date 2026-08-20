@@ -92,3 +92,4 @@
 - [x] Populate distinct unit-specific original Arabic draft content for every Batch 1 component and verify each unit has a non-template payload tied to its own subject and unit.
 - [x] Register and real-data-verify one original source-linked in-review Batch 1 exercise for each of the nine student interaction types, with deterministic answer definitions and publication blocks.
 - [x] Add and real-data-verify three original source-review-required hints plus a paper-and-pen reveal policy for every Batch 1 draft exercise.
+- [x] Add a protected Content Studio academic-review decision that audits approval, requested changes, or rejection and never exposes a publish action.

@@ -20,11 +20,20 @@ function StudioContent() {
   const { user } = useAuth();
   const { data: sources, isLoading } = trpc.studio.sourceRegistry.useQuery();
   const { data: reviewQueue, isLoading: reviewQueueLoading } = trpc.studio.reviewQueue.useQuery();
+  const utils = trpc.useUtils();
   const curriculum = trpc.curriculum.overview.useQuery();
   const fileInput = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
   const canUpload = user?.role === "admin" || user?.role === "content_editor";
+  const canReview = user?.role === "admin" || user?.role === "academic_reviewer";
+  const reviewMutation = trpc.studio.reviewLearningItem.useMutation({
+    onSuccess: async result => {
+      await utils.studio.reviewQueue.invalidate();
+      toast.success(result.decision === "approved" ? "سُجل الاعتماد الأكاديمي؛ النشر ما زال مقفلاً." : "سُجلت ملاحظة المراجعة وأعيدت المسودة.");
+    },
+    onError: error => toast.error(error.message || "تعذر تسجيل قرار المراجعة."),
+  });
 
   const uploadBook = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -109,9 +118,14 @@ function StudioContent() {
             </section>
 
             <section className="soft-panel mt-6 overflow-hidden">
-              <div className="flex items-center justify-between border-b border-slate-100 p-5"><div><h2 className="font-black">طابور المراجعة الأكاديمية</h2><p className="mt-1 text-xs text-slate-500">عرض للقرار البشري فقط؛ لا يتيح هذا المسار نشرًا أو تغيير حالة.</p></div><Badge variant="outline" className="border-blue-100 bg-blue-50 text-blue-700">{reviewQueueLoading ? "جارٍ التحميل" : `${reviewQueue?.length ?? 0} عناصر`}</Badge></div>
+              <div className="flex items-center justify-between border-b border-slate-100 p-5"><div><h2 className="font-black">طابور المراجعة الأكاديمية</h2><p className="mt-1 text-xs text-slate-500">قرار بشري موثق: اعتماد أو إعادة للمسودة فقط. لا توجد أي عملية نشر في هذا المسار.</p></div><Badge variant="outline" className="border-blue-100 bg-blue-50 text-blue-700">{reviewQueueLoading ? "جارٍ التحميل" : `${reviewQueue?.length ?? 0} عناصر`}</Badge></div>
               <div className="divide-y divide-slate-100">{reviewQueue?.map(item => <div key={item.id} className="p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold text-slate-900">{item.titleAr}</p><p className="mt-1 text-xs text-slate-500">{item.subjectNameAr} · {item.unitTitleAr} · {item.lessonTitleAr} · {item.type}</p><p className="mt-1 text-xs text-slate-500">{item.sourceTitle ?? "مصدر غير مكتمل"} · {item.sourceAuthority ?? "غير موثق"}</p><p className="mt-2 text-xs font-bold text-slate-600">{item.reviewComponents.length} مكوّنات مسودة فعلية · {item.reviewComponentState === "outline_only" ? "مقيّدة بالنشر حتى الاعتماد" : "تحتاج جردًا"}</p></div><div className="flex flex-wrap gap-2"><Badge className="border-0 bg-violet-50 text-violet-700 hover:bg-violet-50">in_review</Badge><Badge variant="outline" className="border-amber-100 bg-amber-50 text-amber-800">{item.sourceStatus ?? "غير متحقق"}</Badge>{item.isInternalPilot && <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">داخلي</Badge>}{item.publicationBlocked && <Badge variant="outline" className="border-rose-100 bg-rose-50 text-rose-700">قفل الحزمة</Badge>}</div></div><div className="mt-4 grid gap-2 md:grid-cols-2">{item.reviewComponents.map(component => <article key={component.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-black text-slate-800">{reviewComponentLabels[component.componentKey] ?? component.componentKey}</p><div className="flex gap-1.5"><Badge variant="outline" className="border-blue-100 bg-white text-[10px] text-blue-700">{component.workflowState}</Badge><Badge variant="outline" className="border-rose-100 bg-white text-[10px] text-rose-700">قفل النشر</Badge></div></div><p className="mt-2 text-xs leading-5 text-slate-600">{component.draftContentAr ?? "لا توجد حمولة مسودة بعد."}</p><p className="mt-2 text-[10px] font-bold text-slate-500">المصدر: {item.sourceTitle ?? "غير مكتمل"} · سجل {component.sourceId ?? "—"} · {component.contentStatus ?? "مسودة"}</p></article>)}</div></div>)}{!reviewQueueLoading && !reviewQueue?.length && <div className="p-10 text-center text-sm text-slate-500">لا توجد عناصر بانتظار المراجعة حاليًا.</div>}</div>
             </section>
+
+            {canReview && <section className="soft-panel mt-6 overflow-hidden">
+              <div className="border-b border-slate-100 p-5"><h2 className="font-black">قرارات المراجعة</h2><p className="mt-1 text-xs text-slate-500">الاعتماد ينقل العنصر إلى Approved فقط؛ ولا يفتح النشر لأن مصدر Batch 1 ما زال مرجع عمل داخليًا.</p></div>
+              <div className="divide-y divide-slate-100">{reviewQueue?.map(item => <div key={item.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold text-slate-900">{item.titleAr}</p><p className="mt-1 text-xs text-slate-500">قرارك يُسجل في سجل المراجعة مع بقاء قفل النشر فعالًا.</p></div><div className="flex flex-wrap gap-2"><Button size="sm" disabled={reviewMutation.isPending} onClick={() => reviewMutation.mutate({ learningItemId: item.id, decision: "approved", noteAr: "اعتماد أكاديمي داخلي؛ النشر مقفل حتى تحقق المصدر." })} className="bg-emerald-700 hover:bg-emerald-800">اعتماد أكاديمي</Button><Button size="sm" variant="outline" disabled={reviewMutation.isPending} onClick={() => reviewMutation.mutate({ learningItemId: item.id, decision: "changes_requested", noteAr: "تحتاج المسودة إلى تعديل أكاديمي قبل الاعتماد." })}>إعادة للمسودة</Button></div></div>)}</div>
+            </section>}
 
             <section className="mt-6 rounded-[1.5rem] border border-dashed border-blue-200 bg-blue-50/60 p-6">
               <div className="flex gap-4">
