@@ -15,6 +15,7 @@ import { getStudentProgressSummary } from "./studentProgress";
 import { generateSmartAssessment } from "./smartAssessment";
 import { completeHassemFocusSession, getLatestHassemFocusSession, startHassemFocusSession } from "./hassemFocusSessions";
 import { reviewLearningItem } from "./contentReview";
+import { getHassemPlanForStudent } from "./hassemStudentPlan";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -96,6 +97,7 @@ export const appRouter = router({
     smartAssessment: protectedProcedure.query(({ ctx }) => generateSmartAssessment(ctx.user.id)),
   }),
   hassem: router({
+    plan: protectedProcedure.input(z.object({ availableDays: z.number().int().min(1).max(365) })).query(({ ctx, input }) => getHassemPlanForStudent(ctx.user.id, input.availableDays)),
     latestSession: protectedProcedure.query(({ ctx }) => getLatestHassemFocusSession(ctx.user.id)),
     startSession: protectedProcedure.input(z.object({ durationMinutes: z.union([z.literal(10), z.literal(20)]) })).mutation(({ ctx, input }) => startHassemFocusSession(ctx.user.id, input.durationMinutes)),
     completeSession: protectedProcedure.input(z.object({ sessionId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {

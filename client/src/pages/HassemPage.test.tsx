@@ -11,10 +11,11 @@ let progressData: { reviews: Array<{ id: number; reason: string; dueAt: Date }>;
 let latestSession: { id: number; durationMinutes: number; status: string } | null = null;
 let startError: Error | null = null;
 let completionError: Error | null = null;
+let hassemPriorities = [{ unitId: 1, unitTitleAr: "الرياضيات", state: "priority" as const, explanationAr: "الإتقان 32% · الأخطاء المتكررة 3 · المراجعات المستحقة 2 · الضغط الزمني محسوب على 20 يومًا.", nextActionAr: "ابدأ بمراجعة خطأ متكرر ثم جلسة حسم قصيرة." }];
 
 vi.mock("wouter", () => ({ useLocation: () => ["/hassem", navigate] }));
 vi.mock("@/lib/trpc", () => ({
-  trpc: { useUtils: () => ({ hassem: { latestSession: { invalidate: vi.fn() } } }), progress: { summary: { useQuery: () => ({ data: progressData, isLoading: false }) } }, hassem: { latestSession: { useQuery: () => ({ data: latestSession }) }, startSession: { useMutation: () => ({ mutate: startSession, isPending: false, error: startError }) }, completeSession: { useMutation: () => ({ mutate: completeSession, isPending: false, error: completionError }) } } },
+  trpc: { useUtils: () => ({ hassem: { latestSession: { invalidate: vi.fn() } } }), progress: { summary: { useQuery: () => ({ data: progressData, isLoading: false }) } }, hassem: { plan: { useQuery: ({ availableDays }: { availableDays: number }) => ({ data: { availableDays, priorities: hassemPriorities }, isLoading: false }) }, latestSession: { useQuery: () => ({ data: latestSession }) }, startSession: { useMutation: () => ({ mutate: startSession, isPending: false, error: startError }) }, completeSession: { useMutation: () => ({ mutate: completeSession, isPending: false, error: completionError }) } } },
 }));
 
 afterEach(() => {
@@ -26,6 +27,7 @@ afterEach(() => {
   latestSession = null;
   startError = null;
   completionError = null;
+  hassemPriorities = [{ unitId: 1, unitTitleAr: "الرياضيات", state: "priority", explanationAr: "الإتقان 32% · الأخطاء المتكررة 3 · المراجعات المستحقة 2 · الضغط الزمني محسوب على 20 يومًا.", nextActionAr: "ابدأ بمراجعة خطأ متكرر ثم جلسة حسم قصيرة." }];
 });
 
 describe("Hassem diagnostic handoff", () => {
@@ -85,5 +87,15 @@ describe("Hassem diagnostic handoff", () => {
     fireEvent.click(screen.getByRole("button", { name: "إتمام الجلسة" }));
     expect(completeSession).toHaveBeenCalledWith({ sessionId: 71 });
     expect(screen.getByRole("alert").textContent).toContain("تعذر حفظ جلسة الحسم أو إتمامها: فشل الحفظ النهائي");
+  });
+
+  it("يعرض الأولوية الشفافة من الخادم ويغير الأيام المتاحة دون توصية ثابتة", () => {
+    progressData = { reviews: [], errors: [], mastery: [] };
+    render(<HassemPage />);
+    expect(screen.getByText("الرياضيات")).toBeTruthy();
+    expect(screen.getByText(/الأخطاء المتكررة 3/)).toBeTruthy();
+    expect(screen.getByText("ابدأ بمراجعة خطأ متكرر ثم جلسة حسم قصيرة.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "10 يومًا" }));
+    expect(screen.getByText("الأيام المتبقية:").parentElement?.textContent).toContain("10");
   });
 });

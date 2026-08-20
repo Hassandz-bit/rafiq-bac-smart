@@ -94,3 +94,4 @@
 - [x] Add and real-data-verify three original source-review-required hints plus a paper-and-pen reveal policy for every Batch 1 draft exercise.
 - [x] Add a protected Content Studio academic-review decision that audits approval, requested changes, or rejection and never exposes a publish action.
 - [x] Close the internal-pilot exercise visibility loophole so user-approved working-reference status can never bypass the Batch 1 publication block.
+- [x] Replace static Hassem priority cards with a protected transparent student plan derived from recorded mastery, repeated errors, due reviews, and available days.
