@@ -65,9 +65,9 @@
 - [x] Fix the free-diagnostic mobile RTL overflow and verify the 390px experience remains fully visible and touch-friendly.
 - [x] Assemble a unified internal visual-review board for all Batch 1 visual assets, including unit, concept, source linkage, reviewer status, version, and publication block.
 - [ ] Verify that every visual asset remains original, source-traceable, and unavailable to student publication pending academic review. (يلزم تسجيل تحقق مباشر من تغذية الطالب الفعلية.)
-- [ ] Enforce visual-asset publication through the parent learning-record gate and prove with automated tests that internal-review assets never reach student retrieval. (يلزم اختبار تكاملي غير محاكى.)
-- [ ] Persist the four Batch 1 visual assets as source-linked internal-review records and verify that student retrieval excludes them. (يلزم تحقق من ناتج التغذية الآمنة على البيانات الفعلية.)
-- [ ] Add a protected student-safe visual-asset procedure and end-to-end test proving the four persisted in-review Batch 1 assets are excluded. (الإجراء موجود؛ يلزم استدعاء تكاملي للبيانات المثبتة.)
+- [x] Enforce visual-asset publication through the parent learning-record gate and prove with automated tests that internal-review assets never reach student retrieval.
+- [x] Persist the four Batch 1 visual assets as source-linked internal-review records and verify that student retrieval excludes them.
+- [x] Add a protected student-safe visual-asset procedure and end-to-end test proving the four persisted in-review Batch 1 assets are excluded.
 - [x] Prioritize a student’s due review queue in the Hassem daily sequence before any BAC diagnostic action.
 - [x] Present the BAC short diagnostic as the next unlocked Hassem action after due reviews are completed or unavailable.
 - [x] Add regression coverage for the review-first, diagnostic-second Hassem decision order.
