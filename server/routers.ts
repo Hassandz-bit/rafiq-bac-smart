@@ -22,7 +22,7 @@ import { createSourceLinkedDraftComponent, discardDraftComponent, getDraftCompon
 import { getLocalPaymentStatus } from "./localPaymentAbstraction";
 import { getOfficialBookIntake, reviewOfficialBookUpload } from "./officialBookIntake";
 import { archiveStandaloneUnverifiedSourceRecord, createUnverifiedSourceRecord, updateStandaloneUnverifiedSourceRecord } from "./sourceRecords";
-import { createDraftCurriculumLesson, createDraftCurriculumUnit, getDraftCurriculumUnitsForStudio } from "./curriculumDrafts";
+import { createDraftCurriculumLesson, createDraftCurriculumUnit, getDraftCurriculumLessonsForStudio, getDraftCurriculumUnitsForStudio, updateDraftCurriculumLesson, updateDraftCurriculumUnit } from "./curriculumDrafts";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -76,6 +76,7 @@ export const appRouter = router({
   studio: router({
     sourceRegistry: contentStudioProcedure.query(() => getSourceRegistryForStudio()),
     draftCurriculumUnits: contentStudioProcedure.query(() => getDraftCurriculumUnitsForStudio()),
+    draftCurriculumLessons: contentStudioProcedure.query(() => getDraftCurriculumLessonsForStudio()),
     createDraftUnit: contentEditorProcedure
       .input(z.object({ subjectId: z.number().int().positive(), titleAr: z.string().trim().min(3).max(220), summaryAr: z.string().trim().max(4000).optional(), sortOrder: z.number().int().min(0).max(9999).optional() }))
       .mutation(async ({ input }) => {
@@ -88,6 +89,20 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const result = await createDraftCurriculumLesson(input);
         if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "وحدة المنهج المحددة غير موجودة." });
+        return result;
+      }),
+    updateDraftUnit: contentEditorProcedure
+      .input(z.object({ unitId: z.number().int().positive(), titleAr: z.string().trim().min(3).max(220), summaryAr: z.string().trim().max(4000).optional(), sortOrder: z.number().int().min(0).max(9999) }))
+      .mutation(async ({ input }) => {
+        const result = await updateDraftCurriculumUnit(input);
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "وحدة المنهج المحددة غير موجودة." });
+        return result;
+      }),
+    updateDraftLesson: contentEditorProcedure
+      .input(z.object({ lessonId: z.number().int().positive(), titleAr: z.string().trim().min(3).max(220), objectiveAr: z.string().trim().max(4000).optional(), estimatedMinutes: z.number().int().min(1).max(600).optional(), sortOrder: z.number().int().min(0).max(9999) }))
+      .mutation(async ({ input }) => {
+        const result = await updateDraftCurriculumLesson(input);
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "درس المنهج المحدد غير موجود." });
         return result;
       }),
     createSource: contentEditorProcedure

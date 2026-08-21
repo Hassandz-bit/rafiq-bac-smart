@@ -15,7 +15,7 @@
 - [x] Implement graduated hints, paper-and-pen reveal flow, and error classification by subject.
 - [x] Implement the error notebook, mastery states, and spaced-review queue.
 - [x] Implement BAC focus mode, results analysis model, and rescue-plan foundations without AI tutoring. (النتائج والخطة جاهزتان؛ يلزم ربطهما بمحتوى BAC منشور ومعتمد عند توفره، وهو مسجل كبند مستقل.)
-- [ ] Build Content Studio with curriculum management, source records, approval workflow, and a current-official-book upload intake. (مكتمل حاليًا: إدارة السجلات المستقلة غير المتحققة، مراجعة المكونات والتحقق، ورفع/فحص كتاب آمن. المتبقي: إدارة منهج محكومة ضمن الاستوديو؛ يبقى النشر قرارًا أكاديميًا بشريًا محظورًا تقنيًا حتى استيفائه.)
+- [x] Build Content Studio with curriculum management, source records, approval workflow, and a current-official-book upload intake. (إدارة الوحدات والدروس البنيوية Draft-only، إدارة السجلات المستقلة غير المتحققة، مراجعة المكونات والتحقق، ورفع/فحص كتاب آمن متاحة. لا توجد عملية نشر في هذه المسارات؛ النشر قرار أكاديمي بشري محظور تقنيًا حتى استيفائه.)
 - [x] Add subscription architecture, plans, entitlement model, and free-unit support without payment processing.
 - [x] Add original scientific SVG visual assets and accessible annotations without importing unlicensed images.
 - [x] Create automated tests for authorization, source gating, learning rules, and key user flows.
@@ -137,3 +137,4 @@
 - [x] Add non-destructive source archival for standalone unverified records only, with immutable audit metadata and no impact on source verification or publication state.
 - [x] Add a content-editor/admin draft-only unit-creation workflow that can never create a free or published curriculum node.
 - [x] Add a content-editor/admin draft-only lesson-creation workflow restricted to Draft parent units and unable to create published learning content.
+- [x] Add content-editor/admin draft-only metadata updates for units and lessons that preserve their parent linkage, Draft state, non-free status, and publication block.

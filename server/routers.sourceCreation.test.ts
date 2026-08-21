@@ -3,7 +3,7 @@ import type { TrpcContext } from "./_core/context";
 
 const sourceMocks = vi.hoisted(() => ({ createUnverifiedSourceRecord: vi.fn(), updateStandaloneUnverifiedSourceRecord: vi.fn(), archiveStandaloneUnverifiedSourceRecord: vi.fn() }));
 vi.mock("./sourceRecords", () => sourceMocks);
-const curriculumDraftMocks = vi.hoisted(() => ({ createDraftCurriculumUnit: vi.fn(), createDraftCurriculumLesson: vi.fn(), getDraftCurriculumUnitsForStudio: vi.fn() }));
+const curriculumDraftMocks = vi.hoisted(() => ({ createDraftCurriculumUnit: vi.fn(), createDraftCurriculumLesson: vi.fn(), getDraftCurriculumUnitsForStudio: vi.fn(), getDraftCurriculumLessonsForStudio: vi.fn(), updateDraftCurriculumUnit: vi.fn(), updateDraftCurriculumLesson: vi.fn() }));
 vi.mock("./curriculumDrafts", () => curriculumDraftMocks);
 
 import { appRouter } from "./routers";
@@ -59,6 +59,36 @@ describe("studio.createDraftLesson", () => {
     const lessonInput = { unitId: 81001, titleAr: "سرعة التفاعل" };
     await expect(appRouter.createCaller(context(reviewer)).studio.createDraftLesson(lessonInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(appRouter.createCaller(context(null)).studio.createDraftLesson(lessonInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("studio.updateDraftUnit", () => {
+  it("يسمح للمحرر بتعديل بيانات وحدة Draft فقط مع بقاء قفل النشر", async () => {
+    const updateInput = { unitId: 81001, titleAr: "وحدة محدثة", summaryAr: "ملخص", sortOrder: 3 };
+    curriculumDraftMocks.updateDraftCurriculumUnit.mockResolvedValue({ unitId: 81001, workflowState: "draft", isFreeUnit: false, publicationBlocked: true, parentChanged: false });
+    await expect(appRouter.createCaller(context(editor)).studio.updateDraftUnit(updateInput)).resolves.toMatchObject({ workflowState: "draft", isFreeUnit: false, publicationBlocked: true, parentChanged: false });
+    expect(curriculumDraftMocks.updateDraftCurriculumUnit).toHaveBeenCalledWith(updateInput);
+  });
+
+  it("يرفض تعديل الوحدة من المراجع وغير المصدق", async () => {
+    const updateInput = { unitId: 81001, titleAr: "وحدة محدثة", sortOrder: 3 };
+    await expect(appRouter.createCaller(context(reviewer)).studio.updateDraftUnit(updateInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(appRouter.createCaller(context(null)).studio.updateDraftUnit(updateInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("studio.updateDraftLesson", () => {
+  it("يسمح للمحرر بتعديل بيانات درس Draft فقط مع بقاء الوحدة والكتلة", async () => {
+    const updateInput = { lessonId: 82001, titleAr: "درس محدث", objectiveAr: "هدف", estimatedMinutes: 45, sortOrder: 2 };
+    curriculumDraftMocks.updateDraftCurriculumLesson.mockResolvedValue({ lessonId: 82001, unitId: 81001, workflowState: "draft", publicationBlocked: true, parentChanged: false, learningContentChanged: false });
+    await expect(appRouter.createCaller(context(editor)).studio.updateDraftLesson(updateInput)).resolves.toMatchObject({ workflowState: "draft", publicationBlocked: true, parentChanged: false, learningContentChanged: false });
+    expect(curriculumDraftMocks.updateDraftCurriculumLesson).toHaveBeenCalledWith(updateInput);
+  });
+
+  it("يرفض تعديل الدرس من المراجع وغير المصدق", async () => {
+    const updateInput = { lessonId: 82001, titleAr: "درس محدث", sortOrder: 2 };
+    await expect(appRouter.createCaller(context(reviewer)).studio.updateDraftLesson(updateInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(appRouter.createCaller(context(null)).studio.updateDraftLesson(updateInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
 
