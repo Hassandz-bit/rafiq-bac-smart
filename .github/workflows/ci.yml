@@ -1,0 +1,41 @@
+name: التحقق المستمر
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: فحص النوع والاختبارات والبناء
+    runs-on: ubuntu-latest
+    steps:
+      - name: جلب المستودع
+        uses: actions/checkout@v4
+
+      - name: إعداد Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: إعداد pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: تثبيت الاعتمادات
+        run: pnpm install --frozen-lockfile
+
+      - name: فحص TypeScript
+        run: pnpm check
+
+      - name: تشغيل الاختبارات
+        run: pnpm test
+
+      - name: بناء الإنتاج
+        run: pnpm build
