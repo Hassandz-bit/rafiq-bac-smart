@@ -22,9 +22,9 @@ export function grantHasmFromSeason(entitlements: string[]) {
 }
 
 /** Returns the access claims that an administrator may provision internally, without collecting payment details. */
-export function resolvePlanEntitlementGrant(input: { planCode: GrantablePlanCode; subjects: EntitledSubject[] }) {
+export function resolvePlanEntitlementGrant(input: { planCode: GrantablePlanCode; subjects: EntitledSubject[]; requiredSubjectCount?: number }) {
   const subjects = Array.from(new Set(input.subjects));
-  const requiredCount = planSubjectCounts[input.planCode];
+  const requiredCount = input.requiredSubjectCount ?? planSubjectCounts[input.planCode];
   if (subjects.length !== requiredCount) {
     throw new Error(`الخطة ${input.planCode} تتطلب اختيار ${requiredCount} مادة/مواد بالضبط.`);
   }

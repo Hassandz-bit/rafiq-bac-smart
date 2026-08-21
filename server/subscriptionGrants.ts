@@ -10,22 +10,28 @@ import { resolvePlanEntitlementGrant, type EntitledSubject, type GrantablePlanCo
 export async function grantPlanAccess(input: { userId: number; planCode: GrantablePlanCode; subjects: EntitledSubject[]; expiresAt?: Date | null }) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
-  const grant = resolvePlanEntitlementGrant({ planCode: input.planCode, subjects: input.subjects });
-  const expiresAt = input.expiresAt ?? null;
   const productTier = input.planCode.startsWith("season_") ? "season" : "hasm";
+  let resolvedGrant: ReturnType<typeof resolvePlanEntitlementGrant> | null = null;
+  let resolvedExpiresAt: Date | null = null;
 
   await db.transaction(async tx => {
-    const plan = await tx.select({ id: plans.id, subjectBundle: plans.subjectBundle }).from(plans).where(eq(plans.code, input.planCode)).limit(1);
+    const plan = await tx.select({ id: plans.id, subjectBundle: plans.subjectBundle, subjectLimit: plans.subjectLimit, durationDays: plans.durationDays, isActive: plans.isActive }).from(plans).where(eq(plans.code, input.planCode)).limit(1);
     if (!plan[0]) throw new Error("الخطة المطلوبة غير مهيأة في كتالوج المنتجات.");
+    if (!plan[0].isActive) throw new Error("الخطة المطلوبة موقوفة ولا يمكن تعيينها.");
+    if (plan[0].subjectLimit < 1 || plan[0].subjectLimit > 3) throw new Error("سعة المواد في الخطة غير صالحة للتعيين.");
+    const grant = resolvePlanEntitlementGrant({ planCode: input.planCode, subjects: input.subjects, requiredSubjectCount: plan[0].subjectLimit });
     const allowedSubjects = Array.isArray(plan[0].subjectBundle) ? plan[0].subjectBundle.filter((subject): subject is EntitledSubject => subject === "math" || subject === "physics" || subject === "natural_sciences") : [];
     if (!allowedSubjects.length || !grant.subjects.every(subject => allowedSubjects.includes(subject))) throw new Error("اختيار المواد لا يطابق تشكيل الحزمة المعتمد.");
+    const expiresAt = input.expiresAt ?? (plan[0].durationDays > 0 ? new Date(Date.now() + plan[0].durationDays * 24 * 60 * 60 * 1000) : null);
 
     await tx.update(studentPlanAssignments).set({ isActive: false }).where(and(eq(studentPlanAssignments.userId, input.userId), eq(studentPlanAssignments.productTier, productTier), eq(studentPlanAssignments.isActive, true)));
     await tx.insert(studentPlanAssignments).values({ userId: input.userId, planId: plan[0].id, productTier, selectedSubjects: grant.subjects, isActive: true, expiresAt });
     await tx.insert(studentEntitlements).values(grant.entitlements.map(entitlement => ({ userId: input.userId, entitlement, expiresAt }))).onDuplicateKeyUpdate({ set: { expiresAt } });
+    resolvedGrant = grant;
+    resolvedExpiresAt = expiresAt;
   });
 
-  return { ...grant, productTier, expiresAt };
+  return { ...resolvedGrant!, productTier, expiresAt: resolvedExpiresAt };
 }
 
 /**
