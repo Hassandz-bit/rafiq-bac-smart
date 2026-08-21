@@ -145,3 +145,4 @@
 - [x] Produce and apply a unified high-fidelity visual direction for landing, student home, subjects, learning, mind map, slides, exercises, review, BAC, Hassem, and pricing without adding content or changing engines.
 - [x] Verify premium student UI behavior across light/dark/system, mobile/tablet/desktop, reduced motion, keyboard focus, and existing functional regressions.
 - [x] Record user acceptance of the Premium student UI reference without expanding academic content, payment, or Batch 2 scope.
+- [x] Fix Premium UI typography rhythm, line distribution, RTL spacing, and text-color hierarchy across desktop and mobile without changing application behavior.
