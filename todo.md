@@ -122,3 +122,4 @@
 - [x] Add an administrator-only non-payment promotion and upgrade audit record that documents an approved manual plan change without collecting payment data.
 - [x] Add a content-editor-only Draft component update workflow that preserves the original lesson/source linkage and cannot modify review or publication state.
 - [x] Add a disabled local-payment abstraction contract for future product administration, expose its non-active status safely, and test that no billing flow can run.
+- [x] Add a content-editor-only Draft-to-review submission action that preserves source linkage and publication blocks.

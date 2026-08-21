@@ -1,7 +1,7 @@
 import type { TrpcContext } from "./_core/context";
 import { describe, expect, it, vi } from "vitest";
 
-const draftMocks = vi.hoisted(() => ({ createSourceLinkedDraftComponent: vi.fn(), updateDraftComponent: vi.fn() }));
+const draftMocks = vi.hoisted(() => ({ createSourceLinkedDraftComponent: vi.fn(), updateDraftComponent: vi.fn(), submitDraftComponentForReview: vi.fn() }));
 vi.mock("./draftComponents", () => draftMocks);
 
 import { appRouter } from "./routers";
@@ -50,5 +50,24 @@ describe("studio.updateDraftComponent", () => {
     await expect(appRouter.createCaller(context(admin)).studio.updateDraftComponent(updateInput)).resolves.toMatchObject({ workflowState: "draft", publicationBlocked: true });
     await expect(appRouter.createCaller(context(reviewer)).studio.updateDraftComponent(updateInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(appRouter.createCaller(context(null)).studio.updateDraftComponent(updateInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("studio.submitDraftComponentForReview", () => {
+  const reviewInput = { learningItemId: 99001 };
+
+  it("يسمح للمحرر بإرسال Draft للمراجعة فقط مع بقاء النشر مقفلاً", async () => {
+    const result = { id: 99001, workflowState: "in_review" as const, publicationBlocked: true as const, sourceId: 30001, lessonId: 701 };
+    draftMocks.submitDraftComponentForReview.mockResolvedValue(result);
+    await expect(appRouter.createCaller(context(editor)).studio.submitDraftComponentForReview(reviewInput)).resolves.toEqual(result);
+    expect(draftMocks.submitDraftComponentForReview).toHaveBeenCalledWith(reviewInput);
+    expect(Object.keys(reviewInput)).not.toContain("publishedAt");
+  });
+
+  it("يسمح للمدير ويرفض المراجع وغير المصدق", async () => {
+    draftMocks.submitDraftComponentForReview.mockResolvedValue({ id: 99001, workflowState: "in_review", publicationBlocked: true, sourceId: 30001, lessonId: 701 });
+    await expect(appRouter.createCaller(context(admin)).studio.submitDraftComponentForReview(reviewInput)).resolves.toMatchObject({ workflowState: "in_review", publicationBlocked: true });
+    await expect(appRouter.createCaller(context(reviewer)).studio.submitDraftComponentForReview(reviewInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(appRouter.createCaller(context(null)).studio.submitDraftComponentForReview(reviewInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
