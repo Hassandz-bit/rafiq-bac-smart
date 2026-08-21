@@ -125,3 +125,5 @@
 - [x] Add a content-editor-only Draft-to-review submission action that preserves source linkage and publication blocks.
 - [x] Add a content-editor-only Draft discard action that records a non-publishing terminal state without deleting source-linked audit data.
 - [x] Refresh the shareable Arabic project-status report with the latest 127-test baseline, Content Studio workflow, product audit, and remaining human-gated items.
+- [x] Add automated accessibility checks for critical Arabic RTL public, diagnostic, and protected-access screens, documenting the limits of automated audit.
+- [x] Update the release-readiness matrix with the 129-test accessibility audit, its covered RTL screens, and its browser/manual limits.
