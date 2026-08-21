@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react";
+import { uxCopy } from "@/content/uxCopy";
 
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
@@ -8,8 +9,8 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
       </div>
       {!compact && (
         <div className="leading-none">
-          <p className="text-base font-black tracking-tight text-slate-950">رفيق الباك</p>
-          <p className="mt-1 text-[10px] font-bold tracking-[0.18em] text-blue-700">الذكي · 2027</p>
+          <p className="text-base font-black tracking-tight text-slate-950">{uxCopy.brand.name}</p>
+          <p className="mt-1 text-[10px] font-bold tracking-[0.08em] text-blue-700">بكالوريا الجزائر · 2027</p>
         </div>
       )}
     </div>
