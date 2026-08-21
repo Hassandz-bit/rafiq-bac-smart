@@ -6,26 +6,28 @@ import { AdminPage } from "./StaffPages";
 
 const mutate = vi.fn();
 const updateMutate = vi.fn();
+const qualityEvidenceMutate = vi.fn();
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
 vi.mock("wouter", () => ({ useLocation: () => ["/admin", vi.fn()] }));
 vi.mock("@/lib/trpc", () => ({
   trpc: {
-    useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() }, planAssignmentAudit: { invalidate: vi.fn() }, planChangeAudit: { invalidate: vi.fn() } } }),
+    useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() }, planAssignmentAudit: { invalidate: vi.fn() }, planChangeAudit: { invalidate: vi.fn() }, releaseReadiness: { invalidate: vi.fn() } } }),
     administration: {
       planCatalog: { useQuery: () => ({ data: [{ id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", priceDzd: 2900, durationDays: 0, subjectLimit: 1, subjectBundle: ["math"], isActive: true, entitlements: ["season:subject"] }], isLoading: false }) },
       localPaymentStatus: { useQuery: () => ({ data: { enabled: false, provider: "none", mode: "manual_only", billingFlowAvailable: false, messageAr: "الدفع الإلكتروني غير مفعّل. تغييرات الخطط تُسجل يدويًا من الإدارة فقط ولا يوجد رابط دفع أو تحصيل.", supportedFutureCapabilities: ["checkout_intent", "payment_confirmation", "webhook_reconciliation"] }, isLoading: false }) },
-      releaseReadiness: { useQuery: () => ({ data: { isReadOnly: true, technicalEvidence: { automatedTestCount: 171, testFileCount: 65, baselineTag: "qa-readiness-20260821-171", sourceBackupVerified: true, repositoryIntegrityVerified: true }, batch1: { inReviewPackages: 6, componentCount: 72, substantiveComponentCount: 72, blockedComponentCount: 72, publicationAllowed: false }, humanAcceptanceGates: [{ key: "academic_review", labelAr: "مراجعة أكاديمية بشرية للمصادر والوحدات والتمارين والأصول", status: "required" }, { key: "real_accounts", labelAr: "اختبار عملي بأربعة حسابات OAuth حقيقية للأدوار", status: "required" }, { key: "published_bac", labelAr: "توفر جلسة BAC منشورة ومعتمدة لربط BAC Focus", status: "required" }], publicationGuard: "لا يفتح هذا الملخص النشر؛ تظل جميع بوابات المصدر والمراجعة البشرية فعالة." }, isLoading: false }) },
+      releaseReadiness: { useQuery: () => ({ data: { isReadOnly: true, technicalEvidence: { automatedTestCount: 176, testFileCount: 66, baselineTag: "qa-readiness-20260821-176", sourceBackupVerified: true, repositoryIntegrityVerified: true }, batch1: { inReviewPackages: 6, componentCount: 72, substantiveComponentCount: 72, blockedComponentCount: 72, publicationAllowed: false }, humanAcceptanceGates: [{ key: "academic_batch_qa", labelAr: "مراجعة أكاديمية بشرية للمصادر والوحدات والتمارين والأصول", status: "required", evidence: { latestEvidence: "محضر مراجعة معلق", recordedAt: new Date(), actorUserId: 9 } }, { key: "real_account_qa", labelAr: "اختبار عملي بأربعة حسابات OAuth حقيقية للأدوار", status: "required", evidence: null }, { key: "operational_qa", labelAr: "قبول تشغيلي يدوي للهاتف وقارئ الشاشة ولوحة المفاتيح", status: "required", evidence: null }, { key: "published_bac_session", labelAr: "توفر جلسة BAC منشورة ومعتمدة لربط BAC Focus", status: "required", evidence: null }], publicationGuard: "لا يفتح هذا الملخص النشر؛ تظل جميع بوابات المصدر والمراجعة البشرية فعالة." }, isLoading: false }) },
       previewPlanAssignment: { useQuery: () => ({ data: { plan: { id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", subjectLimit: 1, durationDays: 0, subjectBundle: ["math"], isActive: true }, productTier: "season", selectedSubjects: ["math"], entitlements: ["season:math", "hasm:math"], expiresAt: null, isDryRun: true }, isLoading: false }) },
       planAssignmentAudit: { useQuery: () => ({ data: [{ assignmentId: 9, userId: 42, planCode: "season_one_subject", planNameAr: "باقة الموسم — مادة واحدة", productTier: "season", selectedSubjects: ["math"], isActive: true, assignedAt: new Date(), expiresAt: null, activeEntitlements: [{ userId: 42, entitlement: "season:math", expiresAt: null }, { userId: 42, entitlement: "hasm:math", expiresAt: null }] }], isLoading: false }) },
       planChangeAudit: { useQuery: () => ({ data: [{ id: 8, userId: 42, actorUserId: 1, nextPlanNameAr: "باقة الموسم — مادة واحدة", changeKind: "promotion", noteAr: "عرض داخلي موثق", createdAt: new Date() }], isLoading: false }) },
       grantPlanAccess: { useMutation: () => ({ mutate, isPending: false, data: undefined, error: null }) },
+      recordReleaseQualityEvidence: { useMutation: () => ({ mutate: qualityEvidenceMutate, isPending: false, data: undefined, error: null }) },
       updatePlanConfiguration: { useMutation: () => ({ mutate: updateMutate, isPending: false, data: undefined, error: null }) },
     },
   },
 }));
 
-afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); });
+afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); });
 
 describe("تعيين خطة الوصول الإداري", () => {
   it("يطابق عدد المواد مع الخطة ويرسل تعيين موسم يحفظ منحه المشتقة", () => {
@@ -83,12 +85,22 @@ describe("تعيين خطة الوصول الإداري", () => {
   it("يعرض أدلة الجاهزية وبوابات القبول البشرية للقراءة فقط دون اعتماد أو نشر", () => {
     render(<AdminPage />);
     expect(screen.getByText("جاهزية الإصدار — قراءة فقط")).toBeTruthy();
-    expect(screen.getByText("171/65")).toBeTruthy();
+    expect(screen.getByText("176/66")).toBeTruthy();
     expect(screen.getAllByText("72/72")).toHaveLength(2);
-    expect(screen.getByText(/مراجعة أكاديمية بشرية/)).toBeTruthy();
-    expect(screen.getByText(/أربعة حسابات OAuth حقيقية/)).toBeTruthy();
-    expect(screen.getByText(/جلسة BAC منشورة ومعتمدة/)).toBeTruthy();
+    expect(screen.getAllByText(/مراجعة أكاديمية بشرية/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(/أربعة حسابات OAuth حقيقية/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(/جلسة BAC منشورة ومعتمدة/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/آخر دليل مسجل: محضر مراجعة معلق/)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /اعتماد|نشر/i })).toBeNull();
+  });
+
+  it("يسجل المدير وصف دليل قبول فقط دون تحويله إلى اعتماد أو نشر", () => {
+    render(<AdminPage />);
+    fireEvent.change(screen.getByLabelText("بوابة القبول"), { target: { value: "real_account_qa" } });
+    fireEvent.change(screen.getByLabelText("دليل قبول يدوي"), { target: { value: "تم توثيق اختبار الحسابات الأربعة." } });
+    fireEvent.click(screen.getByRole("button", { name: "تسجيل الدليل فقط" }));
+    expect(qualityEvidenceMutate).toHaveBeenCalledWith({ checkKey: "real_account_qa", evidenceNoteAr: "تم توثيق اختبار الحسابات الأربعة." });
+    expect(screen.queryByRole("button", { name: /نشر|اعتماد/i })).toBeNull();
   });
 
   it("يعرض معاينة الاستحقاقات بلا كتابة قبل الحفظ التشغيلي", () => {

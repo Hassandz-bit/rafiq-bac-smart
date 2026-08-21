@@ -531,5 +531,18 @@ export const contentReviews = mysqlTable(
   table => ({ reviewerIndex: index("content_reviews_reviewer_index").on(table.reviewerUserId) }),
 );
 
+/** Human-attested operational evidence only; this table cannot approve or publish academic records. */
+export const releaseQualityChecks = mysqlTable(
+  "release_quality_checks",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    checkKey: mysqlEnum("checkKey", ["academic_batch_qa", "real_account_qa", "operational_qa", "published_bac_session"]).notNull(),
+    evidenceNoteAr: text("evidenceNoteAr").notNull(),
+    actorUserId: int("actorUserId").notNull().references(() => users.id),
+    recordedAt: timestamp("recordedAt").defaultNow().notNull(),
+  },
+  table => ({ checkRecordedIndex: index("release_quality_checks_key_recorded_index").on(table.checkKey, table.recordedAt) }),
+);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;

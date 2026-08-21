@@ -140,3 +140,4 @@
 - [x] Add content-editor/admin draft-only metadata updates for units and lessons that preserve their parent linkage, Draft state, non-free status, and publication block.
 - [x] Add an admin-only read-only release-readiness dashboard that surfaces technical evidence and explicit human-only acceptance gates without changing any content, source, plan, or publication state.
 - [x] Improve production bundle distribution by separating heavy UI dependencies without changing learner access, source gates, or publication behavior.
+- [x] Add an audited release-quality acceptance record for human and real-account evidence that cannot approve or publish academic content.
