@@ -23,6 +23,7 @@ const mockedReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: fal
 const mockedSourceVerificationMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedSourceCreateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedStandaloneSourceUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedStandaloneSourceArchiveMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedOfficialBookReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
@@ -50,6 +51,7 @@ vi.mock("@/lib/trpc", () => ({
       updateSourceVerification: { useMutation: () => mockedSourceVerificationMutation },
       createSource: { useMutation: () => mockedSourceCreateMutation },
       updateStandaloneSource: { useMutation: () => mockedStandaloneSourceUpdateMutation },
+      archiveStandaloneSource: { useMutation: () => mockedStandaloneSourceArchiveMutation },
       reviewOfficialBookUpload: { useMutation: () => mockedOfficialBookReviewMutation },
       createDraftComponent: { useMutation: () => mockedDraftMutation },
       draftComponents: { useQuery: () => ({ data: mockedDrafts, isLoading: false }) },
@@ -62,7 +64,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedStandaloneSourceUpdateMutation.mutate.mockReset(); mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
+afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedStandaloneSourceArchiveMutation.mutate.mockReset(); mockedStandaloneSourceUpdateMutation.mutate.mockReset(); mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
   it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
@@ -143,6 +145,15 @@ describe("طابور مراجعة Content Studio", () => {
     fireEvent.change(screen.getByLabelText("عنوان وثيقة المصدر المحدث"), { target: { value: "سجل مستقل محدث" } });
     fireEvent.click(screen.getByRole("button", { name: "حفظ تصحيح البيانات فقط" }));
     expect(mockedStandaloneSourceUpdateMutation.mutate).toHaveBeenCalledWith({ sourceId: 30002, sourceAuthority: "جهة استقبال محدثة", documentTitle: "سجل مستقل محدث", url: "https://example.edu/intake", academicYear: undefined, edition: undefined });
+    expect(screen.getByText("Unverified · قفل النشر ثابت")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
+  });
+
+  it("يسمح للمحرر بأرشفة سجل مستقل دون حذفه أو فتح نشر", () => {
+    mockAuth.role = "content_editor";
+    render(<StudioPage />);
+    fireEvent.click(screen.getByRole("button", { name: "أرشفة السجل دون حذف" }));
+    expect(mockedStandaloneSourceArchiveMutation.mutate).toHaveBeenCalledWith({ sourceId: 30002 });
     expect(screen.getByText("Unverified · قفل النشر ثابت")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
   });

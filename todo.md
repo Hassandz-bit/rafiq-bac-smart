@@ -134,3 +134,4 @@
 - [x] Add a reviewer-visible official-book intake queue with a checklist and an audited review state that never creates or promotes a source and never publishes academic content.
 - [x] Add a content-editor/admin source-creation workflow that always creates an unverified, publication-blocked record and cannot designate a source as current official.
 - [x] Add a content-editor/admin metadata-edit workflow limited to standalone unverified sources, with hard rejection for source status changes and source records already linked to learning content or uploaded files.
+- [x] Add non-destructive source archival for standalone unverified records only, with immutable audit metadata and no impact on source verification or publication state.

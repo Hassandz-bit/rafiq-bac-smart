@@ -21,7 +21,7 @@ import { updateSourceVerification } from "./sourceVerification";
 import { createSourceLinkedDraftComponent, discardDraftComponent, getDraftComponents, submitDraftComponentForReview, updateDraftComponent } from "./draftComponents";
 import { getLocalPaymentStatus } from "./localPaymentAbstraction";
 import { getOfficialBookIntake, reviewOfficialBookUpload } from "./officialBookIntake";
-import { createUnverifiedSourceRecord, updateStandaloneUnverifiedSourceRecord } from "./sourceRecords";
+import { archiveStandaloneUnverifiedSourceRecord, createUnverifiedSourceRecord, updateStandaloneUnverifiedSourceRecord } from "./sourceRecords";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -85,6 +85,13 @@ export const appRouter = router({
       .input(z.object({ sourceId: z.number().int().positive(), sourceAuthority: z.string().trim().min(3).max(180), documentTitle: z.string().trim().min(3).max(500), url: z.string().url().max(1000), academicYear: z.string().trim().max(20).optional(), level: z.string().trim().max(120).optional(), track: z.string().trim().max(120).optional(), edition: z.string().trim().max(120).optional(), sourceVersion: z.string().trim().max(120).optional() }))
       .mutation(async ({ input }) => {
         const result = await updateStandaloneUnverifiedSourceRecord(input);
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "سجل المصدر غير موجود." });
+        return result;
+      }),
+    archiveStandaloneSource: contentEditorProcedure
+      .input(z.object({ sourceId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const result = await archiveStandaloneUnverifiedSourceRecord({ ...input, archivedByUserId: ctx.user.id });
         if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "سجل المصدر غير موجود." });
         return result;
       }),

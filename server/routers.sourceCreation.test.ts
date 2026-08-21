@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TrpcContext } from "./_core/context";
 
-const sourceMocks = vi.hoisted(() => ({ createUnverifiedSourceRecord: vi.fn(), updateStandaloneUnverifiedSourceRecord: vi.fn() }));
+const sourceMocks = vi.hoisted(() => ({ createUnverifiedSourceRecord: vi.fn(), updateStandaloneUnverifiedSourceRecord: vi.fn(), archiveStandaloneUnverifiedSourceRecord: vi.fn() }));
 vi.mock("./sourceRecords", () => sourceMocks);
 
 import { appRouter } from "./routers";
@@ -41,5 +41,19 @@ describe("studio.updateStandaloneSource", () => {
     const updateInput = { sourceId: 70002, sourceAuthority: "جهة محدثة", documentTitle: "سجل محدث", url: "https://example.edu/updated" };
     await expect(appRouter.createCaller(context(reviewer)).studio.updateStandaloneSource(updateInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(appRouter.createCaller(context(null)).studio.updateStandaloneSource(updateInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("studio.archiveStandaloneSource", () => {
+  it("يسمح للمحرر بأرشفة سجل مستقل دون حذف أو ترقية", async () => {
+    sourceMocks.archiveStandaloneUnverifiedSourceRecord.mockResolvedValue({ sourceId: 70002, archivedAt: new Date(), archivedByUserId: 12, verificationStatus: "unverified", publicationBlocked: true, deleted: false });
+
+    await expect(appRouter.createCaller(context(editor)).studio.archiveStandaloneSource({ sourceId: 70002 })).resolves.toMatchObject({ verificationStatus: "unverified", publicationBlocked: true, deleted: false });
+    expect(sourceMocks.archiveStandaloneUnverifiedSourceRecord).toHaveBeenCalledWith({ sourceId: 70002, archivedByUserId: 12 });
+  });
+
+  it("يرفض الأرشفة من المراجع وغير المصدق", async () => {
+    await expect(appRouter.createCaller(context(reviewer)).studio.archiveStandaloneSource({ sourceId: 70002 })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(appRouter.createCaller(context(null)).studio.archiveStandaloneSource({ sourceId: 70002 })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

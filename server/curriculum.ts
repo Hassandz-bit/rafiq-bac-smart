@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { contentAssets, curriculumVersions, exerciseHints, exercises, learningItemAssets, learningItems, lessons, sources, studentEntitlements, subjectSourceGates, subjects, units } from "../drizzle/schema";
 import { getDb } from "./db";
 import { resolveUnitAccess } from "./entitlementRules";
@@ -289,6 +289,7 @@ export async function getSourceRegistryForStudio() {
     })
     .from(sources)
     .leftJoin(subjects, eq(sources.subjectId, subjects.id))
+    .where(isNull(sources.archivedAt))
     .orderBy(asc(sources.documentTitle))
     .limit(100)
     .then(rows => rows.map(row => ({ ...row, metadataEditable: row.verificationStatus === "unverified" && !row.isInternalPilot && !row.isUserApprovedWorkingReference })));

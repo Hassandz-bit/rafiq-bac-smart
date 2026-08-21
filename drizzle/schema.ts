@@ -214,8 +214,10 @@ export const sources = mysqlTable(
     createdByUserId: int("createdByUserId").references(() => users.id),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    archivedAt: timestamp("archivedAt"),
+    archivedByUserId: int("archivedByUserId").references(() => users.id),
   },
-  table => ({ subjectIndex: index("sources_subject_index").on(table.subjectId), statusIndex: index("sources_status_index").on(table.verificationStatus) }),
+  table => ({ subjectIndex: index("sources_subject_index").on(table.subjectId), statusIndex: index("sources_status_index").on(table.verificationStatus), archivedIndex: index("sources_archived_index").on(table.archivedAt) }),
 );
 
 export const officialBookUploads = mysqlTable(
