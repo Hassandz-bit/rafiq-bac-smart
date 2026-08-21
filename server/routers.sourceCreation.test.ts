@@ -3,7 +3,7 @@ import type { TrpcContext } from "./_core/context";
 
 const sourceMocks = vi.hoisted(() => ({ createUnverifiedSourceRecord: vi.fn(), updateStandaloneUnverifiedSourceRecord: vi.fn(), archiveStandaloneUnverifiedSourceRecord: vi.fn() }));
 vi.mock("./sourceRecords", () => sourceMocks);
-const curriculumDraftMocks = vi.hoisted(() => ({ createDraftCurriculumUnit: vi.fn() }));
+const curriculumDraftMocks = vi.hoisted(() => ({ createDraftCurriculumUnit: vi.fn(), createDraftCurriculumLesson: vi.fn(), getDraftCurriculumUnitsForStudio: vi.fn() }));
 vi.mock("./curriculumDrafts", () => curriculumDraftMocks);
 
 import { appRouter } from "./routers";
@@ -43,6 +43,22 @@ describe("studio.createDraftUnit", () => {
     const unitInput = { subjectId: 301, titleAr: "الحركية الكيميائية" };
     await expect(appRouter.createCaller(context(reviewer)).studio.createDraftUnit(unitInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(appRouter.createCaller(context(null)).studio.createDraftUnit(unitInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("studio.createDraftLesson", () => {
+  it("يسمح للمحرر بإنشاء درس Draft داخل وحدة Draft فقط", async () => {
+    const lessonInput = { unitId: 81001, titleAr: "سرعة التفاعل", objectiveAr: "مسودة" };
+    curriculumDraftMocks.createDraftCurriculumLesson.mockResolvedValue({ id: 82001, unitId: 81001, workflowState: "draft", publicationBlocked: true, learningContentCreated: false });
+
+    await expect(appRouter.createCaller(context(editor)).studio.createDraftLesson(lessonInput)).resolves.toMatchObject({ workflowState: "draft", publicationBlocked: true, learningContentCreated: false });
+    expect(curriculumDraftMocks.createDraftCurriculumLesson).toHaveBeenCalledWith(lessonInput);
+  });
+
+  it("يرفض إنشاء الدرس من المراجع وغير المصدق", async () => {
+    const lessonInput = { unitId: 81001, titleAr: "سرعة التفاعل" };
+    await expect(appRouter.createCaller(context(reviewer)).studio.createDraftLesson(lessonInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(appRouter.createCaller(context(null)).studio.createDraftLesson(lessonInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
 

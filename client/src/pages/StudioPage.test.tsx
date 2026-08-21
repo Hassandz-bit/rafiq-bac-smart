@@ -23,6 +23,7 @@ const mockedReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: fal
 const mockedSourceVerificationMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedSourceCreateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftUnitCreateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedDraftLessonCreateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedStandaloneSourceUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedStandaloneSourceArchiveMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedOfficialBookReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
@@ -36,6 +37,7 @@ const mockedSources = vi.hoisted(() => [
   { id: 30001, documentTitle: "نسخة عمل الرياضيات", sourceAuthority: "نسخة عمل مرجعية", subjectNameAr: "الرياضيات", url: "https://example.edu/math", isUserApprovedWorkingReference: true, isInternalPilot: true, metadataEditable: false, verificationStatus: "historical_official" as const, verificationNotes: "الطبعة المرجعية تحتاج تحققًا لاحقًا." },
   { id: 30002, documentTitle: "سجل استقبال مستقل", sourceAuthority: "جهة استقبال", subjectNameAr: "الرياضيات", url: "https://example.edu/intake", isUserApprovedWorkingReference: false, isInternalPilot: false, metadataEditable: true, verificationStatus: "unverified" as const, verificationNotes: "سجل غير متحقق قابل لتصحيح البيانات فقط." },
 ]);
+const mockedDraftUnits = vi.hoisted(() => [{ id: 81001, subjectId: 301, subjectNameAr: "الرياضيات", titleAr: "وحدة استقبال مسودة", sortOrder: 0 }]);
 const mockedOfficialBookIntake = vi.hoisted(() => [{ id: 70001, subjectNameAr: "الرياضيات", sourceId: null, sourceTitle: null, fileUrl: "/manus-storage/official-books/math.pdf", originalFilename: "كتاب-رياضيات-2027.pdf", verificationChecklist: { cover: false, title: false, level: false, track: false, publisher: false, authorship: false, edition: false, bookCode: false, publicationYear: false, tableOfContents: false }, verificationStatus: "unverified" as const, uploadedByUserId: 77, uploadedAt: new Date(), reviewedByUserId: null, reviewedAt: null }]);
 
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
@@ -46,12 +48,14 @@ vi.mock("@/lib/trpc", () => ({
   trpc: {
     studio: {
       sourceRegistry: { useQuery: () => ({ data: mockedSources, isLoading: false }) },
+      draftCurriculumUnits: { useQuery: () => ({ data: mockedDraftUnits, isLoading: false }) },
       officialBookIntake: { useQuery: () => ({ data: mockedOfficialBookIntake, isLoading: false }) },
       reviewQueue: { useQuery: () => ({ data: mockedReviewQueue, isLoading: false }) },
       reviewLearningItem: { useMutation: () => mockedReviewMutation },
       updateSourceVerification: { useMutation: () => mockedSourceVerificationMutation },
       createSource: { useMutation: () => mockedSourceCreateMutation },
       createDraftUnit: { useMutation: () => mockedDraftUnitCreateMutation },
+      createDraftLesson: { useMutation: () => mockedDraftLessonCreateMutation },
       updateStandaloneSource: { useMutation: () => mockedStandaloneSourceUpdateMutation },
       archiveStandaloneSource: { useMutation: () => mockedStandaloneSourceArchiveMutation },
       reviewOfficialBookUpload: { useMutation: () => mockedOfficialBookReviewMutation },
@@ -66,7 +70,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftUnitCreateMutation.mutate.mockReset(); mockedStandaloneSourceArchiveMutation.mutate.mockReset(); mockedStandaloneSourceUpdateMutation.mutate.mockReset(); mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
+afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftLessonCreateMutation.mutate.mockReset(); mockedDraftUnitCreateMutation.mutate.mockReset(); mockedStandaloneSourceArchiveMutation.mutate.mockReset(); mockedStandaloneSourceUpdateMutation.mutate.mockReset(); mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
   it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
@@ -148,6 +152,18 @@ describe("طابور مراجعة Content Studio", () => {
     fireEvent.click(screen.getByRole("button", { name: "إنشاء وحدة مسودة" }));
     expect(mockedDraftUnitCreateMutation.mutate).toHaveBeenCalledWith({ subjectId: 301, titleAr: "الحركية الكيميائية", summaryAr: "مسودة تنظيمية للمراجعة الداخلية فقط.", sortOrder: 0 });
     expect(screen.getByText("Draft · غير مجانية · قفل النشر")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
+  });
+
+  it("يسمح للمحرر بإنشاء درس Draft داخل وحدة Draft دون محتوى أو نشر", () => {
+    mockAuth.role = "content_editor";
+    render(<StudioPage />);
+    expect(screen.getByText("إضافة درس ضمن وحدة مسودة")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("عنوان الدرس المسودة"), { target: { value: "سرعة التفاعل والعوامل المؤثرة" } });
+    fireEvent.change(screen.getByLabelText("هدف الدرس المسودة"), { target: { value: "هدف تنظيمي للمراجعة الداخلية." } });
+    fireEvent.click(screen.getByRole("button", { name: "إنشاء درس مسودة" }));
+    expect(mockedDraftLessonCreateMutation.mutate).toHaveBeenCalledWith({ unitId: 81001, titleAr: "سرعة التفاعل والعوامل المؤثرة", objectiveAr: "هدف تنظيمي للمراجعة الداخلية.", estimatedMinutes: 30, sortOrder: 0 });
+    expect(screen.getByText("Draft · لا محتوى · قفل النشر")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
   });
 

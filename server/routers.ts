@@ -22,7 +22,7 @@ import { createSourceLinkedDraftComponent, discardDraftComponent, getDraftCompon
 import { getLocalPaymentStatus } from "./localPaymentAbstraction";
 import { getOfficialBookIntake, reviewOfficialBookUpload } from "./officialBookIntake";
 import { archiveStandaloneUnverifiedSourceRecord, createUnverifiedSourceRecord, updateStandaloneUnverifiedSourceRecord } from "./sourceRecords";
-import { createDraftCurriculumUnit } from "./curriculumDrafts";
+import { createDraftCurriculumLesson, createDraftCurriculumUnit, getDraftCurriculumUnitsForStudio } from "./curriculumDrafts";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -75,11 +75,19 @@ export const appRouter = router({
   }),
   studio: router({
     sourceRegistry: contentStudioProcedure.query(() => getSourceRegistryForStudio()),
+    draftCurriculumUnits: contentStudioProcedure.query(() => getDraftCurriculumUnitsForStudio()),
     createDraftUnit: contentEditorProcedure
       .input(z.object({ subjectId: z.number().int().positive(), titleAr: z.string().trim().min(3).max(220), summaryAr: z.string().trim().max(4000).optional(), sortOrder: z.number().int().min(0).max(9999).optional() }))
       .mutation(async ({ input }) => {
         const result = await createDraftCurriculumUnit(input);
         if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "المادة المحددة غير موجودة في المنهج." });
+        return result;
+      }),
+    createDraftLesson: contentEditorProcedure
+      .input(z.object({ unitId: z.number().int().positive(), titleAr: z.string().trim().min(3).max(220), objectiveAr: z.string().trim().max(4000).optional(), estimatedMinutes: z.number().int().min(1).max(600).optional(), sortOrder: z.number().int().min(0).max(9999).optional() }))
+      .mutation(async ({ input }) => {
+        const result = await createDraftCurriculumLesson(input);
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "وحدة المنهج المحددة غير موجودة." });
         return result;
       }),
     createSource: contentEditorProcedure

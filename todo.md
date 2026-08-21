@@ -136,3 +136,4 @@
 - [x] Add a content-editor/admin metadata-edit workflow limited to standalone unverified sources, with hard rejection for source status changes and source records already linked to learning content or uploaded files.
 - [x] Add non-destructive source archival for standalone unverified records only, with immutable audit metadata and no impact on source verification or publication state.
 - [x] Add a content-editor/admin draft-only unit-creation workflow that can never create a free or published curriculum node.
+- [x] Add a content-editor/admin draft-only lesson-creation workflow restricted to Draft parent units and unable to create published learning content.

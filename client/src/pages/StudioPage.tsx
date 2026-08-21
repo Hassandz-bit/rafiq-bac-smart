@@ -20,6 +20,7 @@ function StudioContent() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { data: sources, isLoading } = trpc.studio.sourceRegistry.useQuery();
+  const { data: draftUnits } = trpc.studio.draftCurriculumUnits.useQuery();
   const { data: officialBookIntake, isLoading: officialBookIntakeLoading } = trpc.studio.officialBookIntake.useQuery({ limit: 50 });
   const { data: reviewQueue, isLoading: reviewQueueLoading } = trpc.studio.reviewQueue.useQuery();
   const { data: drafts, isLoading: draftsLoading } = trpc.studio.draftComponents.useQuery({ limit: 50 });
@@ -54,6 +55,10 @@ function StudioContent() {
   const draftUnitCreateMutation = trpc.studio.createDraftUnit.useMutation({
     onSuccess: result => toast.success(`أُنشئت الوحدة #${result.id} كمسودة داخلية؛ ليست مجانية ولا يمكن نشرها من هذا المسار.`),
     onError: error => toast.error(error.message || "تعذر إنشاء وحدة المنهج المسودة."),
+  });
+  const draftLessonCreateMutation = trpc.studio.createDraftLesson.useMutation({
+    onSuccess: result => toast.success(`أُنشئ الدرس #${result.id} كمسودة بنيوية فقط؛ لم يُنشأ محتوى تعليمي أو مسار نشر.`),
+    onError: error => toast.error(error.message || "تعذر إنشاء درس المنهج المسودة."),
   });
   const standaloneSourceUpdateMutation = trpc.studio.updateStandaloneSource.useMutation({
     onSuccess: async result => {
@@ -191,6 +196,7 @@ function StudioContent() {
 
             {canUpload && <SourceCreateEditor subjects={curriculum.data?.subjects ?? []} saving={sourceCreateMutation.isPending} onCreate={input => sourceCreateMutation.mutate(input)} />}
             {canUpload && <DraftUnitCreateEditor subjects={curriculum.data?.subjects ?? []} saving={draftUnitCreateMutation.isPending} onCreate={input => draftUnitCreateMutation.mutate(input)} />}
+            {canUpload && <DraftLessonCreateEditor units={draftUnits ?? []} saving={draftLessonCreateMutation.isPending} onCreate={input => draftLessonCreateMutation.mutate(input)} />}
             {canUpload && <StandaloneSourceUpdateEditor sources={(sources ?? []).filter(source => source.metadataEditable)} saving={standaloneSourceUpdateMutation.isPending} archiving={standaloneSourceArchiveMutation.isPending} onUpdate={input => standaloneSourceUpdateMutation.mutate(input)} onArchive={sourceId => standaloneSourceArchiveMutation.mutate({ sourceId })} />}
 
             {canReview && <section className="soft-panel mt-6 overflow-hidden">
@@ -246,6 +252,8 @@ type StudioSource = { id: number; documentTitle: string; sourceAuthority: string
 type SourceVerificationInput = { sourceId: number; verificationStatus: StudioSource["verificationStatus"]; verificationNotes: string };
 type SourceCreateInput = { sourceAuthority: string; documentTitle: string; url: string; subjectId: number; academicYear?: string; level?: string; track?: string; edition?: string; sourceVersion?: string };
 type DraftUnitCreateInput = { subjectId: number; titleAr: string; summaryAr?: string; sortOrder?: number };
+type DraftUnitOption = { id: number; titleAr: string; subjectNameAr: string; sortOrder: number };
+type DraftLessonCreateInput = { unitId: number; titleAr: string; objectiveAr?: string; estimatedMinutes?: number; sortOrder?: number };
 type StandaloneSourceUpdateInput = { sourceId: number; sourceAuthority: string; documentTitle: string; url: string; academicYear?: string; edition?: string };
 type OfficialBookChecklist = { cover: boolean; title: boolean; level: boolean; track: boolean; publisher: boolean; authorship: boolean; edition: boolean; bookCode: boolean; publicationYear: boolean; tableOfContents: boolean };
 type OfficialBookIntake = { id: number; subjectNameAr: string; sourceId: number | null; sourceTitle: string | null; fileUrl: string; originalFilename: string; verificationChecklist: OfficialBookChecklist; verificationStatus: StudioSource["verificationStatus"]; uploadedByUserId: number; uploadedAt: Date; reviewedByUserId: number | null; reviewedAt: Date | null };
@@ -274,6 +282,17 @@ function DraftUnitCreateEditor({ subjects, saving, onCreate }: { subjects: { id:
   const [sortOrder, setSortOrder] = useState("0");
   const ready = Boolean(subjectId) && titleAr.trim().length >= 3 && /^\d+$/.test(sortOrder);
   return <section className="soft-panel mt-6 overflow-hidden"><div className="border-b border-slate-100 p-5"><h2 className="font-black">إضافة وحدة منهجية مسودة</h2><p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">للمحرر أو المدير فقط. تُنشأ الوحدة دائمًا Draft وغير مجانية ومقيدة بالنشر؛ لا توجد هنا حالة اعتماد أو نشر أو وصول حر.</p></div><div className="grid gap-4 p-5 md:grid-cols-2"><label className="grid gap-1 text-xs font-bold text-slate-600">المادة<select aria-label="مادة الوحدة المسودة" value={subjectId ?? ""} onChange={event => setSubjectId(Number(event.target.value) || null)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm"><option value="">اختر المادة</option>{subjects.map(subject => <option key={subject.id} value={subject.id}>{subject.nameAr}</option>)}</select></label><label className="grid gap-1 text-xs font-bold text-slate-600">ترتيب الوحدة<input aria-label="ترتيب الوحدة المسودة" value={sortOrder} onChange={event => setSortOrder(event.target.value.replace(/\D/g, ""))} inputMode="numeric" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600 md:col-span-2">عنوان الوحدة<input aria-label="عنوان الوحدة المسودة" value={titleAr} onChange={event => setTitleAr(event.target.value)} placeholder="مثال: الحركية الكيميائية" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600 md:col-span-2">ملخص داخلي (اختياري)<textarea aria-label="ملخص الوحدة المسودة" value={summaryAr} onChange={event => setSummaryAr(event.target.value)} rows={3} placeholder="وصف موجز للمراجعة الداخلية…" className="rounded-xl border border-slate-200 bg-white p-3 text-sm" /></label><div className="md:col-span-2 flex flex-wrap items-center gap-3"><Badge variant="outline" className="border-rose-100 bg-rose-50 text-rose-700">Draft · غير مجانية · قفل النشر</Badge><Button disabled={!ready || saving} onClick={() => subjectId && onCreate({ subjectId, titleAr: titleAr.trim(), summaryAr: summaryAr.trim() || undefined, sortOrder: Number(sortOrder) })} className="bg-slate-950 hover:bg-slate-800">{saving ? "جارٍ إنشاء المسودة…" : "إنشاء وحدة مسودة"}</Button></div></div></section>;
+}
+
+function DraftLessonCreateEditor({ units, saving, onCreate }: { units: DraftUnitOption[]; saving: boolean; onCreate: (input: DraftLessonCreateInput) => void }) {
+  const [unitId, setUnitId] = useState<number | null>(units[0]?.id ?? null);
+  const [titleAr, setTitleAr] = useState("");
+  const [objectiveAr, setObjectiveAr] = useState("");
+  const [estimatedMinutes, setEstimatedMinutes] = useState("30");
+  const [sortOrder, setSortOrder] = useState("0");
+  const numericFieldsValid = /^\d+$/.test(estimatedMinutes) && /^\d+$/.test(sortOrder) && Number(estimatedMinutes) >= 1;
+  const ready = Boolean(unitId) && titleAr.trim().length >= 3 && numericFieldsValid;
+  return <section className="soft-panel mt-6 overflow-hidden"><div className="border-b border-slate-100 p-5"><h2 className="font-black">إضافة درس ضمن وحدة مسودة</h2><p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">للمحرر أو المدير فقط. لا تظهر هنا إلا الوحدات Draft؛ ينشأ الدرس Draft بنيويًا من دون مصدر أو محتوى أو نشر.</p></div>{units.length ? <div className="grid gap-4 p-5 md:grid-cols-2"><label className="grid gap-1 text-xs font-bold text-slate-600">الوحدة الأم<select aria-label="الوحدة الأم للدرس المسودة" value={unitId ?? ""} onChange={event => setUnitId(Number(event.target.value) || null)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">{units.map(unit => <option key={unit.id} value={unit.id}>{unit.subjectNameAr} · {unit.titleAr}</option>)}</select></label><label className="grid gap-1 text-xs font-bold text-slate-600">المدة التقديرية (دقيقة)<input aria-label="مدة الدرس المسودة" value={estimatedMinutes} onChange={event => setEstimatedMinutes(event.target.value.replace(/\D/g, ""))} inputMode="numeric" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600 md:col-span-2">عنوان الدرس<input aria-label="عنوان الدرس المسودة" value={titleAr} onChange={event => setTitleAr(event.target.value)} placeholder="مثال: سرعة التفاعل والعوامل المؤثرة" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600 md:col-span-2">هدف داخلي (اختياري)<textarea aria-label="هدف الدرس المسودة" value={objectiveAr} onChange={event => setObjectiveAr(event.target.value)} rows={3} placeholder="هدف أولي للمراجعة الداخلية…" className="rounded-xl border border-slate-200 bg-white p-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600">ترتيب الدرس<input aria-label="ترتيب الدرس المسودة" value={sortOrder} onChange={event => setSortOrder(event.target.value.replace(/\D/g, ""))} inputMode="numeric" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><div className="flex items-end"><Badge variant="outline" className="mb-2 border-rose-100 bg-rose-50 text-rose-700">Draft · لا محتوى · قفل النشر</Badge></div><div className="md:col-span-2"><Button disabled={!ready || saving} onClick={() => unitId && onCreate({ unitId, titleAr: titleAr.trim(), objectiveAr: objectiveAr.trim() || undefined, estimatedMinutes: Number(estimatedMinutes), sortOrder: Number(sortOrder) })} className="bg-slate-950 hover:bg-slate-800">{saving ? "جارٍ إنشاء الدرس…" : "إنشاء درس مسودة"}</Button></div></div> : <p className="p-5 text-sm text-slate-500">أنشئ وحدة Draft أولًا قبل إضافة درسها. لا يمكن اختيار وحدة معتمدة أو منشورة من هنا.</p>}</section>;
 }
 
 function StandaloneSourceUpdateEditor({ sources, saving, archiving, onUpdate, onArchive }: { sources: StudioSource[]; saving: boolean; archiving: boolean; onUpdate: (input: StandaloneSourceUpdateInput) => void; onArchive: (sourceId: number) => void }) {
