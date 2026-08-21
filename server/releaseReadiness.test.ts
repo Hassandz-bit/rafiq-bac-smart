@@ -23,7 +23,7 @@ describe("getReleaseReadinessDashboard", () => {
     await expect(getReleaseReadinessDashboard()).resolves.toMatchObject({
       isReadOnly: true,
       batch1: { inReviewPackages: 2, componentCount: 3, substantiveComponentCount: 2, blockedComponentCount: 3, publicationAllowed: false },
-      technicalEvidence: { automatedTestCount: 177, testFileCount: 67, sourceBackupVerified: true, repositoryIntegrityVerified: true },
+      technicalEvidence: { automatedTestCount: 178, testFileCount: 68, sourceBackupVerified: true, repositoryIntegrityVerified: true },
       humanAcceptanceGates: [{ key: "academic_batch_qa", status: "required", evidence: { latestEvidence: "محضر مراجعة معلق" } }, { key: "real_account_qa", status: "required" }, { key: "operational_qa", status: "required" }, { key: "published_bac_session", status: "required" }],
     });
     expect(curriculumMocks.getStudioReviewQueue).toHaveBeenCalledTimes(1);

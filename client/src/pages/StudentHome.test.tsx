@@ -29,8 +29,8 @@ describe("لوحة الطالب Premium", () => {
     expect(screen.getByText("تحقق من الوحدة")).toBeTruthy();
     expect(screen.getByText("ابدأ بأقدم مراجعة مستحقة.")).toBeTruthy();
     expect(screen.getAllByRole("navigation").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getAllByText("جلسة اليوم").length).toBeGreaterThanOrEqual(2);
-    fireEvent.click(screen.getByRole("button", { name: "حلّل أدائي" }));
+    expect(screen.getAllByText("خطوتك التالية").length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(screen.getByRole("button", { name: "اقرأ أدائي" }));
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 });

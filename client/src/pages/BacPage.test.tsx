@@ -22,8 +22,8 @@ describe("نتائج BAC Focus", () => {
     render(<BacPage />);
     fireEvent.change(screen.getByLabelText("العلامة المسجلة في المحاكاة"), { target: { value: "64" } });
     fireEvent.change(screen.getByLabelText("الأيام المتبقية"), { target: { value: "18" } });
-    fireEvent.click(screen.getByRole("button", { name: "ابدأ جلسة BAC تجريبية" }));
-    fireEvent.click(screen.getByRole("button", { name: "إرسال الجلسة للتحليل" }));
+    fireEvent.click(screen.getByRole("button", { name: "ابدأ المحاكاة" }));
+    fireEvent.click(screen.getByRole("button", { name: "اقرأ النتيجة" }));
     expect(mocks.submit).toHaveBeenCalledWith(expect.objectContaining({ sessionId: 71, score: 64, remainingDays: 18 }));
     expect(screen.getByText("خطة تثبيت")).toBeTruthy();
     expect(screen.getByText("راجع دفتر الأخطاء بحسب التكرار.")).toBeTruthy();

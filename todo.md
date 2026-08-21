@@ -146,3 +146,4 @@
 - [x] Verify premium student UI behavior across light/dark/system, mobile/tablet/desktop, reduced motion, keyboard focus, and existing functional regressions.
 - [x] Record user acceptance of the Premium student UI reference without expanding academic content, payment, or Batch 2 scope.
 - [x] Fix Premium UI typography rhythm, line distribution, RTL spacing, and text-color hierarchy across desktop and mobile without changing application behavior.
+- [x] Rewrite student-facing UX copy into concise modern Arabic fusha across landing, home, subjects, learning, maps, practice, review, Hassem, BAC, and pricing without altering academic facts, engines, access, or publication gates.

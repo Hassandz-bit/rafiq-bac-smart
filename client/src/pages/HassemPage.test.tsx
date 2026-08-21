@@ -40,7 +40,7 @@ describe("Hassem diagnostic handoff", () => {
   it("keeps the diagnostic blocked while a due review exists", () => {
     progressData = { reviews: [{ id: 1, reason: "خطأ متكرر", dueAt: new Date() }], errors: [], mastery: [] };
     render(<HassemPage />);
-    const button = screen.getByRole("button", { name: "التشخيص بعد المراجعات" }) as HTMLButtonElement;
+    const button = screen.getByRole("button", { name: "التشخيص بعد المراجعة" }) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
     fireEvent.click(button);
     expect(navigate).not.toHaveBeenCalled();
@@ -51,7 +51,7 @@ describe("Hassem diagnostic handoff", () => {
     render(<HassemPage />);
     fireEvent.click(screen.getByRole("button", { name: "إتمام مراجعة: خطأ متكرر" }));
     expect(completeReview).toHaveBeenCalledWith({ reviewId: 41 });
-    expect((screen.getByRole("button", { name: "التشخيص بعد المراجعات" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "التشخيص بعد المراجعة" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("يفتح التشخيص بعد تحديث الطابور وإزالة آخر مراجعة مستحقة", () => {
@@ -60,13 +60,13 @@ describe("Hassem diagnostic handoff", () => {
     fireEvent.click(screen.getByRole("button", { name: "إتمام مراجعة: خطأ متكرر" }));
     progressData = { reviews: [], errors: [], mastery: [] };
     rendered.rerender(<HassemPage />);
-    expect((screen.getByRole("button", { name: "ابدأ تشخيص الحسم" }) as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByRole("button", { name: "ابدأ التشخيص" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("unlocks and hands off to the dedicated BAC diagnostic when no reviews are due", () => {
     progressData = { reviews: [], errors: [], mastery: [] };
     render(<HassemPage />);
-    const button = screen.getByRole("button", { name: "ابدأ تشخيص الحسم" }) as HTMLButtonElement;
+    const button = screen.getByRole("button", { name: "ابدأ التشخيص" }) as HTMLButtonElement;
     expect(button.disabled).toBe(false);
     fireEvent.click(button);
     expect(navigate).toHaveBeenCalledWith("/hassem/diagnostic");
@@ -75,17 +75,17 @@ describe("Hassem diagnostic handoff", () => {
   it("opens BAC Focus from the Hassem sprint control without bypassing the review-first diagnostic rule", () => {
     progressData = { reviews: [{ id: 1, reason: "مراجعة مستحقة", dueAt: new Date() }], errors: [], mastery: [] };
     render(<HassemPage />);
-    fireEvent.click(screen.getByRole("button", { name: "BAC Sprint" }));
+    fireEvent.click(screen.getByRole("button", { name: "افتح وضع المحاكاة" }));
     expect(navigate).toHaveBeenCalledWith("/bac");
-    expect((screen.getByRole("button", { name: "التشخيص بعد المراجعات" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "التشخيص بعد المراجعة" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("يحفظ بدء جلسة 10 دقائق ويعرض إتمام الجلسة المحفوظة", () => {
     progressData = { reviews: [], errors: [], mastery: [] };
     render(<HassemPage />);
-    fireEvent.click(screen.getByRole("button", { name: "ابدأ 10 دقائق" }));
+    fireEvent.click(screen.getByRole("button", { name: "ابدأ جلسة قصيرة" }));
     expect(startSession).toHaveBeenCalledWith({ durationMinutes: 10 });
-    fireEvent.click(screen.getByRole("button", { name: "ابدأ 20 دقيقة" }));
+    fireEvent.click(screen.getByRole("button", { name: "ابدأ جلسة مركزة" }));
     expect(startSession).toHaveBeenCalledWith({ durationMinutes: 20 });
 
     cleanup();
@@ -125,7 +125,7 @@ describe("Hassem diagnostic handoff", () => {
   it("يفتح قائمة الليلة الهادئة ويحفظ بطاقة ذاكرة شخصية ويوجه محاكاة مشتقة من الأولوية", () => {
     progressData = { reviews: [], errors: [], mastery: [] };
     render(<HassemPage />);
-    fireEvent.click(screen.getByRole("button", { name: "افتح قائمة هادئة" }));
+    fireEvent.click(screen.getByRole("button", { name: "افتح القائمة الهادئة" }));
     expect(screen.getByText("ثبّت، لا تفتح جديدًا.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /بطاقاتك الشخصية/ }));
     expect(toggleFinalMemory).toHaveBeenCalledWith({ itemId: 501 });
