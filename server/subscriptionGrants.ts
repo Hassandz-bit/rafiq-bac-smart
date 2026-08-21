@@ -37,6 +37,27 @@ export async function grantPlanAccess(input: { userId: number; planCode: Grantab
 }
 
 /**
+ * Administrator-only dry run for assignment decisions. It reads plan policy and
+ * resolves claims, but deliberately performs no inserts, updates, or audits.
+ */
+export async function previewPlanAssignment(input: { planCode: GrantablePlanCode; subjects: EntitledSubject[] }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+
+  const plan = await db.select({ id: plans.id, code: plans.code, nameAr: plans.nameAr, subjectBundle: plans.subjectBundle, subjectLimit: plans.subjectLimit, durationDays: plans.durationDays, isActive: plans.isActive }).from(plans).where(eq(plans.code, input.planCode)).limit(1);
+  if (!plan[0]) throw new Error("الخطة المطلوبة غير مهيأة في كتالوج المنتجات.");
+  if (!plan[0].isActive) throw new Error("الخطة المطلوبة موقوفة ولا يمكن معاينتها للتعيين.");
+  if (plan[0].subjectLimit < 1 || plan[0].subjectLimit > 3) throw new Error("سعة المواد في الخطة غير صالحة للتعيين.");
+
+  const grant = resolvePlanEntitlementGrant({ planCode: input.planCode, subjects: input.subjects, requiredSubjectCount: plan[0].subjectLimit });
+  const allowedSubjects = Array.isArray(plan[0].subjectBundle) ? plan[0].subjectBundle.filter((subject): subject is EntitledSubject => subject === "math" || subject === "physics" || subject === "natural_sciences") : [];
+  if (!allowedSubjects.length || !grant.subjects.every(subject => allowedSubjects.includes(subject))) throw new Error("اختيار المواد لا يطابق تشكيل الحزمة المعتمد.");
+
+  const expiresAt = plan[0].durationDays > 0 ? new Date(Date.now() + plan[0].durationDays * 24 * 60 * 60 * 1000) : null;
+  return { plan: plan[0], productTier: input.planCode.startsWith("season_") ? "season" : "hasm", selectedSubjects: grant.subjects, entitlements: grant.entitlements, expiresAt, isDryRun: true as const };
+}
+
+/**
  * Internal administrator audit. This is deliberately read-only: it exposes
  * the assignment record and the claims that already exist, never creating,
  * renewing, or revoking student access.

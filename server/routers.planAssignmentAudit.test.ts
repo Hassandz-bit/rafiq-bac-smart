@@ -1,7 +1,7 @@
 import type { TrpcContext } from "./_core/context";
 import { describe, expect, it, vi } from "vitest";
 
-const auditMocks = vi.hoisted(() => ({ getPlanAssignmentAudit: vi.fn(), grantPlanAccess: vi.fn() }));
+const auditMocks = vi.hoisted(() => ({ getPlanAssignmentAudit: vi.fn(), grantPlanAccess: vi.fn(), previewPlanAssignment: vi.fn() }));
 vi.mock("./subscriptionGrants", () => auditMocks);
 
 import { appRouter } from "./routers";
@@ -26,5 +26,28 @@ describe("administration.planAssignmentAudit", () => {
   it("يرفض السجل من الطالب وغير المصدق", async () => {
     await expect(appRouter.createCaller(context(student)).administration.planAssignmentAudit({ limit: 20 })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(appRouter.createCaller(context(null)).administration.planAssignmentAudit({ limit: 20 })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("administration.previewPlanAssignment", () => {
+  it("يعرض للمدير معاينة غير معدِّلة للاستحقاقات دون تنفيذ منح", async () => {
+    const preview = {
+      plan: { id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", subjectBundle: ["math"], subjectLimit: 1, durationDays: 0, isActive: true },
+      productTier: "season" as const,
+      selectedSubjects: ["math"],
+      entitlements: ["season:math", "hasm:math"],
+      expiresAt: null,
+      isDryRun: true as const,
+    };
+    auditMocks.previewPlanAssignment.mockResolvedValue(preview);
+
+    await expect(appRouter.createCaller(context(admin)).administration.previewPlanAssignment({ planCode: "season_one_subject", subjects: ["math"] })).resolves.toEqual(preview);
+    expect(auditMocks.previewPlanAssignment).toHaveBeenCalledWith({ planCode: "season_one_subject", subjects: ["math"] });
+    expect(auditMocks.grantPlanAccess).not.toHaveBeenCalled();
+  });
+
+  it("يرفض المعاينة من الطالب وغير المصدق", async () => {
+    await expect(appRouter.createCaller(context(student)).administration.previewPlanAssignment({ planCode: "season_one_subject", subjects: ["math"] })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(appRouter.createCaller(context(null)).administration.previewPlanAssignment({ planCode: "season_one_subject", subjects: ["math"] })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

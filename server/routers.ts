@@ -9,7 +9,7 @@ import { getCurrentCurriculumOverview, getSourceRegistryForStudio, getStudioRevi
 import { setUserRole } from "./db";
 import { recordStudentAttempt } from "./studentAttempts";
 import { getPlanCatalog, updatePlanConfiguration } from "./subscriptions";
-import { getPlanAssignmentAudit, getPlanChangeAudit, grantPlanAccess } from "./subscriptionGrants";
+import { getPlanAssignmentAudit, getPlanChangeAudit, grantPlanAccess, previewPlanAssignment } from "./subscriptionGrants";
 import { autosaveBacSession, startBacSession, submitBacSession } from "./bacSessions";
 import { completeStudentReview, getStudentProgressSummary } from "./studentProgress";
 import { generateSmartAssessment } from "./smartAssessment";
@@ -172,6 +172,9 @@ export const appRouter = router({
   administration: router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
     localPaymentStatus: adminOnlyProcedure.query(() => getLocalPaymentStatus()),
+    previewPlanAssignment: adminOnlyProcedure
+      .input(z.object({ planCode: z.enum(["season_one_subject", "season_two_subjects", "season_three_subjects", "hasm_one_subject", "hasm_two_subjects", "hasm_three_subjects"]), subjects: z.array(z.enum(["math", "physics", "natural_sciences"])).min(1).max(3) }))
+      .query(({ input }) => previewPlanAssignment(input)),
     planAssignmentAudit: adminOnlyProcedure.input(z.object({ limit: z.number().int().min(1).max(100).default(30) }).optional()).query(({ input }) => getPlanAssignmentAudit(input?.limit ?? 30)),
     planChangeAudit: adminOnlyProcedure.input(z.object({ limit: z.number().int().min(1).max(100).default(30) }).optional()).query(({ input }) => getPlanChangeAudit(input?.limit ?? 30)),
     updatePlanConfiguration: adminOnlyProcedure

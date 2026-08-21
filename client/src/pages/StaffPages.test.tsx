@@ -15,6 +15,7 @@ vi.mock("@/lib/trpc", () => ({
     administration: {
       planCatalog: { useQuery: () => ({ data: [{ id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", priceDzd: 2900, durationDays: 0, subjectLimit: 1, subjectBundle: ["math"], isActive: true, entitlements: ["season:subject"] }], isLoading: false }) },
       localPaymentStatus: { useQuery: () => ({ data: { enabled: false, provider: "none", mode: "manual_only", billingFlowAvailable: false, messageAr: "الدفع الإلكتروني غير مفعّل. تغييرات الخطط تُسجل يدويًا من الإدارة فقط ولا يوجد رابط دفع أو تحصيل.", supportedFutureCapabilities: ["checkout_intent", "payment_confirmation", "webhook_reconciliation"] }, isLoading: false }) },
+      previewPlanAssignment: { useQuery: () => ({ data: { plan: { id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", subjectLimit: 1, durationDays: 0, subjectBundle: ["math"], isActive: true }, productTier: "season", selectedSubjects: ["math"], entitlements: ["season:math", "hasm:math"], expiresAt: null, isDryRun: true }, isLoading: false }) },
       planAssignmentAudit: { useQuery: () => ({ data: [{ assignmentId: 9, userId: 42, planCode: "season_one_subject", planNameAr: "باقة الموسم — مادة واحدة", productTier: "season", selectedSubjects: ["math"], isActive: true, assignedAt: new Date(), expiresAt: null, activeEntitlements: [{ userId: 42, entitlement: "season:math", expiresAt: null }, { userId: 42, entitlement: "hasm:math", expiresAt: null }] }], isLoading: false }) },
       planChangeAudit: { useQuery: () => ({ data: [{ id: 8, userId: 42, actorUserId: 1, nextPlanNameAr: "باقة الموسم — مادة واحدة", changeKind: "promotion", noteAr: "عرض داخلي موثق", createdAt: new Date() }], isLoading: false }) },
       grantPlanAccess: { useMutation: () => ({ mutate, isPending: false, data: undefined, error: null }) },
@@ -64,7 +65,7 @@ describe("تعيين خطة الوصول الإداري", () => {
     render(<AdminPage />);
     expect(screen.getByText("سجل تعيينات الوصول")).toBeTruthy();
     expect(screen.getAllByText("طالب #42 · باقة الموسم — مادة واحدة")).toHaveLength(2);
-    expect(screen.getByText(/season:math، hasm:math/)).toBeTruthy();
+    expect(screen.getAllByText(/season:math، hasm:math/)).toHaveLength(2);
     expect(screen.getByText("Read-only audit")).toBeTruthy();
     expect(screen.getByText("سجل العروض والترقيات الداخلي")).toBeTruthy();
     expect(screen.getByText("عرض داخلي موثق")).toBeTruthy();
@@ -76,5 +77,13 @@ describe("تعيين خطة الوصول الإداري", () => {
     expect(screen.getByText(/الدفع الإلكتروني غير مفعّل/)).toBeTruthy();
     expect(screen.getByText("معطّل")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /دفع|checkout|تحصيل/i })).toBeNull();
+  });
+
+  it("يعرض معاينة الاستحقاقات بلا كتابة قبل الحفظ التشغيلي", () => {
+    render(<AdminPage />);
+    expect(screen.getByText("معاينة غير مُعدِّلة")).toBeTruthy();
+    expect(screen.getByText(/هذه المعاينة لا تحفظ تعيينًا ولا تمنح وصولًا/)).toBeTruthy();
+    expect(screen.getAllByText(/season:math، hasm:math/)).toHaveLength(2);
+    expect(mutate).not.toHaveBeenCalled();
   });
 });

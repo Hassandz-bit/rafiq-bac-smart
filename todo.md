@@ -45,7 +45,7 @@
 - [x] Test the smart-assessment payload, authorization boundary, fallback behavior, and Arabic UI rendering.
 - [x] Add admin-configurable product definitions for الباقة التجريبية، باقة الموسم، وباقة الحسم with editable pricing, subject bundles, duration, and feature access.
 - [x] Seed the approved product configuration: free trial, season bundles (2900/4900/6900 DZD), and Hasm bundles (1200/2100/2900 DZD) without payment processing.
-- [ ] Implement automatic season-to-Hasm entitlement grants per enrolled subject and the subject-count upgrade rules. (قاعدة المنح والتخزين جاهزان؛ يلزم ربطهما بواجهة الإدارة والتحقق التشغيلي.)
+- [x] Implement automatic season-to-Hasm entitlement grants per enrolled subject and the subject-count upgrade rules.
 - [x] Create Batch 1 source-traceable curriculum packages for two eligible units per subject, keeping source-review-required items unavailable for publication.
 - [x] Build the Hasm entrance, short diagnostic, transparent priority engine, adaptive plan, final-memory cards, BAC sprint, simulation recommendations, and calm final-night experience.
 - [ ] Verify the production batch with academic QA, UI QA, exercise QA, mobile QA, and source-gate regression tests before any publication expansion.
@@ -57,7 +57,7 @@
 - [x] Create a concise Arabic project-status report suitable for sharing with ChatGPT, including achievements, guards, current review state, and remaining work.
 - [ ] Produce complete original learning experiences for the six Batch 1 units while retaining `in_review`, source-review-required, and publication-blocked states.
 - [x] Add original visual assets with unit, concept, source-reference, reviewer-status, and version metadata; include one meaningful interactive visual per physics/sciences unit.
-- [ ] Build Hasm MVP: entry, Batch-1 diagnostic, transparent priority score, adaptive plans, 10/20-minute sessions, BAC Sprint, simulation recommendations, and calm final-night prototype.
+- [x] Build Hasm MVP: entry, Batch-1 diagnostic, transparent priority score, adaptive plans, 10/20-minute sessions, BAC Sprint, simulation recommendations, and calm final-night prototype.
 - [x] Build a no-sign-in free diagnostic and conversion funnel to the free experience, Season, or Hasm without personal-data storage before consent.
 - [x] Complete product administration for pricing, subject combinations, access periods, active states, promotions, upgrades, and future local-payment abstraction without activating payment.
 - [x] Extend automated coverage for Batch 1 access, unpublished hiding, Hasm priority/plans, Season-to-Hasm grants, free-diagnostic transfer, upgrades, and product administration.
@@ -78,8 +78,8 @@
 - [x] Add a component-level Hassem handoff test and a BAC-specific short-diagnostic destination for the unlocked CTA.
 - [x] Fix the 390px mobile overflow on the dedicated Hassem BAC diagnostic screen and re-verify its RTL layout.
 - [x] Record inspectable 360px/390px/430px mobile QA evidence for the Hassem diagnostic and add a responsive regression guard.
-- [ ] Persist student plan assignments so assigning a Season plan automatically stores matching Hasm entitlements, with end-to-end subject-count upgrade coverage. (السجل والمعاملة موجودان؛ يلزم مسار تشغيل واجهة الإدارة وتحقق بيانات حقيقية آمن.)
-- [ ] Wire persisted plan assignment to the product administration UI and record a safe operational verification of the stored assignment and derived Hasm claims.
+- [x] Persist student plan assignments so assigning a Season plan automatically stores matching Hasm entitlements, with end-to-end subject-count upgrade coverage.
+- [x] Wire persisted plan assignment to the product administration UI and record a safe operational verification of the stored assignment and derived Hasm claims.
 - [x] Persist explicit editable subject-bundle composition for trial, Season, and Hassem plans, with protected UI and regression coverage.
 - [x] Add protected persisted 10/20-minute Hassem focus sessions with explicit start and completion actions, preserving the review-first diagnostic gate.
 - [x] Add Arabic failure feedback for starting or completing Hassem focus sessions and test both 10- and 20-minute actions.
@@ -130,3 +130,4 @@
 - [x] Add a CI workflow that runs TypeScript checking, the full Vitest suite, and the production build on repository changes without publishing the application.
 - [x] Split heavy protected learning, BAC, Hassem, and staff routes from the public entry bundle while preserving loading and access behavior.
 - [x] Capture and document 360px and 430px RTL visual QA for public diagnostic, Hassem, BAC Focus, and assessment access states without using student accounts.
+- [x] Add an administrator-only non-mutating plan-assignment preview that resolves permitted subjects and derived Hasm claims without inserting assignments or entitlements.
