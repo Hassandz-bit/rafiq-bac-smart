@@ -124,3 +124,4 @@
 - [x] Add a disabled local-payment abstraction contract for future product administration, expose its non-active status safely, and test that no billing flow can run.
 - [x] Add a content-editor-only Draft-to-review submission action that preserves source linkage and publication blocks.
 - [x] Add a content-editor-only Draft discard action that records a non-publishing terminal state without deleting source-linked audit data.
+- [x] Refresh the shareable Arabic project-status report with the latest 127-test baseline, Content Studio workflow, product audit, and remaining human-gated items.
