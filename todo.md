@@ -141,3 +141,6 @@
 - [x] Add an admin-only read-only release-readiness dashboard that surfaces technical evidence and explicit human-only acceptance gates without changing any content, source, plan, or publication state.
 - [x] Improve production bundle distribution by separating heavy UI dependencies without changing learner access, source gates, or publication behavior.
 - [x] Add an audited release-quality acceptance record for human and real-account evidence that cannot approve or publish academic content.
+- [x] Re-architect the student-facing UI into a premium Dark-first learning environment with refined Light/System modes, subject accents, responsive floating navigation, and no changes to learning, auth, content, or publication behavior.
+- [x] Produce and apply a unified high-fidelity visual direction for landing, student home, subjects, learning, mind map, slides, exercises, review, BAC, Hassem, and pricing without adding content or changing engines.
+- [x] Verify premium student UI behavior across light/dark/system, mobile/tablet/desktop, reduced motion, keyboard focus, and existing functional regressions.

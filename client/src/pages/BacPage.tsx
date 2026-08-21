@@ -62,14 +62,14 @@ function BacFocus() {
     submitSession.mutate({ sessionId, elapsedSeconds: seconds, score, remainingDays });
   };
 
-  return <div className="min-h-screen bg-[#071d3f] text-white" dir="rtl">
-    <header className="flex h-18 items-center justify-between border-b border-white/10 px-5 py-4 sm:px-8">
+  return <div className="bac-shell min-h-screen" dir="rtl">
+    <header className="bac-header flex h-18 items-center justify-between px-5 py-4 sm:px-8">
       <button onClick={() => setLocation("/app")} className="flex items-center gap-2 text-sm font-bold text-blue-200"><ArrowRight className="h-4 w-4" />الخروج من وضع BAC</button>
       <div className="flex items-center gap-2"><LockKeyhole className="h-4 w-4 text-cyan-300" /><span className="text-sm font-black">BAC Focus</span></div>
       <Badge className="border-0 bg-white/10 text-blue-100 hover:bg-white/10">{sessionId ? "الحفظ التلقائي نشط" : "حفظ تلقائي مهيأ"}</Badge>
     </header>
     <main className="mx-auto grid max-w-6xl gap-7 px-5 py-10 lg:grid-cols-[1fr_.65fr] sm:px-8">
-      <section className="rounded-[2rem] bg-white p-6 text-slate-900 shadow-2xl shadow-black/20 sm:p-9">
+      <section className="bac-workspace rounded-[2rem] p-6 sm:p-9">
         <div className="flex items-start justify-between gap-4"><div><p className="section-kicker">محاكاة البكالوريا</p><h1 className="mt-2 text-3xl font-black text-blue-950">حل بتركيز. حلّل بذكاء.</h1><p className="mt-3 max-w-xl text-sm leading-7 text-slate-600">تُحجب التلميحات والحل داخل الجلسة. بعد الإرسال تجمع الخطة نتيجتك المسجلة مع الإتقان والأخطاء والمراجعات المحفوظة في حسابك.</p></div><Trophy className="h-8 w-8 shrink-0 text-amber-500" /></div>
         <div className="mt-8 grid gap-3 sm:grid-cols-3"><FocusFeature icon={Clock3} label="مؤقت حي" /><FocusFeature icon={LockKeyhole} label="دون تلميحات" /><FocusFeature icon={FileCheck2} label="تحليل بعد الإرسال" /></div>
         <div className="mt-8 rounded-[1.5rem] border border-dashed border-blue-200 bg-blue-50/50 p-6"><div className="flex gap-3"><AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" /><p className="text-sm leading-6 text-slate-600">لا تُعرض مواضيع أو تمارين غير معتمدة. يمكن تسجيل جلسة تركيز ونتيجتها، بينما يبقى محتوى المحاكاة المنشور مرتبطًا باعتماد المصدر الأكاديمي.</p></div></div>
@@ -79,7 +79,7 @@ function BacFocus() {
         </div>
         <div className="mt-4 flex flex-wrap gap-3"><Button onClick={begin} disabled={startSession.isPending} className="h-12 rounded-xl bg-blue-700 px-6 font-black hover:bg-blue-800">{started ? "إيقاف مؤقت للجلسة" : "ابدأ جلسة BAC تجريبية"}</Button><Button onClick={submit} disabled={!sessionId || submitSession.isPending} variant="outline" className="h-12 rounded-xl border-blue-200 px-6 font-black text-blue-800">إرسال الجلسة للتحليل</Button></div>
       </section>
-      <aside className="rounded-[2rem] border border-white/10 bg-white/[.06] p-6 backdrop-blur">
+      <aside className="bac-insights rounded-[2rem] p-6">
         <div className="flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-xl bg-cyan-300 text-blue-950"><Timer className="h-5 w-5" /></div><div><p className="text-sm font-black">المؤقت</p><p className="text-xs text-blue-200">يحفظ كل 30 ثانية أثناء الجلسة</p></div></div>
         <p className="mt-9 text-5xl font-black tracking-tight text-white" dir="ltr">{timer}</p>
         <div className="mt-8 border-t border-white/10 pt-6"><p className="text-xs font-black tracking-[.15em] text-cyan-200">بعد الإرسال</p><div className="mt-4 space-y-3">{analysis ? <><p className="text-lg font-black text-white">{analysis.labelAr}</p><p className="text-sm leading-6 text-blue-100">{analysis.summaryAr}</p><div className="rounded-xl bg-white/5 p-3 text-sm text-blue-100">العلامة: {analysis.score}/100</div><ul className="space-y-2">{analysis.signals.map(signal => <li key={signal} className="text-xs leading-5 text-blue-100">• {signal}</li>)}</ul><div className="border-t border-white/10 pt-3"><p className="text-xs font-black text-cyan-200">الخطوات التالية</p><ul className="mt-2 space-y-2">{analysis.actionsAr.map(action => <li key={action} className="flex gap-2 text-xs leading-5 text-white"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" />{action}</li>)}</ul></div></> : ["العلامة والزمن", "الإتقان والأخطاء المسجلة", "المراجعة التالية", "خطة الإنقاذ"].map(item => <div key={item} className="flex items-center gap-3 text-sm text-blue-100"><ShieldCheck className="h-4 w-4 text-emerald-300" />{item}</div>)}</div></div>
@@ -89,5 +89,5 @@ function BacFocus() {
 }
 
 function FocusFeature({ icon: Icon, label }: { icon: typeof Clock3; label: string }) {
-  return <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm"><Icon className="h-4 w-4 text-blue-700" /><p className="mt-2 text-xs font-black text-slate-700">{label}</p></div>;
+  return <div className="bac-feature rounded-xl p-3"><Icon className="h-4 w-4 text-[var(--student-primary)]" /><p className="mt-2 text-xs font-black">{label}</p></div>;
 }

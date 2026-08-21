@@ -22,9 +22,9 @@ export async function getReleaseReadinessDashboard() {
   return {
     isReadOnly: true as const,
     technicalEvidence: {
-      automatedTestCount: 176,
-      testFileCount: 66,
-      baselineTag: "qa-readiness-20260821-176",
+      automatedTestCount: 177,
+      testFileCount: 67,
+      baselineTag: "premium-student-ui-v1",
       sourceBackupVerified: true,
       repositoryIntegrityVerified: true,
     },

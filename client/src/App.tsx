@@ -21,7 +21,7 @@ const EditorPage = lazy(async () => ({ default: (await import("./pages/StaffPage
 const ReviewerPage = lazy(async () => ({ default: (await import("./pages/StaffPages")).ReviewerPage }));
 
 function RouteLoadingFallback() {
-  return <main dir="rtl" className="flex min-h-screen w-full items-center justify-center bg-[#f7f9ff] px-5 text-slate-800"><div role="status" aria-live="polite" className="rounded-2xl border border-blue-100 bg-white px-6 py-5 text-center shadow-lg shadow-blue-100/40"><p className="text-sm font-black text-blue-900">جارٍ تجهيز مساحة التعلّم…</p><p className="mt-1 text-xs text-slate-500">يُحمّل المسار المطلوب فقط للحفاظ على سرعة البداية.</p></div></main>;
+  return <main dir="rtl" className="flex min-h-screen w-full items-center justify-center bg-background px-5 text-foreground"><div role="status" aria-live="polite" className="rounded-3xl border border-border bg-card px-6 py-5 text-center shadow-2xl"><p className="text-sm font-black text-foreground">جارٍ تجهيز مساحة التعلّم…</p><p className="mt-1 text-xs text-muted-foreground">يُحمّل المسار المطلوب فقط للحفاظ على سرعة البداية.</p></div></main>;
 }
 
 function Router() {
@@ -60,8 +60,8 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="light"
-        // switchable
+        defaultTheme="dark"
+        switchable
       >
         <TooltipProvider>
           <Toaster />
