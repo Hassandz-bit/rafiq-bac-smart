@@ -48,7 +48,7 @@
 - [x] Implement automatic season-to-Hasm entitlement grants per enrolled subject and the subject-count upgrade rules.
 - [x] Create Batch 1 source-traceable curriculum packages for two eligible units per subject, keeping source-review-required items unavailable for publication.
 - [x] Build the Hasm entrance, short diagnostic, transparent priority engine, adaptive plan, final-memory cards, BAC sprint, simulation recommendations, and calm final-night experience.
-- [ ] Verify the production batch with academic QA, UI QA, exercise QA, mobile QA, and source-gate regression tests before any publication expansion.
+- [ ] Complete the **human academic QA** for Batch 1 sources, exercises, hints, visuals, and curriculum alignment before any publication expansion. (اكتملت اختبارات UI والتمارين والهاتف وبوابة المصدر التقنية؛ لا يجوز محاكاة الاعتماد الأكاديمي.)
 - [x] Define the exact two-unit internal Batch 1 scope per subject from the approved working-reference source packs.
 - [x] Create structured draft-only Batch 1 packages with objectives, prerequisites, diagnostics, maps, original slides, practice, quiz, BAC-style practice, errors, summary, quick review, and source links.
 - [x] Produce a Batch 1 academic review board that lists every draft item, source reference, workflow state, and publication block.
@@ -61,7 +61,7 @@
 - [x] Build a no-sign-in free diagnostic and conversion funnel to the free experience, Season, or Hasm without personal-data storage before consent.
 - [x] Complete product administration for pricing, subject combinations, access periods, active states, promotions, upgrades, and future local-payment abstraction without activating payment.
 - [x] Extend automated coverage for Batch 1 access, unpublished hiding, Hasm priority/plans, Season-to-Hasm grants, free-diagnostic transfer, upgrades, and product administration.
-- [ ] Run student-account, RTL/mobile, accessibility, performance, production-build, backup/export, SHA/tag, and final phase QA without starting Batch 2.
+- [ ] Run the final role-flow QA using **four real OAuth accounts** (Admin, Content Editor, Academic Reviewer, Student) without starting Batch 2. (اكتملت RTL/mobile وإتاحة آلية وأداء الحزم وبناء الإنتاج والنسخ الاحتياطي والوسم وSHA؛ لا تعوضها حسابات اصطناعية.)
 - [x] Fix the free-diagnostic mobile RTL overflow and verify the 390px experience remains fully visible and touch-friendly.
 - [x] Assemble a unified internal visual-review board for all Batch 1 visual assets, including unit, concept, source linkage, reviewer status, version, and publication block.
 - [x] Verify that every visual asset remains original, source-traceable, and unavailable to student publication pending academic review.
