@@ -375,6 +375,21 @@ export const studentPlanAssignments = mysqlTable(
   table => ({ userTierActiveIndex: index("student_plan_assignment_user_tier_index").on(table.userId, table.productTier, table.isActive) }),
 );
 
+export const planChangeAudits = mysqlTable(
+  "plan_change_audits",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    actorUserId: int("actorUserId").notNull().references(() => users.id),
+    previousPlanId: int("previousPlanId").references(() => plans.id),
+    nextPlanId: int("nextPlanId").notNull().references(() => plans.id),
+    changeKind: mysqlEnum("changeKind", ["manual_assignment", "upgrade", "promotion"]).default("manual_assignment").notNull(),
+    noteAr: text("noteAr"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({ userCreatedIndex: index("plan_change_audits_user_created_index").on(table.userId, table.createdAt) }),
+);
+
 export const hassemFocusSessions = mysqlTable(
   "hassem_focus_sessions",
   {

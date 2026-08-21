@@ -13,7 +13,8 @@ describe("التفعيل الداخلي للاستحقاقات", () => {
     const onDuplicateKeyUpdate = vi.fn().mockResolvedValue(undefined);
     const entitlementValues = vi.fn().mockReturnValue({ onDuplicateKeyUpdate });
     const assignmentValues = vi.fn().mockResolvedValue(undefined);
-    const insert = vi.fn().mockReturnValueOnce({ values: assignmentValues }).mockReturnValueOnce({ values: entitlementValues });
+    const auditValues = vi.fn().mockResolvedValue(undefined);
+    const insert = vi.fn().mockReturnValueOnce({ values: assignmentValues }).mockReturnValueOnce({ values: entitlementValues }).mockReturnValueOnce({ values: auditValues });
     const update = vi.fn().mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) });
     const planQuery = { from: () => planQuery, where: () => planQuery, limit: () => Promise.resolve([{ id: 30003, subjectBundle: ["math", "physics"], subjectLimit: 2, durationDays: 0, isActive: true }]) };
     const tx = { select: vi.fn().mockReturnValue(planQuery), update, insert };
@@ -21,7 +22,7 @@ describe("التفعيل الداخلي للاستحقاقات", () => {
     mocks.resolvePlanEntitlementGrant.mockReturnValue({ subjects: ["math", "physics"], entitlements: ["subject:math:access", "subject:physics:access", "hasm:math", "hasm:physics"] });
     const expiry = new Date("2027-06-01T00:00:00.000Z");
 
-    await expect(grantPlanAccess({ userId: 42, planCode: "season_two_subjects", subjects: ["math", "physics"], expiresAt: expiry })).resolves.toEqual({ subjects: ["math", "physics"], entitlements: ["subject:math:access", "subject:physics:access", "hasm:math", "hasm:physics"], productTier: "season", expiresAt: expiry });
+    await expect(grantPlanAccess({ userId: 42, actorUserId: 1, planCode: "season_two_subjects", subjects: ["math", "physics"], expiresAt: expiry })).resolves.toEqual({ subjects: ["math", "physics"], entitlements: ["subject:math:access", "subject:physics:access", "hasm:math", "hasm:physics"], productTier: "season", expiresAt: expiry });
     expect(mocks.resolvePlanEntitlementGrant).toHaveBeenCalledWith({ planCode: "season_two_subjects", subjects: ["math", "physics"], requiredSubjectCount: 2 });
     expect(assignmentValues).toHaveBeenCalledWith({ userId: 42, planId: 30003, productTier: "season", selectedSubjects: ["math", "physics"], isActive: true, expiresAt: expiry });
     expect(entitlementValues).toHaveBeenCalledWith([
@@ -31,6 +32,7 @@ describe("التفعيل الداخلي للاستحقاقات", () => {
       { userId: 42, entitlement: "hasm:physics", expiresAt: expiry },
     ]);
     expect(onDuplicateKeyUpdate).toHaveBeenCalledWith({ set: { expiresAt: expiry } });
+    expect(auditValues).toHaveBeenCalledWith({ userId: 42, actorUserId: 1, previousPlanId: null, nextPlanId: 30003, changeKind: "manual_assignment", noteAr: null });
   });
 
   it("يتوقف بوضوح عند تعذر قاعدة البيانات", async () => {
@@ -53,14 +55,15 @@ describe("التفعيل الداخلي للاستحقاقات", () => {
     const onDuplicateKeyUpdate = vi.fn().mockResolvedValue(undefined);
     const entitlementValues = vi.fn().mockReturnValue({ onDuplicateKeyUpdate });
     const assignmentValues = vi.fn().mockResolvedValue(undefined);
-    const insert = vi.fn().mockReturnValueOnce({ values: assignmentValues }).mockReturnValueOnce({ values: entitlementValues });
+    const auditValues = vi.fn().mockResolvedValue(undefined);
+    const insert = vi.fn().mockReturnValueOnce({ values: assignmentValues }).mockReturnValueOnce({ values: entitlementValues }).mockReturnValueOnce({ values: auditValues });
     const update = vi.fn().mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) });
     const planQuery = { from: () => planQuery, where: () => planQuery, limit: () => Promise.resolve([{ id: 30004, subjectBundle: ["math"], subjectLimit: 1, durationDays: 0, isActive: true }]) };
     const tx = { select: vi.fn().mockReturnValue(planQuery), update, insert };
     mocks.getDb.mockResolvedValue({ transaction: (callback: (database: typeof tx) => Promise<unknown>) => callback(tx) });
     mocks.resolvePlanEntitlementGrant.mockReturnValue({ subjects: ["math"], entitlements: ["subject:math:access", "hasm:math"] });
 
-    await expect(grantPlanAccess({ userId: 42, planCode: "season_two_subjects", subjects: ["math"] })).resolves.toMatchObject({ subjects: ["math"], productTier: "season" });
+    await expect(grantPlanAccess({ userId: 42, actorUserId: 1, planCode: "season_two_subjects", subjects: ["math"] })).resolves.toMatchObject({ subjects: ["math"], productTier: "season" });
     expect(mocks.resolvePlanEntitlementGrant).toHaveBeenCalledWith({ planCode: "season_two_subjects", subjects: ["math"], requiredSubjectCount: 1 });
   });
 

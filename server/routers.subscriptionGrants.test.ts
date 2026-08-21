@@ -20,7 +20,7 @@ describe("administration.grantPlanAccess", () => {
     const caller = appRouter.createCaller(context(admin));
 
     await expect(caller.administration.grantPlanAccess({ userId: 42, planCode: "season_one_subject", subjects: ["math"] })).resolves.toEqual(result);
-    expect(grantMocks.grantPlanAccess).toHaveBeenCalledWith({ userId: 42, planCode: "season_one_subject", subjects: ["math"] });
+    expect(grantMocks.grantPlanAccess).toHaveBeenCalledWith({ userId: 42, actorUserId: 1, planCode: "season_one_subject", subjects: ["math"], changeKind: "manual_assignment" });
   });
 
   it("يحظر تفعيل الاستحقاقات على الطالب وغير المصدق", async () => {

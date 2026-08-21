@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { plans, studentEntitlements, studentPlanAssignments } from "../drizzle/schema";
+import { planChangeAudits, plans, studentEntitlements, studentPlanAssignments } from "../drizzle/schema";
 import { getDb } from "./db";
 import { resolvePlanEntitlementGrant, type EntitledSubject, type GrantablePlanCode } from "./entitlementRules";
 
@@ -7,7 +7,7 @@ import { resolvePlanEntitlementGrant, type EntitledSubject, type GrantablePlanCo
  * Internal provisioning only: this does not collect payment details or represent a payment confirmation.
  * It records the access claims that an administrator has already approved operationally.
  */
-export async function grantPlanAccess(input: { userId: number; planCode: GrantablePlanCode; subjects: EntitledSubject[]; expiresAt?: Date | null }) {
+export async function grantPlanAccess(input: { userId: number; planCode: GrantablePlanCode; subjects: EntitledSubject[]; actorUserId: number; changeKind?: "manual_assignment" | "upgrade" | "promotion"; noteAr?: string; expiresAt?: Date | null }) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
   const productTier = input.planCode.startsWith("season_") ? "season" : "hasm";
@@ -23,10 +23,12 @@ export async function grantPlanAccess(input: { userId: number; planCode: Grantab
     const allowedSubjects = Array.isArray(plan[0].subjectBundle) ? plan[0].subjectBundle.filter((subject): subject is EntitledSubject => subject === "math" || subject === "physics" || subject === "natural_sciences") : [];
     if (!allowedSubjects.length || !grant.subjects.every(subject => allowedSubjects.includes(subject))) throw new Error("اختيار المواد لا يطابق تشكيل الحزمة المعتمد.");
     const expiresAt = input.expiresAt ?? (plan[0].durationDays > 0 ? new Date(Date.now() + plan[0].durationDays * 24 * 60 * 60 * 1000) : null);
+    const previous = await tx.select({ planId: studentPlanAssignments.planId }).from(studentPlanAssignments).where(and(eq(studentPlanAssignments.userId, input.userId), eq(studentPlanAssignments.productTier, productTier), eq(studentPlanAssignments.isActive, true))).limit(1);
 
     await tx.update(studentPlanAssignments).set({ isActive: false }).where(and(eq(studentPlanAssignments.userId, input.userId), eq(studentPlanAssignments.productTier, productTier), eq(studentPlanAssignments.isActive, true)));
     await tx.insert(studentPlanAssignments).values({ userId: input.userId, planId: plan[0].id, productTier, selectedSubjects: grant.subjects, isActive: true, expiresAt });
     await tx.insert(studentEntitlements).values(grant.entitlements.map(entitlement => ({ userId: input.userId, entitlement, expiresAt }))).onDuplicateKeyUpdate({ set: { expiresAt } });
+    await tx.insert(planChangeAudits).values({ userId: input.userId, actorUserId: input.actorUserId, previousPlanId: previous[0]?.planId ?? null, nextPlanId: plan[0].id, changeKind: input.changeKind ?? "manual_assignment", noteAr: input.noteAr?.trim() || null });
     resolvedGrant = grant;
     resolvedExpiresAt = expiresAt;
   });
@@ -75,4 +77,16 @@ export async function getPlanAssignmentAudit(limit = 30) {
     ...assignment,
     activeEntitlements: byUser.get(assignment.userId) ?? [],
   }));
+}
+
+/** Read-only log of administrator-declared plan changes. It never performs a payment, promotion, or grant. */
+export async function getPlanChangeAudit(limit = 30) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db
+    .select({ id: planChangeAudits.id, userId: planChangeAudits.userId, actorUserId: planChangeAudits.actorUserId, nextPlanNameAr: plans.nameAr, changeKind: planChangeAudits.changeKind, noteAr: planChangeAudits.noteAr, createdAt: planChangeAudits.createdAt })
+    .from(planChangeAudits)
+    .innerJoin(plans, eq(planChangeAudits.nextPlanId, plans.id))
+    .orderBy(desc(planChangeAudits.createdAt))
+    .limit(Math.min(Math.max(limit, 1), 100));
 }

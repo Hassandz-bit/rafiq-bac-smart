@@ -119,3 +119,4 @@
 - [x] Record a non-destructive recovery drill using the current checkpoint, repository status, and release-validation baseline.
 - [x] Add a content-editor-only source-linked draft-component creation workflow that defaults to `draft` and has no publication action.
 - [x] Align stored Season-to-Hassem grants with each plan’s active status and administrator-configured subject capacity, including safe upgrade validation.
+- [x] Add an administrator-only non-payment promotion and upgrade audit record that documents an approved manual plan change without collecting payment data.
