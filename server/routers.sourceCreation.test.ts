@@ -3,6 +3,8 @@ import type { TrpcContext } from "./_core/context";
 
 const sourceMocks = vi.hoisted(() => ({ createUnverifiedSourceRecord: vi.fn(), updateStandaloneUnverifiedSourceRecord: vi.fn(), archiveStandaloneUnverifiedSourceRecord: vi.fn() }));
 vi.mock("./sourceRecords", () => sourceMocks);
+const curriculumDraftMocks = vi.hoisted(() => ({ createDraftCurriculumUnit: vi.fn() }));
+vi.mock("./curriculumDrafts", () => curriculumDraftMocks);
 
 import { appRouter } from "./routers";
 
@@ -25,6 +27,22 @@ describe("studio.createSource", () => {
   it("يرفض إنشاء المصدر من المراجع وغير المصدق", async () => {
     await expect(appRouter.createCaller(context(reviewer)).studio.createSource(input)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(appRouter.createCaller(context(null)).studio.createSource(input)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("studio.createDraftUnit", () => {
+  it("يسمح للمحرر بإنشاء وحدة Draft غير مجانية ومقيدة بالنشر فقط", async () => {
+    const unitInput = { subjectId: 301, titleAr: "الحركية الكيميائية", summaryAr: "مسودة" };
+    curriculumDraftMocks.createDraftCurriculumUnit.mockResolvedValue({ id: 81001, subjectId: 301, workflowState: "draft", isFreeUnit: false, publicationBlocked: true });
+
+    await expect(appRouter.createCaller(context(editor)).studio.createDraftUnit(unitInput)).resolves.toMatchObject({ workflowState: "draft", isFreeUnit: false, publicationBlocked: true });
+    expect(curriculumDraftMocks.createDraftCurriculumUnit).toHaveBeenCalledWith(unitInput);
+  });
+
+  it("يرفض إنشاء الوحدة من المراجع وغير المصدق", async () => {
+    const unitInput = { subjectId: 301, titleAr: "الحركية الكيميائية" };
+    await expect(appRouter.createCaller(context(reviewer)).studio.createDraftUnit(unitInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(appRouter.createCaller(context(null)).studio.createDraftUnit(unitInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
 

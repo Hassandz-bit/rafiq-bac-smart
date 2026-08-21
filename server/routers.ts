@@ -22,6 +22,7 @@ import { createSourceLinkedDraftComponent, discardDraftComponent, getDraftCompon
 import { getLocalPaymentStatus } from "./localPaymentAbstraction";
 import { getOfficialBookIntake, reviewOfficialBookUpload } from "./officialBookIntake";
 import { archiveStandaloneUnverifiedSourceRecord, createUnverifiedSourceRecord, updateStandaloneUnverifiedSourceRecord } from "./sourceRecords";
+import { createDraftCurriculumUnit } from "./curriculumDrafts";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -74,6 +75,13 @@ export const appRouter = router({
   }),
   studio: router({
     sourceRegistry: contentStudioProcedure.query(() => getSourceRegistryForStudio()),
+    createDraftUnit: contentEditorProcedure
+      .input(z.object({ subjectId: z.number().int().positive(), titleAr: z.string().trim().min(3).max(220), summaryAr: z.string().trim().max(4000).optional(), sortOrder: z.number().int().min(0).max(9999).optional() }))
+      .mutation(async ({ input }) => {
+        const result = await createDraftCurriculumUnit(input);
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "المادة المحددة غير موجودة في المنهج." });
+        return result;
+      }),
     createSource: contentEditorProcedure
       .input(z.object({ sourceAuthority: z.string().trim().min(3).max(180), documentTitle: z.string().trim().min(3).max(500), url: z.string().url().max(1000), subjectId: z.number().int().positive(), academicYear: z.string().trim().max(20).optional(), level: z.string().trim().max(120).optional(), track: z.string().trim().max(120).optional(), edition: z.string().trim().max(120).optional(), sourceVersion: z.string().trim().max(120).optional() }))
       .mutation(async ({ ctx, input }) => {

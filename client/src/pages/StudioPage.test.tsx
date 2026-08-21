@@ -22,6 +22,7 @@ const mockedReviewQueue = vi.hoisted(() => {
 const mockedReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedSourceVerificationMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedSourceCreateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedDraftUnitCreateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedStandaloneSourceUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedStandaloneSourceArchiveMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedOfficialBookReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
@@ -50,6 +51,7 @@ vi.mock("@/lib/trpc", () => ({
       reviewLearningItem: { useMutation: () => mockedReviewMutation },
       updateSourceVerification: { useMutation: () => mockedSourceVerificationMutation },
       createSource: { useMutation: () => mockedSourceCreateMutation },
+      createDraftUnit: { useMutation: () => mockedDraftUnitCreateMutation },
       updateStandaloneSource: { useMutation: () => mockedStandaloneSourceUpdateMutation },
       archiveStandaloneSource: { useMutation: () => mockedStandaloneSourceArchiveMutation },
       reviewOfficialBookUpload: { useMutation: () => mockedOfficialBookReviewMutation },
@@ -64,7 +66,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedStandaloneSourceArchiveMutation.mutate.mockReset(); mockedStandaloneSourceUpdateMutation.mutate.mockReset(); mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
+afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftUnitCreateMutation.mutate.mockReset(); mockedStandaloneSourceArchiveMutation.mutate.mockReset(); mockedStandaloneSourceUpdateMutation.mutate.mockReset(); mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
   it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
@@ -134,6 +136,18 @@ describe("طابور مراجعة Content Studio", () => {
     fireEvent.click(screen.getByRole("button", { name: "إنشاء مصدر غير متحقق" }));
     expect(mockedSourceCreateMutation.mutate).toHaveBeenCalledWith({ sourceAuthority: "جهة مرجعية", documentTitle: "كتاب مقترح", url: "https://example.edu/proposed-book", subjectId: 301, academicYear: undefined, edition: undefined });
     expect(screen.getByText("Unverified · قفل النشر")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
+  });
+
+  it("يسمح للمحرر بإنشاء وحدة منهجية Draft غير مجانية ومقيدة بالنشر فقط", () => {
+    mockAuth.role = "content_editor";
+    render(<StudioPage />);
+    expect(screen.getByText("إضافة وحدة منهجية مسودة")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("عنوان الوحدة المسودة"), { target: { value: "الحركية الكيميائية" } });
+    fireEvent.change(screen.getByLabelText("ملخص الوحدة المسودة"), { target: { value: "مسودة تنظيمية للمراجعة الداخلية فقط." } });
+    fireEvent.click(screen.getByRole("button", { name: "إنشاء وحدة مسودة" }));
+    expect(mockedDraftUnitCreateMutation.mutate).toHaveBeenCalledWith({ subjectId: 301, titleAr: "الحركية الكيميائية", summaryAr: "مسودة تنظيمية للمراجعة الداخلية فقط.", sortOrder: 0 });
+    expect(screen.getByText("Draft · غير مجانية · قفل النشر")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
   });
 
