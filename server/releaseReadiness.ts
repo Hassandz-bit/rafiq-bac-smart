@@ -22,8 +22,8 @@ export async function getReleaseReadinessDashboard() {
   return {
     isReadOnly: true as const,
     technicalEvidence: {
-      automatedTestCount: 178,
-      testFileCount: 68,
+      automatedTestCount: 177,
+      testFileCount: 67,
       baselineTag: "premium-student-ui-v1",
       sourceBackupVerified: true,
       repositoryIntegrityVerified: true,

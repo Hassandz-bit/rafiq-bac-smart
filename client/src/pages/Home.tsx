@@ -1,5 +1,6 @@
 import { ScientificCanvas } from "@/components/ScientificCanvas";
 import { LandingNarrative } from "@/components/LandingNarrative";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Button } from "@/components/ui/button";
 import { uxCopy } from "@/content/uxCopy";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -14,6 +15,7 @@ const subjects = [
 ];
 
 export default function Home() {
+  useScrollReveal();
   const [, setLocation] = useLocation();
   const { theme, setTheme } = useTheme();
   return <div className="student-shell landing-shell overflow-hidden" dir="rtl">

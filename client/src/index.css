@@ -270,6 +270,10 @@
   .landing-arrow-cta { display: inline-flex; align-items: center; gap: .75rem; color: var(--student-ink); font-size: .85rem; font-weight: 900; }
   .landing-arrow-cta span { display: grid; place-items: center; height: 2.7rem; width: 2.7rem; border-radius: 50%; background: var(--student-primary); color: #071426; transition: transform .18s var(--ease-out); }
   .landing-arrow-cta:hover span { transform: translateX(-4px); }
+  [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity .52s var(--ease-out), transform .52s var(--ease-out); }
+  [data-reveal][data-reveal-visible="true"] { opacity: 1; transform: translateY(0); }
+  .student-button, .landing-plan-card, .problem-chip, .journey-step, .parent-points > div, .student-card-interactive, .student-rail-item, .student-mobile-nav { will-change: transform; }
+  .student-button:active, .landing-plan-card:active, .problem-chip:active, .journey-step:active, .parent-points > div:active, .student-card-interactive:active, .student-rail-item:active, .student-mobile-nav:active { transform: scale(.975); }
   .brand-orbit, .landing-brand > span { position: relative; overflow: hidden; isolation: isolate; background: conic-gradient(from 210deg, #39e4d0, #6d72f5 40%, #163454 70%, #39e4d0); }
   .brand-orbit::after, .landing-brand > span::after { position: absolute; inset: .32rem; z-index: -1; border-radius: inherit; background: #0c1a2c; content: ""; }
   .brand-orbit::before, .landing-brand > span::before { position: absolute; top: .32rem; right: .38rem; z-index: 1; height: .34rem; width: .34rem; border-radius: 50%; background: #9af7e9; box-shadow: 0 0 12px #9af7e9; content: ""; }
@@ -350,4 +354,4 @@
 @keyframes path-flow { to { stroke-dashoffset: -80; } }
 @keyframes live-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(84,232,186,.54); } 55% { box-shadow: 0 0 0 7px rgba(84,232,186,0); } }
 
-@media (prefers-reduced-motion: reduce) { .node-float, .learning-orbit-ring, .learning-path-dash, .live-dot { animation: none; } .student-button, .student-card-interactive, .student-nav-item, .student-rail-item, .student-icon-button { transition: none; } .student-button:hover, .student-card-interactive:hover, .student-nav-item:hover, .student-rail-item:hover, .student-icon-button:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .node-float, .learning-orbit-ring, .learning-path-dash, .live-dot { animation: none; } .student-button, .student-card-interactive, .student-nav-item, .student-rail-item, .student-icon-button, .landing-plan-card, .problem-chip, .journey-step, .parent-points > div, [data-reveal] { transition: none; } .student-button:hover, .student-card-interactive:hover, .student-nav-item:hover, .student-rail-item:hover, .student-icon-button:hover, .landing-plan-card:hover, .problem-chip:hover, .journey-step:hover, .parent-points > div:hover { transform: none; } [data-reveal] { opacity: 1; transform: none; } }
