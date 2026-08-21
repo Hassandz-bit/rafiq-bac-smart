@@ -23,6 +23,7 @@ import { getLocalPaymentStatus } from "./localPaymentAbstraction";
 import { getOfficialBookIntake, reviewOfficialBookUpload } from "./officialBookIntake";
 import { archiveStandaloneUnverifiedSourceRecord, createUnverifiedSourceRecord, updateStandaloneUnverifiedSourceRecord } from "./sourceRecords";
 import { createDraftCurriculumLesson, createDraftCurriculumUnit, getDraftCurriculumLessonsForStudio, getDraftCurriculumUnitsForStudio, updateDraftCurriculumLesson, updateDraftCurriculumUnit } from "./curriculumDrafts";
+import { getReleaseReadinessDashboard } from "./releaseReadiness";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -234,6 +235,7 @@ export const appRouter = router({
   administration: router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
     localPaymentStatus: adminOnlyProcedure.query(() => getLocalPaymentStatus()),
+    releaseReadiness: adminOnlyProcedure.query(() => getReleaseReadinessDashboard()),
     previewPlanAssignment: adminOnlyProcedure
       .input(z.object({ planCode: z.enum(["season_one_subject", "season_two_subjects", "season_three_subjects", "hasm_one_subject", "hasm_two_subjects", "hasm_three_subjects"]), subjects: z.array(z.enum(["math", "physics", "natural_sciences"])).min(1).max(3) }))
       .query(({ input }) => previewPlanAssignment(input)),
