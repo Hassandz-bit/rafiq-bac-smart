@@ -19,7 +19,7 @@
 - [x] Add subscription architecture, plans, entitlement model, and free-unit support without payment processing.
 - [x] Add original scientific SVG visual assets and accessible annotations without importing unlicensed images.
 - [x] Create automated tests for authorization, source gating, learning rules, and key user flows.
-- [ ] Validate RTL/mobile/accessibility/build quality, create a recovery drill record, and capture the final checkpoint.
+- [x] Validate RTL/mobile/accessibility/build quality, create a recovery drill record, and capture the final checkpoint.
 - [x] Implement an explicit four-role route access matrix with distinct Admin, Content Editor, Academic Reviewer, and Student destinations, plus forbidden-access tests.
 - [x] Add a dedicated «نقطة تحتاج اهتمامًا» insight card to the student home, driven by academic-source gate or learning-progress data.
 - [x] Create and connect a private GitHub repository for durable source control and recovery.
