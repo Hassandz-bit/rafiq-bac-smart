@@ -144,3 +144,4 @@
 - [x] Re-architect the student-facing UI into a premium Dark-first learning environment with refined Light/System modes, subject accents, responsive floating navigation, and no changes to learning, auth, content, or publication behavior.
 - [x] Produce and apply a unified high-fidelity visual direction for landing, student home, subjects, learning, mind map, slides, exercises, review, BAC, Hassem, and pricing without adding content or changing engines.
 - [x] Verify premium student UI behavior across light/dark/system, mobile/tablet/desktop, reduced motion, keyboard focus, and existing functional regressions.
+- [x] Record user acceptance of the Premium student UI reference without expanding academic content, payment, or Batch 2 scope.
