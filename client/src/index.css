@@ -207,9 +207,12 @@
   .landing-brand b { font-size: .8rem; }
   .landing-brand small { margin-top: .1rem; color: var(--student-muted); font-size: .58rem; font-weight: 700; }
   .landing-hero { position: relative; }
-  .landing-title { max-width: 18ch; font-size: clamp(1.45rem, 2.2vw, 1.85rem); line-height: 1.58; letter-spacing: -.008em; overflow-wrap: anywhere; }
+  .landing-copy-block { position: relative; z-index: 2; }
+  .landing-title-mark { display: flex; align-items: center; gap: .65rem; color: var(--student-primary); font-size: .68rem; font-weight: 900; letter-spacing: .14em; }
+  .landing-title-mark i { display: block; height: 1px; width: 4.2rem; background: linear-gradient(90deg, var(--student-primary), transparent); }
+  .landing-title { max-width: 16ch; font-size: clamp(2rem, 3.4vw, 3.1rem); line-height: 1.3; letter-spacing: -.026em; overflow-wrap: anywhere; }
   .landing-title-accent { display: block; margin-top: .2em; color: var(--student-primary); }
-  .landing-copy { max-width: 40rem; color: var(--student-muted); font-size: clamp(.94rem, 1.15vw, 1.03rem); line-height: 2.05; }
+  .landing-copy { max-width: 31rem; color: var(--student-muted); font-size: clamp(.94rem, 1.15vw, 1.03rem); line-height: 2.05; }
   .landing-section-title { max-width: 25ch; line-height: 1.58; letter-spacing: -.01em; }
   .landing-card-copy { color: color-mix(in srgb, var(--student-ink) 78%, var(--student-muted)); line-height: 2; }
   .landing-hero::before { content: ""; position: absolute; width: 34rem; height: 34rem; right: -24rem; top: -12rem; border-radius: 999px; background: radial-gradient(circle, rgba(39,215,195,.12), transparent 65%); pointer-events: none; }
@@ -219,6 +222,22 @@
   .landing-story-card { border: 1px solid rgba(158,140,255,.22); color: #f5f2ff; background: radial-gradient(circle at 100% 0%, rgba(143,110,255,.28), transparent 42%), linear-gradient(135deg, #1b1b3b, #202342); box-shadow: 0 24px 54px rgba(0,0,0,.22); }
   .landing-diagnostic > div { border: 1px solid color-mix(in srgb, var(--student-primary) 25%, var(--student-border)); background: linear-gradient(115deg, color-mix(in srgb, var(--student-primary) 9%, var(--student-surface)), var(--student-surface)); box-shadow: 0 18px 44px rgba(0,0,0,.09); }
   .landing-hassem > div { border: 1px solid rgba(255,196,94,.18); color: #f7f3ff; background: radial-gradient(circle at 88% 15%, rgba(255,196,94,.2), transparent 32%), linear-gradient(125deg, #1d1733, #29214b); box-shadow: 0 22px 55px rgba(0,0,0,.2); }
+  .landing-proof { display: flex; flex-wrap: wrap; gap: .6rem 1rem; color: var(--student-muted); font-size: .7rem; font-weight: 800; }
+  .landing-proof span { display: inline-flex; align-items: center; gap: .35rem; }
+  .landing-proof svg { height: .9rem; width: .9rem; color: var(--student-primary); }
+  .learning-grid { opacity: .22; background-image: linear-gradient(rgba(116,211,255,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(116,211,255,.22) 1px, transparent 1px); background-size: 2.25rem 2.25rem; mask-image: linear-gradient(to bottom, black, transparent 88%); }
+  .learning-glow { position: absolute; border-radius: 999px; filter: blur(18px); opacity: .6; }
+  .learning-glow-cyan { left: 10%; top: 8%; width: 13rem; height: 13rem; background: rgba(42,216,203,.17); }
+  .learning-glow-violet { right: 2%; bottom: 12%; width: 16rem; height: 16rem; background: rgba(143,110,255,.2); }
+  .learning-orbit-ring { position: absolute; border: 1px solid rgba(140,210,255,.12); border-radius: 999px; animation: orbit-drift 14s linear infinite; }
+  .learning-orbit-ring-a { width: 19rem; height: 19rem; left: -7rem; top: -6rem; }
+  .learning-orbit-ring-b { width: 14rem; height: 14rem; right: -5rem; top: 18%; animation-direction: reverse; animation-duration: 18s; }
+  .learning-path-shadow { stroke: rgba(34,217,205,.11); }
+  .learning-path-line { filter: drop-shadow(0 0 9px rgba(76,231,220,.48)); }
+  .learning-path-dash { animation: path-flow 4.8s linear infinite; }
+  .learning-node { animation-duration: 5.4s; border: 1px solid rgba(255,255,255,.28); }
+  .learning-status { box-shadow: 0 14px 34px rgba(0,0,0,.22); }
+  .live-dot { height: .42rem; width: .42rem; border-radius: 999px; background: #54e8ba; box-shadow: 0 0 0 0 rgba(84,232,186,.62); animation: live-pulse 2s infinite; }
   .bac-shell { background: #090f1b; color: #eff6ff; }
   .bac-header { border-bottom: 1px solid rgba(238,246,255,.1); background: rgba(9,15,27,.78); backdrop-filter: blur(16px); }
   .bac-workspace { border: 1px solid rgba(238,246,255,.1); color: var(--student-ink); background: var(--student-surface); box-shadow: 0 26px 70px rgba(0,0,0,.28); }
@@ -230,9 +249,11 @@
   .bac-feature { border: 1px solid var(--student-border); background: color-mix(in srgb, var(--student-surface-2) 65%, transparent); }
 
   @media (max-width: 639px) {
-    .landing-title { max-width: 18ch; font-size: clamp(1.25rem, 5.8vw, 1.48rem); line-height: 1.65; letter-spacing: -.005em; }
+    .landing-title { max-width: 15ch; font-size: clamp(1.9rem, 8.6vw, 2.55rem); line-height: 1.34; letter-spacing: -.02em; }
     .landing-copy { font-size: .92rem; line-height: 2.08; }
     .student-shell h2 { line-height: 1.58; }
+    .learning-node { transform: scale(.82); transform-origin: center; }
+    .learning-status { bottom: .8rem; right: .8rem; left: .8rem; }
   }
 
   @media (min-width: 640px) {
@@ -248,10 +269,13 @@
       padding-right: 2rem;
       max-width: 1280px; /* Standard content width */
     }
-    .landing-title { max-width: 18ch; font-size: clamp(1.6rem, 2.1vw, 1.85rem); line-height: 1.6; }
+    .landing-title { max-width: 16ch; font-size: clamp(2.35rem, 3.4vw, 3.1rem); line-height: 1.3; }
   }
 }
 
 @keyframes hover-node { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+@keyframes orbit-drift { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes path-flow { to { stroke-dashoffset: -80; } }
+@keyframes live-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(84,232,186,.54); } 55% { box-shadow: 0 0 0 7px rgba(84,232,186,0); } }
 
-@media (prefers-reduced-motion: reduce) { .node-float { animation: none; } .student-button, .student-card-interactive, .student-nav-item, .student-rail-item, .student-icon-button { transition: none; } .student-button:hover, .student-card-interactive:hover, .student-nav-item:hover, .student-rail-item:hover, .student-icon-button:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .node-float, .learning-orbit-ring, .learning-path-dash, .live-dot { animation: none; } .student-button, .student-card-interactive, .student-nav-item, .student-rail-item, .student-icon-button { transition: none; } .student-button:hover, .student-card-interactive:hover, .student-nav-item:hover, .student-rail-item:hover, .student-icon-button:hover { transform: none; } }

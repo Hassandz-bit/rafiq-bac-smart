@@ -149,3 +149,4 @@
 - [x] Rewrite student-facing UX copy into concise modern Arabic fusha across landing, home, subjects, learning, maps, practice, review, Hassem, BAC, and pricing without altering academic facts, engines, access, or publication gates.
 - [x] Reduce Premium Arabic typography scale and refine line-height, tracking, and heading widths to eliminate visible overlap across mobile and desktop without changing application behavior.
 - [x] Halve the landing headline scale and shorten program-introduction copy while preserving RTL clarity, CTA meaning, and responsive layout behavior.
+- [x] Rebuild the landing Hero into a cohesive animated visual system with a stronger introductory title, balanced responsive composition, and an upgraded learning-path diagram without changing routes or access behavior.

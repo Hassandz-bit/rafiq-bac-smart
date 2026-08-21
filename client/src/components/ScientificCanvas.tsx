@@ -1,26 +1,27 @@
 export function ScientificCanvas() {
   return (
-    <div className="scientific-canvas relative h-[330px] overflow-hidden rounded-[2rem] border border-white/20 bg-[#071d3f] shadow-2xl shadow-blue-950/30 sm:h-[390px]" aria-label="تصور بصري لمسار الفهم" aria-describedby="learning-path-annotation">
-      <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
-      <div className="absolute -left-16 top-10 h-56 w-56 rounded-full border border-cyan-300/25" />
-      <div className="absolute -left-1 top-[33%] h-32 w-32 rounded-full border border-blue-300/20" />
-      <div className="absolute -right-8 -top-9 h-52 w-52 rounded-full border border-emerald-300/25" />
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 600 400" fill="none" aria-hidden="true">
-        <path d="M64 285C135 290 145 112 233 156C321 200 298 318 394 281C468 252 445 120 543 106" stroke="url(#flow)" strokeWidth="4" strokeLinecap="round" />
-        <path d="M66 285C121 225 155 248 233 156C301 81 364 134 394 281C414 373 470 268 543 106" stroke="rgba(255,255,255,.14)" strokeWidth="1.5" strokeDasharray="5 8" />
-        <defs><linearGradient id="flow" x1="64" y1="285" x2="543" y2="106" gradientUnits="userSpaceOnUse"><stop stopColor="#FF8069"/><stop offset=".48" stopColor="#70D6EE"/><stop offset="1" stopColor="#7BE0A5"/></linearGradient></defs>
+    <div className="scientific-canvas learning-orbit relative min-h-[340px] overflow-hidden rounded-[2rem] border border-white/15 bg-[#071426] shadow-[0_34px_80px_rgba(0,0,0,.38)] sm:min-h-[440px]" aria-label="تصور بصري لمسار الفهم" aria-describedby="learning-path-annotation">
+      <div className="learning-grid absolute inset-0" />
+      <div className="learning-glow learning-glow-cyan" /><div className="learning-glow learning-glow-violet" /><div className="learning-orbit-ring learning-orbit-ring-a" /><div className="learning-orbit-ring learning-orbit-ring-b" />
+      <div className="absolute right-5 top-5 z-10 flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5 text-[10px] font-black text-cyan-100 backdrop-blur"><span className="live-dot" />مسار تعلّم حي</div>
+      <div className="absolute left-5 top-5 z-10 text-left"><p className="text-[10px] font-black tracking-[.15em] text-slate-400">LEARNING PATH</p><p className="mt-1 text-xs font-black text-white">من الفكرة إلى الإتقان</p></div>
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 680 480" fill="none" aria-hidden="true">
+        <path className="learning-path-shadow" d="M82 364C150 338 158 180 262 196C365 211 333 360 444 317C540 280 511 132 608 118" strokeWidth="13" strokeLinecap="round" />
+        <path className="learning-path-line" d="M82 364C150 338 158 180 262 196C365 211 333 360 444 317C540 280 511 132 608 118" stroke="url(#learningFlow)" strokeWidth="5" strokeLinecap="round" />
+        <path className="learning-path-dash" d="M82 364C150 338 158 180 262 196C365 211 333 360 444 317C540 280 511 132 608 118" stroke="rgba(255,255,255,.42)" strokeWidth="2" strokeLinecap="round" strokeDasharray="2 18" />
+        <defs><linearGradient id="learningFlow" x1="82" y1="364" x2="608" y2="118" gradientUnits="userSpaceOnUse"><stop stopColor="#ff8a75"/><stop offset=".42" stopColor="#38d9d0"/><stop offset=".72" stopColor="#9485ff"/><stop offset="1" stopColor="#83e6ad"/></linearGradient></defs>
       </svg>
-      <CanvasNode className="left-[7%] top-[64%]" text="الصورة الكبيرة" tone="coral" />
-      <CanvasNode className="left-[28%] top-[28%]" text="الفهم" tone="blue" />
-      <CanvasNode className="left-[48%] top-[59%]" text="التطبيق" tone="violet" />
-      <CanvasNode className="right-[8%] top-[18%]" text="الإتقان" tone="mint" />
-      <div className="absolute bottom-6 right-6 rounded-xl border border-white/10 bg-white/[.08] px-3 py-2 text-xs font-bold text-blue-100 backdrop-blur">من الفكرة إلى الطريقة</div>
+      <CanvasNode className="left-[8%] top-[68%]" text="ارَ الفكرة" detail="السياق أولًا" tone="coral" step="01" />
+      <CanvasNode className="left-[29%] top-[26%]" text="افهم الرابط" detail="صل المفاهيم" tone="blue" step="02" />
+      <CanvasNode className="left-[50%] top-[58%]" text="جرّب بنفسك" detail="طبّق بوضوح" tone="violet" step="03" />
+      <CanvasNode className="right-[8%] top-[15%]" text="ثبّت الفكرة" detail="راجع في وقتها" tone="mint" step="04" />
+      <div className="learning-status absolute bottom-5 right-5 left-5 z-10 flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 backdrop-blur"><div><p className="text-[10px] font-bold text-slate-400">خطوتك التالية</p><p className="mt-0.5 text-xs font-black text-white">ابدأ من الفكرة، لا من الحفظ.</p></div><span className="grid h-8 w-8 place-items-center rounded-xl bg-cyan-300 text-xs font-black text-slate-950">→</span></div>
       <p id="learning-path-annotation" className="sr-only">يمثل هذا الرسم مسار تعلم أصليًا: تبدأ بالصورة الكبيرة، ثم الفهم، فالتطبيق، وصولًا إلى الإتقان. الخط المتصل يوضح الانتقال التدريجي، والخط المتقطع يذكّر بأن المسار قد يتضمن مراجعة ومحاولات متعددة.</p>
     </div>
   );
 }
 
-function CanvasNode({ className, text, tone }: { className: string; text: string; tone: "coral" | "blue" | "violet" | "mint" }) {
+function CanvasNode({ className, text, detail, tone, step }: { className: string; text: string; detail: string; tone: "coral" | "blue" | "violet" | "mint"; step: string }) {
   const tones = { coral: "bg-[#ff8069] text-white", blue: "bg-[#70d6ee] text-blue-950", violet: "bg-[#9aa7ff] text-blue-950", mint: "bg-[#7be0a5] text-emerald-950" };
-  return <div className={`absolute ${className} node-float rounded-2xl px-3 py-2 text-xs font-black shadow-xl ${tones[tone]}`} role="note" aria-label={`مرحلة التعلم: ${text}`}>{text}</div>;
+  return <div className={`learning-node absolute ${className} node-float z-10 rounded-2xl px-3 py-2 shadow-xl ${tones[tone]}`} role="note" aria-label={`مرحلة التعلم: ${text}`}><span className="text-[9px] font-black opacity-65">{step}</span><p className="mt-0.5 text-xs font-black whitespace-nowrap">{text}</p><p className="mt-0.5 text-[9px] font-bold opacity-75 whitespace-nowrap">{detail}</p></div>;
 }
