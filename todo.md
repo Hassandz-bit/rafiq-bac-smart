@@ -114,3 +114,5 @@
 - [x] Add an academic-reviewer-only source-verification note workflow that can update source evidence without publishing content or promoting an internal pilot.
 - [x] Add two reviewed-only interactive visual prototypes for nuclear transformations and protein structure-function, with persisted internal metadata and no student route exposure.
 - [x] Fix the 390px RTL overflow on protected BAC Focus and Assessment access-gate screens and re-verify their mobile layouts.
+- [x] Record a release-readiness QA matrix for the verified RTL/mobile routes, protection gates, test baseline, and remaining human-only checks.
+- [x] Add an administrator-only read-only audit view for persisted plan assignments and their derived Season-to-Hassem entitlements, without changing any student access.

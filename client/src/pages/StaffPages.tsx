@@ -31,7 +31,9 @@ export function AdminPage() { return <RoleGate allowed={["admin"]} title="إدا
 
 function AdminContent() {
   const [, setLocation] = useLocation();
+  const utils = trpc.useUtils();
   const { data: plans, isLoading } = trpc.administration.planCatalog.useQuery();
+  const { data: assignmentAudit, isLoading: isLoadingAudit } = trpc.administration.planAssignmentAudit.useQuery({ limit: 20 });
   const [studentId, setStudentId] = useState("");
   const [planCode, setPlanCode] = useState<GrantPlanCode>("season_one_subject");
   const [subjects, setSubjects] = useState<GrantSubject[]>(["math"]);
@@ -42,7 +44,7 @@ function AdminContent() {
     return subjectChoices.filter(subject => allowed.includes(subject.value));
   }, [plans, planCode]);
   const assignment = trpc.administration.grantPlanAccess.useMutation({
-    onSuccess: () => undefined,
+    onSuccess: () => void utils.administration.planAssignmentAudit.invalidate(),
   });
   const isReady = /^\d+$/.test(studentId) && Number(studentId) > 0 && subjects.length === selectedPlan.count;
   const toggleSubject = (subject: GrantSubject) => setSubjects(current => current.includes(subject) ? current.filter(item => item !== subject) : [...current, subject]);
@@ -66,6 +68,7 @@ function AdminContent() {
         {assignment.data && <div className="mt-5 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950"><p className="font-black">تم الحفظ التشغيلي بنجاح.</p><p className="mt-1">الطبقة: {assignment.data.productTier} · الاستحقاقات: {assignment.data.entitlements.join("، ")}</p></div>}
         {assignment.error && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-4 text-sm font-bold text-rose-800">تعذر حفظ التعيين: {assignment.error.message}</p>}
       </section>
+      <section className="mt-6 rounded-[1.5rem] border border-slate-200 bg-white p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><p className="font-black text-slate-950">سجل تعيينات الوصول</p><p className="mt-1 text-sm leading-6 text-slate-600">عرض إداري للقراءة فقط: يوضح التعيينات المحفوظة والاستحقاقات المسجلة بالفعل، ولا يمنح أو يلغي أي وصول من هذه البطاقة.</p></div><Badge variant="outline" className="shrink-0 border-slate-200 text-slate-600">Read-only audit</Badge></div>{isLoadingAudit ? <p className="mt-5 text-sm text-slate-500">جارٍ تحميل السجل…</p> : assignmentAudit?.length ? <div className="mt-5 grid gap-3">{assignmentAudit.map(item => <div key={item.assignmentId} className="rounded-xl border border-slate-100 bg-slate-50 p-4"><div className="flex flex-wrap items-center justify-between gap-2"><p className="font-black text-slate-900">طالب #{item.userId} · {item.planNameAr}</p><Badge variant="outline" className={item.isActive ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 text-slate-500"}>{item.isActive ? "تعيين نشط" : "سجل سابق"}</Badge></div><p className="mt-2 text-xs text-slate-500">{item.productTier} · المواد: {Array.isArray(item.selectedSubjects) ? item.selectedSubjects.join("، ") : "غير متاح"}</p><p className="mt-2 text-xs leading-5 text-slate-600">الاستحقاقات المسجلة: {item.activeEntitlements.length ? item.activeEntitlements.map(claim => claim.entitlement).join("، ") : "لا توجد استحقاقات مسجلة"}</p></div>)}</div> : <p className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">لا توجد تعيينات محفوظة بعد. يظهر السجل هنا بعد إجراء تشغيلي من المدير.</p>}</section>
       <section className="mt-6 rounded-[1.5rem] border border-emerald-100 bg-emerald-50 p-6"><div className="flex gap-3"><ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600"/><p className="text-sm leading-6 text-emerald-900">تقرر طبقة الوصول بين «وحدة مجانية» و«مادة مشمولة بالاستحقاق» قبل إعادة أي محتوى منشور. يظهر كل تعيين محفوظ وسجل استحقاقاته للمراجعة الإدارية، بينما يبقى الدفع غير مفعّل بالكامل.</p></div></section>
     </main>
   </div>;

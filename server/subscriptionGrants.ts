@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { plans, studentEntitlements, studentPlanAssignments } from "../drizzle/schema";
 import { getDb } from "./db";
 import { resolvePlanEntitlementGrant, type EntitledSubject, type GrantablePlanCode } from "./entitlementRules";
@@ -26,4 +26,47 @@ export async function grantPlanAccess(input: { userId: number; planCode: Grantab
   });
 
   return { ...grant, productTier, expiresAt };
+}
+
+/**
+ * Internal administrator audit. This is deliberately read-only: it exposes
+ * the assignment record and the claims that already exist, never creating,
+ * renewing, or revoking student access.
+ */
+export async function getPlanAssignmentAudit(limit = 30) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+
+  const assignments = await db
+    .select({
+      assignmentId: studentPlanAssignments.id,
+      userId: studentPlanAssignments.userId,
+      planCode: plans.code,
+      planNameAr: plans.nameAr,
+      productTier: studentPlanAssignments.productTier,
+      selectedSubjects: studentPlanAssignments.selectedSubjects,
+      isActive: studentPlanAssignments.isActive,
+      assignedAt: studentPlanAssignments.assignedAt,
+      expiresAt: studentPlanAssignments.expiresAt,
+    })
+    .from(studentPlanAssignments)
+    .innerJoin(plans, eq(studentPlanAssignments.planId, plans.id))
+    .orderBy(desc(studentPlanAssignments.assignedAt))
+    .limit(Math.min(Math.max(limit, 1), 100));
+
+  if (!assignments.length) return [];
+  const userIds = assignments.map(assignment => assignment.userId).filter((userId, index, all) => all.indexOf(userId) === index);
+  const entitlements = await db
+    .select({ userId: studentEntitlements.userId, entitlement: studentEntitlements.entitlement, expiresAt: studentEntitlements.expiresAt })
+    .from(studentEntitlements)
+    .where(inArray(studentEntitlements.userId, userIds));
+  const byUser = new Map<number, typeof entitlements>();
+  for (const entitlement of entitlements) {
+    byUser.set(entitlement.userId, [...(byUser.get(entitlement.userId) ?? []), entitlement]);
+  }
+
+  return assignments.map(assignment => ({
+    ...assignment,
+    activeEntitlements: byUser.get(assignment.userId) ?? [],
+  }));
 }

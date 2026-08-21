@@ -9,7 +9,7 @@ import { getCurrentCurriculumOverview, getSourceRegistryForStudio, getStudioRevi
 import { setUserRole } from "./db";
 import { recordStudentAttempt } from "./studentAttempts";
 import { getPlanCatalog, updatePlanConfiguration } from "./subscriptions";
-import { grantPlanAccess } from "./subscriptionGrants";
+import { getPlanAssignmentAudit, grantPlanAccess } from "./subscriptionGrants";
 import { autosaveBacSession, startBacSession, submitBacSession } from "./bacSessions";
 import { completeStudentReview, getStudentProgressSummary } from "./studentProgress";
 import { generateSmartAssessment } from "./smartAssessment";
@@ -133,6 +133,7 @@ export const appRouter = router({
   }),
   administration: router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
+    planAssignmentAudit: adminOnlyProcedure.input(z.object({ limit: z.number().int().min(1).max(100).default(30) }).optional()).query(({ input }) => getPlanAssignmentAudit(input?.limit ?? 30)),
     updatePlanConfiguration: adminOnlyProcedure
       .input(z.object({ id: z.number().int().positive(), priceDzd: z.number().int().min(0).max(100000), durationDays: z.number().int().min(0).max(730), subjectLimit: z.number().int().min(0).max(3), subjectBundle: z.array(z.enum(["math", "physics", "natural_sciences"])).min(1).max(3), isActive: z.boolean(), entitlements: z.array(z.string().trim().min(1).max(100)).max(12) }))
       .mutation(({ input }) => updatePlanConfiguration(input)),
