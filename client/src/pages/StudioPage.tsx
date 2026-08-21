@@ -20,6 +20,7 @@ function StudioContent() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { data: sources, isLoading } = trpc.studio.sourceRegistry.useQuery();
+  const { data: officialBookIntake, isLoading: officialBookIntakeLoading } = trpc.studio.officialBookIntake.useQuery({ limit: 50 });
   const { data: reviewQueue, isLoading: reviewQueueLoading } = trpc.studio.reviewQueue.useQuery();
   const { data: drafts, isLoading: draftsLoading } = trpc.studio.draftComponents.useQuery({ limit: 50 });
   const utils = trpc.useUtils();
@@ -42,6 +43,13 @@ function StudioContent() {
       toast.success(result.publicationBlocked ? "حُفظت ملاحظة التحقق؛ قفل النشر ما زال فعالًا." : "حُفظت حالة المصدر الحالية؛ يظل النشر خاضعًا لكل بوابات المحتوى.");
     },
     onError: error => toast.error(error.message || "تعذر حفظ تحقق المصدر."),
+  });
+  const officialBookReviewMutation = trpc.studio.reviewOfficialBookUpload.useMutation({
+    onSuccess: async result => {
+      await utils.studio.officialBookIntake.invalidate();
+      toast.success(result.sourceChanged ? "حُفظ الفحص." : "حُفظ فحص الكتاب المرفوع؛ لم يُنشأ أو يُعدّل أي سجل مصدر، والنشر ما زال محظورًا.");
+    },
+    onError: error => toast.error(error.message || "تعذر حفظ فحص الكتاب المرفوع."),
   });
   const draftMutation = trpc.studio.createDraftComponent.useMutation({
     onSuccess: async result => {
@@ -161,6 +169,11 @@ function StudioContent() {
               <div className="divide-y divide-slate-100">{sources?.map(source => <SourceVerificationEditor key={source.id} source={source} saving={sourceVerificationMutation.isPending} onSave={input => sourceVerificationMutation.mutate(input)} />)}{!isLoading && !sources?.length && <div className="p-6 text-center text-sm text-slate-500">لا توجد مصادر لتسجيل تحققها.</div>}</div>
             </section>}
 
+            <section className="soft-panel mt-6 overflow-hidden">
+              <div className="flex flex-col gap-2 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-black">طابور فحص الكتب المرفوعة</h2><p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">الرفع يولّد ملفًا في طابور الفحص فقط. حتى لو اكتملت القائمة، لا ينشئ هذا المسار مصدرًا ولا يربطه بالمحتوى ولا يفتح النشر.</p></div><Badge variant="outline" className="border-violet-100 bg-violet-50 text-violet-700">{officialBookIntakeLoading ? "جارٍ التحميل" : `${officialBookIntake?.length ?? 0} ملفات`}</Badge></div>
+              <div className="divide-y divide-slate-100">{officialBookIntake?.map(upload => canReview ? <OfficialBookIntakeEditor key={upload.id} upload={upload} saving={officialBookReviewMutation.isPending} onSave={input => officialBookReviewMutation.mutate(input)} /> : <OfficialBookIntakeReadOnly key={upload.id} upload={upload} />)}{!officialBookIntakeLoading && !officialBookIntake?.length && <div className="p-6 text-center text-sm text-slate-500">لا توجد كتب مرفوعة بانتظار الفحص.</div>}</div>
+            </section>
+
             <ReviewOnlyVisualModels />
 
             {canUpload && <DraftComponentEditor parents={reviewQueue ?? []} saving={draftMutation.isPending} onCreate={input => draftMutation.mutate(input)} />}
@@ -202,6 +215,9 @@ function StudioContent() {
 
 type StudioSource = { id: number; documentTitle: string; verificationStatus: "unverified" | "current_official" | "official_but_version_unconfirmed" | "historical_official"; verificationNotes?: string | null; isInternalPilot: boolean };
 type SourceVerificationInput = { sourceId: number; verificationStatus: StudioSource["verificationStatus"]; verificationNotes: string };
+type OfficialBookChecklist = { cover: boolean; title: boolean; level: boolean; track: boolean; publisher: boolean; authorship: boolean; edition: boolean; bookCode: boolean; publicationYear: boolean; tableOfContents: boolean };
+type OfficialBookIntake = { id: number; subjectNameAr: string; sourceId: number | null; sourceTitle: string | null; fileUrl: string; originalFilename: string; verificationChecklist: OfficialBookChecklist; verificationStatus: StudioSource["verificationStatus"]; uploadedByUserId: number; uploadedAt: Date; reviewedByUserId: number | null; reviewedAt: Date | null };
+type OfficialBookReviewInput = { uploadId: number; verificationStatus: StudioSource["verificationStatus"]; verificationChecklist: OfficialBookChecklist };
 type DraftParent = { id: number; titleAr: string; sourceTitle?: string | null };
 type DraftComponentInput = { parentLearningItemId: number; titleAr: string; componentKey: string; draftTextAr: string };
 type EditableDraft = { id: number; titleAr: string; lessonId: number; sourceId: number | null; componentKey: string; draftTextAr: string; workflowState: "draft"; publicationBlocked: boolean };
@@ -234,6 +250,19 @@ function SourceVerificationEditor({ source, saving, onSave }: { source: StudioSo
   const [notes, setNotes] = useState(source.verificationNotes ?? "");
   const blockedInternalPromotion = source.isInternalPilot && status === "current_official";
   return <div className="grid gap-3 p-5 lg:grid-cols-[1fr_190px_1.2fr_auto] lg:items-end"><div><p className="font-bold text-slate-900">{source.documentTitle}</p><p className="mt-1 text-xs text-slate-500">الدليل يحدّث سجل المصدر فقط، ولا ينشر أي محتوى.</p></div><label className="text-xs font-bold text-slate-600">الحالة<select aria-label={`حالة ${source.documentTitle}`} value={status} onChange={event => setStatus(event.target.value as StudioSource["verificationStatus"])} className="mt-1 h-10 w-full rounded-xl border border-slate-200 bg-white px-2 text-xs"><option value="unverified">غير متحقق</option><option value="official_but_version_unconfirmed">رسمي والطبعة غير مؤكدة</option><option value="historical_official">رسمي تاريخي</option><option value="current_official" disabled={source.isInternalPilot}>رسمي حالي</option></select></label><label className="text-xs font-bold text-slate-600">ملاحظة التحقق<textarea aria-label={`ملاحظة ${source.documentTitle}`} value={notes} onChange={event => setNotes(event.target.value)} placeholder="سجل الغلاف أو الطبعة أو صفحة الدليل…" className="mt-1 min-h-10 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs" /></label><Button size="sm" disabled={saving || notes.trim().length < 3 || blockedInternalPromotion} onClick={() => onSave({ sourceId: source.id, verificationStatus: status, verificationNotes: notes })} className="bg-blue-700 hover:bg-blue-800">حفظ التحقق</Button>{blockedInternalPromotion && <p className="text-xs font-bold text-rose-700 lg:col-span-4">لا يمكن ترقية مصدر Pilot داخلي إلى مصدر رسمي حالي هنا.</p>}</div>;
+}
+
+const officialBookChecklistLabels: Record<keyof OfficialBookChecklist, string> = { cover: "الغلاف", title: "العنوان", level: "المستوى", track: "الشعبة", publisher: "الناشر", authorship: "المؤلف", edition: "الطبعة", bookCode: "رمز الكتاب", publicationYear: "سنة النشر", tableOfContents: "الفهرس" };
+
+function OfficialBookIntakeReadOnly({ upload }: { upload: OfficialBookIntake }) {
+  return <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold text-slate-900">{upload.originalFilename}</p><p className="mt-1 text-xs text-slate-500">{upload.subjectNameAr} · رُفع بواسطة المستخدم #{upload.uploadedByUserId}</p></div><div className="flex flex-wrap items-center gap-2"><Badge variant="outline" className="border-violet-100 bg-violet-50 text-violet-700">{upload.verificationStatus}</Badge><Badge variant="outline" className="border-rose-100 bg-rose-50 text-rose-700">لا مصدر · لا نشر</Badge><a href={upload.fileUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-700">فتح PDF</a></div></div>;
+}
+
+function OfficialBookIntakeEditor({ upload, saving, onSave }: { upload: OfficialBookIntake; saving: boolean; onSave: (input: OfficialBookReviewInput) => void }) {
+  const [status, setStatus] = useState<StudioSource["verificationStatus"]>(upload.verificationStatus);
+  const [checklist, setChecklist] = useState<OfficialBookChecklist>(upload.verificationChecklist);
+  const complete = Object.values(checklist).every(Boolean);
+  return <div className="p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold text-slate-900">{upload.originalFilename}</p><p className="mt-1 text-xs text-slate-500">{upload.subjectNameAr} · رُفع بواسطة المستخدم #{upload.uploadedByUserId} · {upload.sourceTitle ? `مرتبط بالسجل: ${upload.sourceTitle}` : "غير مربوط بسجل مصدر"}</p></div><div className="flex flex-wrap items-center gap-2"><a href={upload.fileUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-700">فتح PDF</a><Badge variant="outline" className="border-rose-100 bg-rose-50 text-rose-700">لا تعديل للمصدر · لا نشر</Badge></div></div><fieldset className="mt-4 grid gap-2 rounded-xl border border-slate-100 bg-slate-50/70 p-3 sm:grid-cols-2 lg:grid-cols-5"><legend className="px-1 text-xs font-black text-slate-700">قائمة فحص الكتاب المرفوع</legend>{Object.entries(officialBookChecklistLabels).map(([key, label]) => <label key={key} className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={checklist[key as keyof OfficialBookChecklist]} onChange={event => setChecklist(current => ({ ...current, [key]: event.target.checked }))} />{label}</label>)}</fieldset><div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"><label className="grid gap-1 text-xs font-bold text-slate-600">حالة فحص الملف<select aria-label={`حالة فحص ${upload.originalFilename}`} value={status} onChange={event => setStatus(event.target.value as StudioSource["verificationStatus"])} className="h-10 rounded-xl border border-slate-200 bg-white px-2 text-xs"><option value="unverified">غير متحقق</option><option value="official_but_version_unconfirmed">رسمي والطبعة غير مؤكدة</option><option value="historical_official">رسمي تاريخي</option><option value="current_official" disabled={!complete}>رسمي حالي (يتطلب اكتمال الفحص)</option></select></label><Button disabled={saving} onClick={() => onSave({ uploadId: upload.id, verificationStatus: status, verificationChecklist: checklist })} className="bg-violet-700 hover:bg-violet-800">{saving ? "جارٍ حفظ الفحص…" : "حفظ فحص الملف فقط"}</Button><p className="text-xs text-slate-500">{complete ? "القائمة مكتملة؛ ما زال سجل المصدر والنشر دون تغيير." : "يمكن حفظ الفحص الناقص، لكن لا يمكن تصنيفه رسميًا حاليًا."}</p></div></div>;
 }
 
 function StudioNav({ icon: Icon, label, active }: { icon: typeof LibraryBig; label: string; active?: boolean }) {

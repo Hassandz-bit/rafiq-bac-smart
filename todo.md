@@ -131,3 +131,4 @@
 - [x] Split heavy protected learning, BAC, Hassem, and staff routes from the public entry bundle while preserving loading and access behavior.
 - [x] Capture and document 360px and 430px RTL visual QA for public diagnostic, Hassem, BAC Focus, and assessment access states without using student accounts.
 - [x] Add an administrator-only non-mutating plan-assignment preview that resolves permitted subjects and derived Hasm claims without inserting assignments or entitlements.
+- [x] Add a reviewer-visible official-book intake queue with a checklist and an audited review state that never creates or promotes a source and never publishes academic content.

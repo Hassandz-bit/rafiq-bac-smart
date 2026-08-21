@@ -21,6 +21,7 @@ const mockedReviewQueue = vi.hoisted(() => {
 });
 const mockedReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedSourceVerificationMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedOfficialBookReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftReviewSubmissionMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
@@ -28,6 +29,7 @@ const mockedDraftDiscardMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPendin
 const mockedDrafts = vi.hoisted(() => [{ id: 99001, titleAr: "ملاحظة توجيهية أولية", lessonId: 701, sourceId: 30001, componentKey: "guided_note", draftTextAr: "نص مسودة أصلي قابل للتحرير فقط قبل المراجعة.", workflowState: "draft" as const, publicationBlocked: true }]);
 const mockAuth = vi.hoisted(() => ({ role: "academic_reviewer" }));
 const mockedSources = vi.hoisted(() => [{ id: 30001, documentTitle: "نسخة عمل الرياضيات", sourceAuthority: "نسخة عمل مرجعية", subjectNameAr: "الرياضيات", url: "https://example.edu/math", isUserApprovedWorkingReference: true, isInternalPilot: true, verificationStatus: "historical_official" as const, verificationNotes: "الطبعة المرجعية تحتاج تحققًا لاحقًا." }]);
+const mockedOfficialBookIntake = vi.hoisted(() => [{ id: 70001, subjectNameAr: "الرياضيات", sourceId: null, sourceTitle: null, fileUrl: "/manus-storage/official-books/math.pdf", originalFilename: "كتاب-رياضيات-2027.pdf", verificationChecklist: { cover: false, title: false, level: false, track: false, publisher: false, authorship: false, edition: false, bookCode: false, publicationYear: false, tableOfContents: false }, verificationStatus: "unverified" as const, uploadedByUserId: 77, uploadedAt: new Date(), reviewedByUserId: null, reviewedAt: null }]);
 
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
@@ -37,9 +39,11 @@ vi.mock("@/lib/trpc", () => ({
   trpc: {
     studio: {
       sourceRegistry: { useQuery: () => ({ data: mockedSources, isLoading: false }) },
+      officialBookIntake: { useQuery: () => ({ data: mockedOfficialBookIntake, isLoading: false }) },
       reviewQueue: { useQuery: () => ({ data: mockedReviewQueue, isLoading: false }) },
       reviewLearningItem: { useMutation: () => mockedReviewMutation },
       updateSourceVerification: { useMutation: () => mockedSourceVerificationMutation },
+      reviewOfficialBookUpload: { useMutation: () => mockedOfficialBookReviewMutation },
       createDraftComponent: { useMutation: () => mockedDraftMutation },
       draftComponents: { useQuery: () => ({ data: mockedDrafts, isLoading: false }) },
       updateDraftComponent: { useMutation: () => mockedDraftUpdateMutation },
@@ -47,11 +51,11 @@ vi.mock("@/lib/trpc", () => ({
       discardDraftComponent: { useMutation: () => mockedDraftDiscardMutation },
     },
     curriculum: { overview: { useQuery: () => ({ data: { subjects: [] } }) } },
-    useUtils: () => ({ studio: { reviewQueue: { invalidate: vi.fn() }, sourceRegistry: { invalidate: vi.fn() }, draftComponents: { invalidate: vi.fn() } } }),
+    useUtils: () => ({ studio: { reviewQueue: { invalidate: vi.fn() }, sourceRegistry: { invalidate: vi.fn() }, officialBookIntake: { invalidate: vi.fn() }, draftComponents: { invalidate: vi.fn() } } }),
   },
 }));
 
-afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
+afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
   it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
@@ -108,6 +112,16 @@ describe("طابور مراجعة Content Studio", () => {
     render(<StudioPage />);
     fireEvent.click(screen.getByRole("button", { name: "إلغاء المسودة وحفظ سجلها" }));
     expect(mockedDraftDiscardMutation.mutate).toHaveBeenCalledWith({ learningItemId: 99001 });
+    expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
+  });
+
+  it("يعرض للمراجع طابور الكتب المرفوعة وفحصه المعزول عن المصدر والنشر", () => {
+    render(<StudioPage />);
+    expect(screen.getByText("طابور فحص الكتب المرفوعة")).toBeTruthy();
+    expect(screen.getByText("كتاب-رياضيات-2027.pdf")).toBeTruthy();
+    expect(screen.getByText("لا تعديل للمصدر · لا نشر")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "حفظ فحص الملف فقط" }));
+    expect(mockedOfficialBookReviewMutation.mutate).toHaveBeenCalledWith({ uploadId: 70001, verificationStatus: "unverified", verificationChecklist: { cover: false, title: false, level: false, track: false, publisher: false, authorship: false, edition: false, bookCode: false, publicationYear: false, tableOfContents: false } });
     expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
   });
 });

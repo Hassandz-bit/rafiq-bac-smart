@@ -20,6 +20,7 @@ import { getHassemFinalMemory, toggleHassemFinalMemory } from "./hassemFinalMemo
 import { updateSourceVerification } from "./sourceVerification";
 import { createSourceLinkedDraftComponent, discardDraftComponent, getDraftComponents, submitDraftComponentForReview, updateDraftComponent } from "./draftComponents";
 import { getLocalPaymentStatus } from "./localPaymentAbstraction";
+import { getOfficialBookIntake, reviewOfficialBookUpload } from "./officialBookIntake";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -72,6 +73,7 @@ export const appRouter = router({
   }),
   studio: router({
     sourceRegistry: contentStudioProcedure.query(() => getSourceRegistryForStudio()),
+    officialBookIntake: contentStudioProcedure.input(z.object({ limit: z.number().int().min(1).max(100).default(50) }).optional()).query(({ input }) => getOfficialBookIntake(input?.limit ?? 50)),
     reviewQueue: contentStudioProcedure.query(() => getStudioReviewQueue()),
     reviewLearningItem: academicReviewerProcedure
       .input(z.object({ learningItemId: z.number().int().positive(), decision: z.enum(["approved", "changes_requested", "rejected"]), noteAr: z.string().trim().max(2000).optional() }))
@@ -81,6 +83,13 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const result = await updateSourceVerification({ ...input, reviewerUserId: ctx.user.id });
         if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "المصدر غير موجود." });
+        return result;
+      }),
+    reviewOfficialBookUpload: academicReviewerProcedure
+      .input(z.object({ uploadId: z.number().int().positive(), verificationStatus: z.enum(["unverified", "current_official", "official_but_version_unconfirmed", "historical_official"]), verificationChecklist: z.object({ cover: z.boolean(), title: z.boolean(), level: z.boolean(), track: z.boolean(), publisher: z.boolean(), authorship: z.boolean(), edition: z.boolean(), bookCode: z.boolean(), publicationYear: z.boolean(), tableOfContents: z.boolean() }) }))
+      .mutation(async ({ ctx, input }) => {
+        const result = await reviewOfficialBookUpload({ ...input, reviewerUserId: ctx.user.id });
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "الكتاب المرفوع غير موجود في طابور الفحص." });
         return result;
       }),
     createDraftComponent: contentEditorProcedure
