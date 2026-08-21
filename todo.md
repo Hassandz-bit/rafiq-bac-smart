@@ -14,7 +14,7 @@
 - [x] Implement the exercise engine covering MCQ, multi-select, true/false, fill, matching, ordering, numeric, math expression, and interactive-image structures.
 - [x] Implement graduated hints, paper-and-pen reveal flow, and error classification by subject.
 - [x] Implement the error notebook, mastery states, and spaced-review queue.
-- [ ] Implement BAC focus mode, results analysis model, and rescue-plan foundations without AI tutoring. (النتائج والخطة جاهزتان؛ يلزم ربطهما بمحتوى BAC منشور ومعتمد عند توفره.)
+- [x] Implement BAC focus mode, results analysis model, and rescue-plan foundations without AI tutoring. (النتائج والخطة جاهزتان؛ يلزم ربطهما بمحتوى BAC منشور ومعتمد عند توفره، وهو مسجل كبند مستقل.)
 - [ ] Build Content Studio with curriculum management, source records, approval workflow, and a current-official-book upload intake. (سجل المصادر ورفع PDF الآمن جاهزان؛ يلزم CRUD الكامل وإجراءات المراجعة والنشر.)
 - [x] Add subscription architecture, plans, entitlement model, and free-unit support without payment processing.
 - [x] Add original scientific SVG visual assets and accessible annotations without importing unlicensed images.
