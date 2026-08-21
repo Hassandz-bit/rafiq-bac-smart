@@ -128,3 +128,4 @@
 - [x] Add automated accessibility checks for critical Arabic RTL public, diagnostic, and protected-access screens, documenting the limits of automated audit.
 - [x] Update the release-readiness matrix with the 129-test accessibility audit, its covered RTL screens, and its browser/manual limits.
 - [x] Add a CI workflow that runs TypeScript checking, the full Vitest suite, and the production build on repository changes without publishing the application.
+- [x] Split heavy protected learning, BAC, Hassem, and staff routes from the public entry bundle while preserving loading and access behavior.
