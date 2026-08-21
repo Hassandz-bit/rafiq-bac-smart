@@ -21,6 +21,7 @@ const mockedReviewQueue = vi.hoisted(() => {
 });
 const mockedReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedSourceVerificationMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedSourceCreateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedOfficialBookReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
@@ -43,6 +44,7 @@ vi.mock("@/lib/trpc", () => ({
       reviewQueue: { useQuery: () => ({ data: mockedReviewQueue, isLoading: false }) },
       reviewLearningItem: { useMutation: () => mockedReviewMutation },
       updateSourceVerification: { useMutation: () => mockedSourceVerificationMutation },
+      createSource: { useMutation: () => mockedSourceCreateMutation },
       reviewOfficialBookUpload: { useMutation: () => mockedOfficialBookReviewMutation },
       createDraftComponent: { useMutation: () => mockedDraftMutation },
       draftComponents: { useQuery: () => ({ data: mockedDrafts, isLoading: false }) },
@@ -50,12 +52,12 @@ vi.mock("@/lib/trpc", () => ({
       submitDraftComponentForReview: { useMutation: () => mockedDraftReviewSubmissionMutation },
       discardDraftComponent: { useMutation: () => mockedDraftDiscardMutation },
     },
-    curriculum: { overview: { useQuery: () => ({ data: { subjects: [] } }) } },
+    curriculum: { overview: { useQuery: () => ({ data: { subjects: [{ id: 301, nameAr: "الرياضيات" }] } }) } },
     useUtils: () => ({ studio: { reviewQueue: { invalidate: vi.fn() }, sourceRegistry: { invalidate: vi.fn() }, officialBookIntake: { invalidate: vi.fn() }, draftComponents: { invalidate: vi.fn() } } }),
   },
 }));
 
-afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
+afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
   it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
@@ -112,6 +114,19 @@ describe("طابور مراجعة Content Studio", () => {
     render(<StudioPage />);
     fireEvent.click(screen.getByRole("button", { name: "إلغاء المسودة وحفظ سجلها" }));
     expect(mockedDraftDiscardMutation.mutate).toHaveBeenCalledWith({ learningItemId: 99001 });
+    expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
+  });
+
+  it("يسمح للمحرر بإنشاء سجل مصدر غير متحقق ومقيد بالنشر فقط", () => {
+    mockAuth.role = "content_editor";
+    render(<StudioPage />);
+    expect(screen.getByText("إضافة سجل مصدر جديد")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("الجهة المرجعية"), { target: { value: "جهة مرجعية" } });
+    fireEvent.change(screen.getByLabelText("عنوان وثيقة المصدر"), { target: { value: "كتاب مقترح" } });
+    fireEvent.change(screen.getByLabelText("رابط المصدر الجديد"), { target: { value: "https://example.edu/proposed-book" } });
+    fireEvent.click(screen.getByRole("button", { name: "إنشاء مصدر غير متحقق" }));
+    expect(mockedSourceCreateMutation.mutate).toHaveBeenCalledWith({ sourceAuthority: "جهة مرجعية", documentTitle: "كتاب مقترح", url: "https://example.edu/proposed-book", subjectId: 301, academicYear: undefined, edition: undefined });
+    expect(screen.getByText("Unverified · قفل النشر")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
   });
 

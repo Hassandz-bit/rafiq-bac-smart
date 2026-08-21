@@ -21,6 +21,7 @@ import { updateSourceVerification } from "./sourceVerification";
 import { createSourceLinkedDraftComponent, discardDraftComponent, getDraftComponents, submitDraftComponentForReview, updateDraftComponent } from "./draftComponents";
 import { getLocalPaymentStatus } from "./localPaymentAbstraction";
 import { getOfficialBookIntake, reviewOfficialBookUpload } from "./officialBookIntake";
+import { createUnverifiedSourceRecord } from "./sourceRecords";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -73,6 +74,13 @@ export const appRouter = router({
   }),
   studio: router({
     sourceRegistry: contentStudioProcedure.query(() => getSourceRegistryForStudio()),
+    createSource: contentEditorProcedure
+      .input(z.object({ sourceAuthority: z.string().trim().min(3).max(180), documentTitle: z.string().trim().min(3).max(500), url: z.string().url().max(1000), subjectId: z.number().int().positive(), academicYear: z.string().trim().max(20).optional(), level: z.string().trim().max(120).optional(), track: z.string().trim().max(120).optional(), edition: z.string().trim().max(120).optional(), sourceVersion: z.string().trim().max(120).optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const result = await createUnverifiedSourceRecord({ ...input, createdByUserId: ctx.user.id });
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "المادة المحددة غير موجودة في المنهج." });
+        return result;
+      }),
     officialBookIntake: contentStudioProcedure.input(z.object({ limit: z.number().int().min(1).max(100).default(50) }).optional()).query(({ input }) => getOfficialBookIntake(input?.limit ?? 50)),
     reviewQueue: contentStudioProcedure.query(() => getStudioReviewQueue()),
     reviewLearningItem: academicReviewerProcedure
