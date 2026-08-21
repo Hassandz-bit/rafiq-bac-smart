@@ -290,5 +290,6 @@ export async function getSourceRegistryForStudio() {
     .from(sources)
     .leftJoin(subjects, eq(sources.subjectId, subjects.id))
     .orderBy(asc(sources.documentTitle))
-    .limit(100);
+    .limit(100)
+    .then(rows => rows.map(row => ({ ...row, metadataEditable: row.verificationStatus === "unverified" && !row.isInternalPilot && !row.isUserApprovedWorkingReference })));
 }

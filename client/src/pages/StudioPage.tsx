@@ -51,6 +51,13 @@ function StudioContent() {
     },
     onError: error => toast.error(error.message || "تعذر إنشاء سجل المصدر."),
   });
+  const standaloneSourceUpdateMutation = trpc.studio.updateStandaloneSource.useMutation({
+    onSuccess: async result => {
+      await utils.studio.sourceRegistry.invalidate();
+      toast.success(`حُدثت بيانات المصدر #${result.sourceId} فقط؛ حالته بقيت غير متحققة وقفل النشر فعال.`);
+    },
+    onError: error => toast.error(error.message || "تعذر تعديل بيانات المصدر المقيدة."),
+  });
   const officialBookReviewMutation = trpc.studio.reviewOfficialBookUpload.useMutation({
     onSuccess: async result => {
       await utils.studio.officialBookIntake.invalidate();
@@ -172,6 +179,7 @@ function StudioContent() {
             </section>
 
             {canUpload && <SourceCreateEditor subjects={curriculum.data?.subjects ?? []} saving={sourceCreateMutation.isPending} onCreate={input => sourceCreateMutation.mutate(input)} />}
+            {canUpload && <StandaloneSourceUpdateEditor sources={(sources ?? []).filter(source => source.metadataEditable)} saving={standaloneSourceUpdateMutation.isPending} onUpdate={input => standaloneSourceUpdateMutation.mutate(input)} />}
 
             {canReview && <section className="soft-panel mt-6 overflow-hidden">
               <div className="border-b border-slate-100 p-5"><h2 className="font-black">تحقق المصدر</h2><p className="mt-1 text-xs text-slate-500">يسجل المراجع الأدلة وحالة التحقق فقط. لا يملك هذا الإجراء أي مسار للنشر، ولا يمكنه ترقية Pilot داخلي إلى مصدر رسمي حالي.</p></div>
@@ -222,9 +230,10 @@ function StudioContent() {
   );
 }
 
-type StudioSource = { id: number; documentTitle: string; verificationStatus: "unverified" | "current_official" | "official_but_version_unconfirmed" | "historical_official"; verificationNotes?: string | null; isInternalPilot: boolean };
+type StudioSource = { id: number; documentTitle: string; sourceAuthority: string; url: string; academicYear?: string | null; edition?: string | null; verificationStatus: "unverified" | "current_official" | "official_but_version_unconfirmed" | "historical_official"; verificationNotes?: string | null; isInternalPilot: boolean; metadataEditable?: boolean };
 type SourceVerificationInput = { sourceId: number; verificationStatus: StudioSource["verificationStatus"]; verificationNotes: string };
 type SourceCreateInput = { sourceAuthority: string; documentTitle: string; url: string; subjectId: number; academicYear?: string; level?: string; track?: string; edition?: string; sourceVersion?: string };
+type StandaloneSourceUpdateInput = { sourceId: number; sourceAuthority: string; documentTitle: string; url: string; academicYear?: string; edition?: string };
 type OfficialBookChecklist = { cover: boolean; title: boolean; level: boolean; track: boolean; publisher: boolean; authorship: boolean; edition: boolean; bookCode: boolean; publicationYear: boolean; tableOfContents: boolean };
 type OfficialBookIntake = { id: number; subjectNameAr: string; sourceId: number | null; sourceTitle: string | null; fileUrl: string; originalFilename: string; verificationChecklist: OfficialBookChecklist; verificationStatus: StudioSource["verificationStatus"]; uploadedByUserId: number; uploadedAt: Date; reviewedByUserId: number | null; reviewedAt: Date | null };
 type OfficialBookReviewInput = { uploadId: number; verificationStatus: StudioSource["verificationStatus"]; verificationChecklist: OfficialBookChecklist };
@@ -243,6 +252,22 @@ function SourceCreateEditor({ subjects, saving, onCreate }: { subjects: { id: nu
   const validUrl = /^https?:\/\/.+/i.test(url.trim());
   const ready = sourceAuthority.trim().length >= 3 && documentTitle.trim().length >= 3 && validUrl && Boolean(subjectId);
   return <section className="soft-panel mt-6 overflow-hidden"><div className="border-b border-slate-100 p-5"><h2 className="font-black">إضافة سجل مصدر جديد</h2><p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">للمحرر أو المدير فقط. يُحفظ السجل دائمًا بحالة غير متحقق ومقيد بالنشر؛ لا توجد هنا خانة «رسمي حالي» أو أي قرار نشر.</p></div><div className="grid gap-4 p-5 md:grid-cols-2"><label className="grid gap-1 text-xs font-bold text-slate-600">الجهة المرجعية<input aria-label="الجهة المرجعية" value={sourceAuthority} onChange={event => setSourceAuthority(event.target.value)} placeholder="مثال: وزارة التربية الوطنية" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600">عنوان الوثيقة<input aria-label="عنوان وثيقة المصدر" value={documentTitle} onChange={event => setDocumentTitle(event.target.value)} placeholder="مثال: كتاب مدرسي مقترح" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600 md:col-span-2">رابط المصدر<input aria-label="رابط المصدر الجديد" value={url} onChange={event => setUrl(event.target.value)} placeholder="https://…" inputMode="url" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600">المادة<select aria-label="مادة المصدر الجديد" value={subjectId ?? ""} onChange={event => setSubjectId(Number(event.target.value) || null)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm"><option value="">اختر المادة</option>{subjects.map(subject => <option key={subject.id} value={subject.id}>{subject.nameAr}</option>)}</select></label><label className="grid gap-1 text-xs font-bold text-slate-600">السنة الدراسية (اختياري)<input aria-label="السنة الدراسية للمصدر" value={academicYear} onChange={event => setAcademicYear(event.target.value)} placeholder="2026–2027" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600">الطبعة (اختياري)<input aria-label="طبعة المصدر" value={edition} onChange={event => setEdition(event.target.value)} placeholder="الطبعة الأولى" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><div className="flex items-end"><Badge variant="outline" className="mb-2 border-rose-100 bg-rose-50 text-rose-700">Unverified · قفل النشر</Badge></div><div className="md:col-span-2"><Button disabled={!ready || saving} onClick={() => subjectId && onCreate({ sourceAuthority: sourceAuthority.trim(), documentTitle: documentTitle.trim(), url: url.trim(), subjectId, academicYear: academicYear.trim() || undefined, edition: edition.trim() || undefined })} className="bg-slate-950 hover:bg-slate-800">{saving ? "جارٍ إنشاء السجل…" : "إنشاء مصدر غير متحقق"}</Button></div></div></section>;
+}
+
+function StandaloneSourceUpdateEditor({ sources, saving, onUpdate }: { sources: StudioSource[]; saving: boolean; onUpdate: (input: StandaloneSourceUpdateInput) => void }) {
+  const [selectedId, setSelectedId] = useState<number | null>(sources[0]?.id ?? null);
+  const selected = sources.find(source => source.id === selectedId) ?? sources[0];
+  return <section className="soft-panel mt-6 overflow-hidden"><div className="border-b border-slate-100 p-5"><h2 className="font-black">تصحيح بيانات مصدر غير متحقق</h2><p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">للمحرر أو المدير فقط، ومتاح للسجل المستقل غير المتحقق فقط. يرفض الخادم أي سجل مرتبط بمحتوى أو بكتاب مرفوع، وأي تغيير لحالة المصدر أو قفل النشر.</p></div>{selected ? <StandaloneSourceUpdateFields key={selected.id} source={selected} sources={sources} saving={saving} onSelect={setSelectedId} onUpdate={onUpdate} /> : <p className="p-5 text-sm text-slate-500">لا توجد مصادر مستقلة غير متحققة متاحة للتصحيح. السجلات المرتبطة أو الخاضعة للمراجعة محفوظة للتدقيق.</p>}</section>;
+}
+
+function StandaloneSourceUpdateFields({ source, sources, saving, onSelect, onUpdate }: { source: StudioSource; sources: StudioSource[]; saving: boolean; onSelect: (id: number) => void; onUpdate: (input: StandaloneSourceUpdateInput) => void }) {
+  const [sourceAuthority, setSourceAuthority] = useState(source.sourceAuthority);
+  const [documentTitle, setDocumentTitle] = useState(source.documentTitle);
+  const [url, setUrl] = useState(source.url);
+  const [academicYear, setAcademicYear] = useState(source.academicYear ?? "");
+  const [edition, setEdition] = useState(source.edition ?? "");
+  const ready = sourceAuthority.trim().length >= 3 && documentTitle.trim().length >= 3 && /^https?:\/\/.+/i.test(url.trim());
+  return <div className="grid gap-4 p-5 md:grid-cols-2"><label className="grid gap-1 text-xs font-bold text-slate-600">السجل<select aria-label="سجل المصدر المراد تصحيحه" value={source.id} onChange={event => onSelect(Number(event.target.value))} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">{sources.map(item => <option key={item.id} value={item.id}>#{item.id} · {item.documentTitle}</option>)}</select></label><div className="flex items-end"><Badge variant="outline" className="mb-2 border-rose-100 bg-rose-50 text-rose-700">Unverified · قفل النشر ثابت</Badge></div><label className="grid gap-1 text-xs font-bold text-slate-600">الجهة المرجعية<input aria-label="الجهة المرجعية المحدثة" value={sourceAuthority} onChange={event => setSourceAuthority(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600">عنوان الوثيقة<input aria-label="عنوان وثيقة المصدر المحدث" value={documentTitle} onChange={event => setDocumentTitle(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600 md:col-span-2">رابط المصدر<input aria-label="رابط المصدر المحدث" value={url} onChange={event => setUrl(event.target.value)} inputMode="url" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600">السنة الدراسية (اختياري)<input aria-label="السنة الدراسية المحدثة" value={academicYear} onChange={event => setAcademicYear(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600">الطبعة (اختياري)<input aria-label="طبعة المصدر المحدثة" value={edition} onChange={event => setEdition(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><div className="md:col-span-2"><Button disabled={!ready || saving} onClick={() => onUpdate({ sourceId: source.id, sourceAuthority: sourceAuthority.trim(), documentTitle: documentTitle.trim(), url: url.trim(), academicYear: academicYear.trim() || undefined, edition: edition.trim() || undefined })} className="bg-slate-950 hover:bg-slate-800">{saving ? "جارٍ حفظ التصحيح…" : "حفظ تصحيح البيانات فقط"}</Button></div></div>;
 }
 
 function DraftComponentEditor({ parents, saving, onCreate }: { parents: DraftParent[]; saving: boolean; onCreate: (input: DraftComponentInput) => void }) {

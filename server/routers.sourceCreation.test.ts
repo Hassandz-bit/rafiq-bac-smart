@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TrpcContext } from "./_core/context";
 
-const sourceMocks = vi.hoisted(() => ({ createUnverifiedSourceRecord: vi.fn() }));
+const sourceMocks = vi.hoisted(() => ({ createUnverifiedSourceRecord: vi.fn(), updateStandaloneUnverifiedSourceRecord: vi.fn() }));
 vi.mock("./sourceRecords", () => sourceMocks);
 
 import { appRouter } from "./routers";
@@ -25,5 +25,21 @@ describe("studio.createSource", () => {
   it("يرفض إنشاء المصدر من المراجع وغير المصدق", async () => {
     await expect(appRouter.createCaller(context(reviewer)).studio.createSource(input)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(appRouter.createCaller(context(null)).studio.createSource(input)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("studio.updateStandaloneSource", () => {
+  it("يسمح للمحرر بتصحيح بيانات مصدر مستقل مع بقاء الحالة غير متحققة", async () => {
+    const updateInput = { sourceId: 70002, sourceAuthority: "جهة محدثة", documentTitle: "سجل محدث", url: "https://example.edu/updated" };
+    sourceMocks.updateStandaloneUnverifiedSourceRecord.mockResolvedValue({ sourceId: 70002, verificationStatus: "unverified", publicationBlocked: true, sourceStatusChanged: false });
+
+    await expect(appRouter.createCaller(context(editor)).studio.updateStandaloneSource(updateInput)).resolves.toMatchObject({ verificationStatus: "unverified", publicationBlocked: true, sourceStatusChanged: false });
+    expect(sourceMocks.updateStandaloneUnverifiedSourceRecord).toHaveBeenCalledWith(updateInput);
+  });
+
+  it("يرفض التعديل من المراجع وغير المصدق", async () => {
+    const updateInput = { sourceId: 70002, sourceAuthority: "جهة محدثة", documentTitle: "سجل محدث", url: "https://example.edu/updated" };
+    await expect(appRouter.createCaller(context(reviewer)).studio.updateStandaloneSource(updateInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(appRouter.createCaller(context(null)).studio.updateStandaloneSource(updateInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

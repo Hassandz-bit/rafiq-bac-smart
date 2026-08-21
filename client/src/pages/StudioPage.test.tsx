@@ -22,6 +22,7 @@ const mockedReviewQueue = vi.hoisted(() => {
 const mockedReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedSourceVerificationMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedSourceCreateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedStandaloneSourceUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedOfficialBookReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
@@ -29,7 +30,10 @@ const mockedDraftReviewSubmissionMutation = vi.hoisted(() => ({ mutate: vi.fn(),
 const mockedDraftDiscardMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDrafts = vi.hoisted(() => [{ id: 99001, titleAr: "ملاحظة توجيهية أولية", lessonId: 701, sourceId: 30001, componentKey: "guided_note", draftTextAr: "نص مسودة أصلي قابل للتحرير فقط قبل المراجعة.", workflowState: "draft" as const, publicationBlocked: true }]);
 const mockAuth = vi.hoisted(() => ({ role: "academic_reviewer" }));
-const mockedSources = vi.hoisted(() => [{ id: 30001, documentTitle: "نسخة عمل الرياضيات", sourceAuthority: "نسخة عمل مرجعية", subjectNameAr: "الرياضيات", url: "https://example.edu/math", isUserApprovedWorkingReference: true, isInternalPilot: true, verificationStatus: "historical_official" as const, verificationNotes: "الطبعة المرجعية تحتاج تحققًا لاحقًا." }]);
+const mockedSources = vi.hoisted(() => [
+  { id: 30001, documentTitle: "نسخة عمل الرياضيات", sourceAuthority: "نسخة عمل مرجعية", subjectNameAr: "الرياضيات", url: "https://example.edu/math", isUserApprovedWorkingReference: true, isInternalPilot: true, metadataEditable: false, verificationStatus: "historical_official" as const, verificationNotes: "الطبعة المرجعية تحتاج تحققًا لاحقًا." },
+  { id: 30002, documentTitle: "سجل استقبال مستقل", sourceAuthority: "جهة استقبال", subjectNameAr: "الرياضيات", url: "https://example.edu/intake", isUserApprovedWorkingReference: false, isInternalPilot: false, metadataEditable: true, verificationStatus: "unverified" as const, verificationNotes: "سجل غير متحقق قابل لتصحيح البيانات فقط." },
+]);
 const mockedOfficialBookIntake = vi.hoisted(() => [{ id: 70001, subjectNameAr: "الرياضيات", sourceId: null, sourceTitle: null, fileUrl: "/manus-storage/official-books/math.pdf", originalFilename: "كتاب-رياضيات-2027.pdf", verificationChecklist: { cover: false, title: false, level: false, track: false, publisher: false, authorship: false, edition: false, bookCode: false, publicationYear: false, tableOfContents: false }, verificationStatus: "unverified" as const, uploadedByUserId: 77, uploadedAt: new Date(), reviewedByUserId: null, reviewedAt: null }]);
 
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
@@ -45,6 +49,7 @@ vi.mock("@/lib/trpc", () => ({
       reviewLearningItem: { useMutation: () => mockedReviewMutation },
       updateSourceVerification: { useMutation: () => mockedSourceVerificationMutation },
       createSource: { useMutation: () => mockedSourceCreateMutation },
+      updateStandaloneSource: { useMutation: () => mockedStandaloneSourceUpdateMutation },
       reviewOfficialBookUpload: { useMutation: () => mockedOfficialBookReviewMutation },
       createDraftComponent: { useMutation: () => mockedDraftMutation },
       draftComponents: { useQuery: () => ({ data: mockedDrafts, isLoading: false }) },
@@ -57,7 +62,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
+afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedStandaloneSourceUpdateMutation.mutate.mockReset(); mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
   it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
@@ -72,7 +77,7 @@ describe("طابور مراجعة Content Studio", () => {
     expect(screen.getAllByRole("button", { name: "اعتماد أكاديمي" })).toHaveLength(6);
     expect(screen.getAllByRole("button", { name: "إعادة للمسودة" })).toHaveLength(6);
     expect(screen.getByText("تحقق المصدر")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "حفظ التحقق" })).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "حفظ التحقق" })).toHaveLength(2);
     expect(screen.getByLabelText("ملاحظة نسخة عمل الرياضيات")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /نشر/i })).toBeNull();
   });
@@ -121,12 +126,24 @@ describe("طابور مراجعة Content Studio", () => {
     mockAuth.role = "content_editor";
     render(<StudioPage />);
     expect(screen.getByText("إضافة سجل مصدر جديد")).toBeTruthy();
-    fireEvent.change(screen.getByLabelText("الجهة المرجعية"), { target: { value: "جهة مرجعية" } });
-    fireEvent.change(screen.getByLabelText("عنوان وثيقة المصدر"), { target: { value: "كتاب مقترح" } });
-    fireEvent.change(screen.getByLabelText("رابط المصدر الجديد"), { target: { value: "https://example.edu/proposed-book" } });
+    fireEvent.change(screen.getByPlaceholderText("مثال: وزارة التربية الوطنية"), { target: { value: "جهة مرجعية" } });
+    fireEvent.change(screen.getByPlaceholderText("مثال: كتاب مدرسي مقترح"), { target: { value: "كتاب مقترح" } });
+    fireEvent.change(screen.getByPlaceholderText("https://…"), { target: { value: "https://example.edu/proposed-book" } });
     fireEvent.click(screen.getByRole("button", { name: "إنشاء مصدر غير متحقق" }));
     expect(mockedSourceCreateMutation.mutate).toHaveBeenCalledWith({ sourceAuthority: "جهة مرجعية", documentTitle: "كتاب مقترح", url: "https://example.edu/proposed-book", subjectId: 301, academicYear: undefined, edition: undefined });
     expect(screen.getByText("Unverified · قفل النشر")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
+  });
+
+  it("يسمح للمحرر بتصحيح بيانات مصدر مستقل غير متحقق من دون تغيير حالته", () => {
+    mockAuth.role = "content_editor";
+    render(<StudioPage />);
+    expect(screen.getByText("تصحيح بيانات مصدر غير متحقق")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("الجهة المرجعية المحدثة"), { target: { value: "جهة استقبال محدثة" } });
+    fireEvent.change(screen.getByLabelText("عنوان وثيقة المصدر المحدث"), { target: { value: "سجل مستقل محدث" } });
+    fireEvent.click(screen.getByRole("button", { name: "حفظ تصحيح البيانات فقط" }));
+    expect(mockedStandaloneSourceUpdateMutation.mutate).toHaveBeenCalledWith({ sourceId: 30002, sourceAuthority: "جهة استقبال محدثة", documentTitle: "سجل مستقل محدث", url: "https://example.edu/intake", academicYear: undefined, edition: undefined });
+    expect(screen.getByText("Unverified · قفل النشر ثابت")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
   });
 

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 const dbMocks = vi.hoisted(() => ({ getDb: vi.fn() }));
 vi.mock("./db", () => dbMocks);
 
-import { createUnverifiedSourceRecord } from "./sourceRecords";
+import { createUnverifiedSourceRecord, updateStandaloneUnverifiedSourceRecord } from "./sourceRecords";
 
 describe("createUnverifiedSourceRecord", () => {
   it("يفرض دائمًا حالة غير متحققة وقفل النشر ولا يسمح بسمات الترقية عند الإدخال", async () => {
@@ -17,5 +17,44 @@ describe("createUnverifiedSourceRecord", () => {
 
     await expect(createUnverifiedSourceRecord({ sourceAuthority: "جهة مرجعية", documentTitle: "كتاب مقترح", url: "https://example.edu/book", subjectId: 301, createdByUserId: 12 })).resolves.toEqual({ id: 70002, subjectId: 301, verificationStatus: "unverified", publicationBlocked: true, createdByUserId: 12, sourcePromoted: false });
     expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({ verificationStatus: "unverified", isInternalPilot: false, isUserApprovedWorkingReference: false, verificationDate: null, createdByUserId: 12 }));
+  });
+});
+
+describe("updateStandaloneUnverifiedSourceRecord", () => {
+  it("يحدّث بيانات سجل مستقل غير متحقق فقط ويحافظ على قفل النشر", async () => {
+    const sourceLimit = vi.fn().mockResolvedValue([{ id: 70002, verificationStatus: "unverified", isInternalPilot: false, isUserApprovedWorkingReference: false }]);
+    const linkedLearningLimit = vi.fn().mockResolvedValue([]);
+    const linkedUploadLimit = vi.fn().mockResolvedValue([]);
+    const updateWhere = vi.fn().mockResolvedValue(undefined);
+    const updateSet = vi.fn(() => ({ where: updateWhere }));
+    const db = {
+      select: vi.fn()
+        .mockReturnValueOnce({ from: vi.fn(() => ({ where: vi.fn(() => ({ limit: sourceLimit })) })) })
+        .mockReturnValueOnce({ from: vi.fn(() => ({ where: vi.fn(() => ({ limit: linkedLearningLimit })) })) })
+        .mockReturnValueOnce({ from: vi.fn(() => ({ where: vi.fn(() => ({ limit: linkedUploadLimit })) })) }),
+      update: vi.fn(() => ({ set: updateSet })),
+    };
+    dbMocks.getDb.mockResolvedValue(db);
+
+    await expect(updateStandaloneUnverifiedSourceRecord({ sourceId: 70002, sourceAuthority: "جهة محدثة", documentTitle: "سجل محدث", url: "https://example.edu/updated" })).resolves.toEqual({ sourceId: 70002, verificationStatus: "unverified", publicationBlocked: true, sourceStatusChanged: false });
+    expect(updateSet).toHaveBeenCalledWith(expect.objectContaining({ verificationStatus: "unverified", verificationDate: null, documentTitle: "سجل محدث" }));
+  });
+
+  it("يرفض السجل المرتبط بمحتوى قبل أي كتابة", async () => {
+    const sourceLimit = vi.fn().mockResolvedValue([{ id: 70002, verificationStatus: "unverified", isInternalPilot: false, isUserApprovedWorkingReference: false }]);
+    const linkedLearningLimit = vi.fn().mockResolvedValue([{ id: 90001 }]);
+    const linkedUploadLimit = vi.fn().mockResolvedValue([]);
+    const update = vi.fn();
+    const db = {
+      select: vi.fn()
+        .mockReturnValueOnce({ from: vi.fn(() => ({ where: vi.fn(() => ({ limit: sourceLimit })) })) })
+        .mockReturnValueOnce({ from: vi.fn(() => ({ where: vi.fn(() => ({ limit: linkedLearningLimit })) })) })
+        .mockReturnValueOnce({ from: vi.fn(() => ({ where: vi.fn(() => ({ limit: linkedUploadLimit })) })) }),
+      update,
+    };
+    dbMocks.getDb.mockResolvedValue(db);
+
+    await expect(updateStandaloneUnverifiedSourceRecord({ sourceId: 70002, sourceAuthority: "جهة", documentTitle: "سجل", url: "https://example.edu/updated" })).rejects.toThrow(/ربطه بمحتوى/);
+    expect(update).not.toHaveBeenCalled();
   });
 });
