@@ -18,7 +18,7 @@ import { reviewLearningItem } from "./contentReview";
 import { getHassemPlanForStudent } from "./hassemStudentPlan";
 import { getHassemFinalMemory, toggleHassemFinalMemory } from "./hassemFinalMemory";
 import { updateSourceVerification } from "./sourceVerification";
-import { createSourceLinkedDraftComponent, getDraftComponents, submitDraftComponentForReview, updateDraftComponent } from "./draftComponents";
+import { createSourceLinkedDraftComponent, discardDraftComponent, getDraftComponents, submitDraftComponentForReview, updateDraftComponent } from "./draftComponents";
 import { getLocalPaymentStatus } from "./localPaymentAbstraction";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -102,6 +102,13 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const result = await submitDraftComponentForReview(input);
         if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "المسودة غير متاحة للإرسال للمراجعة." });
+        return result;
+      }),
+    discardDraftComponent: contentEditorProcedure
+      .input(z.object({ learningItemId: z.number().int().positive(), noteAr: z.string().trim().max(1000).optional() }))
+      .mutation(async ({ input }) => {
+        const result = await discardDraftComponent(input);
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "المسودة غير متاحة للإلغاء." });
         return result;
       }),
     draftComponents: contentStudioProcedure.input(z.object({ limit: z.number().int().min(1).max(100).default(50) }).optional()).query(({ input }) => getDraftComponents(input?.limit ?? 50)),

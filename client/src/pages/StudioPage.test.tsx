@@ -24,6 +24,7 @@ const mockedSourceVerificationMutation = vi.hoisted(() => ({ mutate: vi.fn(), is
 const mockedDraftMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftReviewSubmissionMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedDraftDiscardMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDrafts = vi.hoisted(() => [{ id: 99001, titleAr: "ملاحظة توجيهية أولية", lessonId: 701, sourceId: 30001, componentKey: "guided_note", draftTextAr: "نص مسودة أصلي قابل للتحرير فقط قبل المراجعة.", workflowState: "draft" as const, publicationBlocked: true }]);
 const mockAuth = vi.hoisted(() => ({ role: "academic_reviewer" }));
 const mockedSources = vi.hoisted(() => [{ id: 30001, documentTitle: "نسخة عمل الرياضيات", sourceAuthority: "نسخة عمل مرجعية", subjectNameAr: "الرياضيات", url: "https://example.edu/math", isUserApprovedWorkingReference: true, isInternalPilot: true, verificationStatus: "historical_official" as const, verificationNotes: "الطبعة المرجعية تحتاج تحققًا لاحقًا." }]);
@@ -43,13 +44,14 @@ vi.mock("@/lib/trpc", () => ({
       draftComponents: { useQuery: () => ({ data: mockedDrafts, isLoading: false }) },
       updateDraftComponent: { useMutation: () => mockedDraftUpdateMutation },
       submitDraftComponentForReview: { useMutation: () => mockedDraftReviewSubmissionMutation },
+      discardDraftComponent: { useMutation: () => mockedDraftDiscardMutation },
     },
     curriculum: { overview: { useQuery: () => ({ data: { subjects: [] } }) } },
     useUtils: () => ({ studio: { reviewQueue: { invalidate: vi.fn() }, sourceRegistry: { invalidate: vi.fn() }, draftComponents: { invalidate: vi.fn() } } }),
   },
 }));
 
-afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); });
+afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
   it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
@@ -98,6 +100,14 @@ describe("طابور مراجعة Content Studio", () => {
     render(<StudioPage />);
     fireEvent.click(screen.getByRole("button", { name: "إرسال للمراجعة (لا ينشر)" }));
     expect(mockedDraftReviewSubmissionMutation.mutate).toHaveBeenCalledWith({ learningItemId: 99001 });
+    expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
+  });
+
+  it("يسمح للمحرر بأرشفة Draft كسجل تدقيق دون حذفه أو نشره", () => {
+    mockAuth.role = "content_editor";
+    render(<StudioPage />);
+    fireEvent.click(screen.getByRole("button", { name: "إلغاء المسودة وحفظ سجلها" }));
+    expect(mockedDraftDiscardMutation.mutate).toHaveBeenCalledWith({ learningItemId: 99001 });
     expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
   });
 });

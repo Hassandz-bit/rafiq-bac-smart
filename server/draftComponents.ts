@@ -88,6 +88,28 @@ export async function submitDraftComponentForReview(input: { learningItemId: num
   return { id: existing[0].id, workflowState: "in_review" as const, publicationBlocked: true as const, sourceId: existing[0].sourceId, lessonId: existing[0].lessonId };
 }
 
+export async function discardDraftComponent(input: { learningItemId: number; noteAr?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+
+  const existing = await db
+    .select({ id: learningItems.id, workflowState: learningItems.workflowState, body: learningItems.body, sourceId: learningItems.sourceId, lessonId: learningItems.lessonId })
+    .from(learningItems)
+    .where(eq(learningItems.id, input.learningItemId))
+    .limit(1);
+  if (!existing[0]) return null;
+  if (existing[0].workflowState !== "draft") throw new Error("لا يمكن إلغاء مكوّن بعد خروجه من حالة المسودة.");
+
+  const currentBody = typeof existing[0].body === "object" && existing[0].body !== null ? existing[0].body as Record<string, unknown> : {};
+  await db.update(learningItems).set({
+    body: { ...currentBody, sourceReviewRequired: true, publicationBlocked: true, discardedAt: new Date().toISOString(), discardNoteAr: input.noteAr?.trim() || "أُلغي قبل الإرسال للمراجعة." },
+    workflowState: "archived",
+    publishedAt: null,
+  }).where(eq(learningItems.id, input.learningItemId));
+
+  return { id: existing[0].id, workflowState: "archived" as const, publicationBlocked: true as const, sourceId: existing[0].sourceId, lessonId: existing[0].lessonId };
+}
+
 export async function getDraftComponents(limit = 50) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");

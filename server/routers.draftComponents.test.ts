@@ -1,7 +1,7 @@
 import type { TrpcContext } from "./_core/context";
 import { describe, expect, it, vi } from "vitest";
 
-const draftMocks = vi.hoisted(() => ({ createSourceLinkedDraftComponent: vi.fn(), updateDraftComponent: vi.fn(), submitDraftComponentForReview: vi.fn() }));
+const draftMocks = vi.hoisted(() => ({ createSourceLinkedDraftComponent: vi.fn(), updateDraftComponent: vi.fn(), submitDraftComponentForReview: vi.fn(), discardDraftComponent: vi.fn() }));
 vi.mock("./draftComponents", () => draftMocks);
 
 import { appRouter } from "./routers";
@@ -69,5 +69,25 @@ describe("studio.submitDraftComponentForReview", () => {
     await expect(appRouter.createCaller(context(admin)).studio.submitDraftComponentForReview(reviewInput)).resolves.toMatchObject({ workflowState: "in_review", publicationBlocked: true });
     await expect(appRouter.createCaller(context(reviewer)).studio.submitDraftComponentForReview(reviewInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(appRouter.createCaller(context(null)).studio.submitDraftComponentForReview(reviewInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("studio.discardDraftComponent", () => {
+  const discardInput = { learningItemId: 99001, noteAr: "أرشفة محرر قبل المراجعة." };
+
+  it("يسمح للمحرر بأرشفة Draft كسجل تدقيق دون حذف أو نشر", async () => {
+    const result = { id: 99001, workflowState: "archived" as const, publicationBlocked: true as const, sourceId: 30001, lessonId: 701 };
+    draftMocks.discardDraftComponent.mockResolvedValue(result);
+    await expect(appRouter.createCaller(context(editor)).studio.discardDraftComponent(discardInput)).resolves.toEqual(result);
+    expect(draftMocks.discardDraftComponent).toHaveBeenCalledWith(discardInput);
+    expect(Object.keys(discardInput)).not.toContain("publishedAt");
+    expect(Object.keys(discardInput)).not.toContain("sourceId");
+  });
+
+  it("يسمح للمدير ويرفض المراجع وغير المصدق", async () => {
+    draftMocks.discardDraftComponent.mockResolvedValue({ id: 99001, workflowState: "archived", publicationBlocked: true, sourceId: 30001, lessonId: 701 });
+    await expect(appRouter.createCaller(context(admin)).studio.discardDraftComponent(discardInput)).resolves.toMatchObject({ workflowState: "archived", publicationBlocked: true });
+    await expect(appRouter.createCaller(context(reviewer)).studio.discardDraftComponent(discardInput)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(appRouter.createCaller(context(null)).studio.discardDraftComponent(discardInput)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

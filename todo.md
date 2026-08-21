@@ -123,3 +123,4 @@
 - [x] Add a content-editor-only Draft component update workflow that preserves the original lesson/source linkage and cannot modify review or publication state.
 - [x] Add a disabled local-payment abstraction contract for future product administration, expose its non-active status safely, and test that no billing flow can run.
 - [x] Add a content-editor-only Draft-to-review submission action that preserves source linkage and publication blocks.
+- [x] Add a content-editor-only Draft discard action that records a non-publishing terminal state without deleting source-linked audit data.
