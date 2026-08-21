@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import StudioPage from "./StudioPage";
 
@@ -21,11 +21,13 @@ const mockedReviewQueue = vi.hoisted(() => {
 });
 const mockedReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedSourceVerificationMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedDraftMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockAuth = vi.hoisted(() => ({ role: "academic_reviewer" }));
 const mockedSources = vi.hoisted(() => [{ id: 30001, documentTitle: "نسخة عمل الرياضيات", sourceAuthority: "نسخة عمل مرجعية", subjectNameAr: "الرياضيات", url: "https://example.edu/math", isUserApprovedWorkingReference: true, isInternalPilot: true, verificationStatus: "historical_official" as const, verificationNotes: "الطبعة المرجعية تحتاج تحققًا لاحقًا." }]);
 
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
-vi.mock("@/_core/hooks/useAuth", () => ({ useAuth: () => ({ user: { role: "academic_reviewer" } }) }));
+vi.mock("@/_core/hooks/useAuth", () => ({ useAuth: () => ({ user: { role: mockAuth.role } }) }));
 vi.mock("wouter", () => ({ useLocation: () => ["/studio", vi.fn()] }));
 vi.mock("@/lib/trpc", () => ({
   trpc: {
@@ -34,13 +36,14 @@ vi.mock("@/lib/trpc", () => ({
       reviewQueue: { useQuery: () => ({ data: mockedReviewQueue, isLoading: false }) },
       reviewLearningItem: { useMutation: () => mockedReviewMutation },
       updateSourceVerification: { useMutation: () => mockedSourceVerificationMutation },
+      createDraftComponent: { useMutation: () => mockedDraftMutation },
     },
     curriculum: { overview: { useQuery: () => ({ data: { subjects: [] } }) } },
     useUtils: () => ({ studio: { reviewQueue: { invalidate: vi.fn() }, sourceRegistry: { invalidate: vi.fn() } } }),
   },
 }));
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
   it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
@@ -58,5 +61,17 @@ describe("طابور مراجعة Content Studio", () => {
     expect(screen.getByRole("button", { name: "حفظ التحقق" })).toBeTruthy();
     expect(screen.getByLabelText("ملاحظة نسخة عمل الرياضيات")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /نشر/i })).toBeNull();
+  });
+
+  it("يسمح للمحرر بإنشاء مكوّن Draft يرث المصدر من حزمته الأب بلا زر نشر", () => {
+    mockAuth.role = "content_editor";
+    render(<StudioPage />);
+    expect(screen.getByText("مسودة مكوّن مرتبطة بالمصدر")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("عنوان المسودة"), { target: { value: "ملاحظة توجيهية أصلية" } });
+    fireEvent.change(screen.getByLabelText("مفتاح المكوّن"), { target: { value: "guided_note" } });
+    fireEvent.change(screen.getByLabelText("نص المسودة الأصلي"), { target: { value: "هذه مسودة عربية أصلية مرتبطة بالمصدر وتحتاج مراجعة." } });
+    fireEvent.click(screen.getByRole("button", { name: "حفظ مسودة مقيدة بالنشر" }));
+    expect(mockedDraftMutation.mutate).toHaveBeenCalledWith({ parentLearningItemId: 90001, titleAr: "ملاحظة توجيهية أصلية", componentKey: "guided_note", draftTextAr: "هذه مسودة عربية أصلية مرتبطة بالمصدر وتحتاج مراجعة." });
+    expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
   });
 });

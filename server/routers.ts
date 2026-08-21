@@ -18,10 +18,18 @@ import { reviewLearningItem } from "./contentReview";
 import { getHassemPlanForStudent } from "./hassemStudentPlan";
 import { getHassemFinalMemory, toggleHassemFinalMemory } from "./hassemFinalMemory";
 import { updateSourceVerification } from "./sourceVerification";
+import { createSourceLinkedDraftComponent } from "./draftComponents";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
     throw new TRPCError({ code: "FORBIDDEN", message: "هذه المساحة مخصصة لفريق المحتوى الأكاديمي." });
+  }
+  return next();
+});
+
+const contentEditorProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (!hasAnyRole(ctx.user.role, ["admin", "content_editor"])) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "إنشاء المسودات متاح للمحرر أو المدير فقط." });
   }
   return next();
 });
@@ -72,6 +80,13 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const result = await updateSourceVerification({ ...input, reviewerUserId: ctx.user.id });
         if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "المصدر غير موجود." });
+        return result;
+      }),
+    createDraftComponent: contentEditorProcedure
+      .input(z.object({ parentLearningItemId: z.number().int().positive(), titleAr: z.string().trim().min(3).max(240), componentKey: z.string().trim().min(2).max(60), draftTextAr: z.string().trim().min(8).max(6000) }))
+      .mutation(async ({ ctx, input }) => {
+        const result = await createSourceLinkedDraftComponent({ ...input, authorUserId: ctx.user.id });
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "العنصر الأب أو مصدره غير متاح لإنشاء مسودة مرتبطة." });
         return result;
       }),
   }),

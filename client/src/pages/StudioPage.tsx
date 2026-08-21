@@ -42,6 +42,13 @@ function StudioContent() {
     },
     onError: error => toast.error(error.message || "تعذر حفظ تحقق المصدر."),
   });
+  const draftMutation = trpc.studio.createDraftComponent.useMutation({
+    onSuccess: async result => {
+      await utils.studio.reviewQueue.invalidate();
+      toast.success(`أُنشئت المسودة #${result.id} في حالة Draft؛ النشر غير متاح.`);
+    },
+    onError: error => toast.error(error.message || "تعذر إنشاء المسودة المرتبطة بالمصدر."),
+  });
 
   const uploadBook = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -132,6 +139,8 @@ function StudioContent() {
 
             <ReviewOnlyVisualModels />
 
+            {canUpload && <DraftComponentEditor parents={reviewQueue ?? []} saving={draftMutation.isPending} onCreate={input => draftMutation.mutate(input)} />}
+
             <section className="soft-panel mt-6 overflow-hidden">
               <div className="flex items-center justify-between border-b border-slate-100 p-5"><div><h2 className="font-black">طابور المراجعة الأكاديمية</h2><p className="mt-1 text-xs text-slate-500">قرار بشري موثق: اعتماد أو إعادة للمسودة فقط. لا توجد أي عملية نشر في هذا المسار.</p></div><Badge variant="outline" className="border-blue-100 bg-blue-50 text-blue-700">{reviewQueueLoading ? "جارٍ التحميل" : `${reviewQueue?.length ?? 0} عناصر`}</Badge></div>
               <div className="divide-y divide-slate-100">{reviewQueue?.map(item => <div key={item.id} className="p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold text-slate-900">{item.titleAr}</p><p className="mt-1 text-xs text-slate-500">{item.subjectNameAr} · {item.unitTitleAr} · {item.lessonTitleAr} · {item.type}</p><p className="mt-1 text-xs text-slate-500">{item.sourceTitle ?? "مصدر غير مكتمل"} · {item.sourceAuthority ?? "غير موثق"}</p><p className="mt-2 text-xs font-bold text-slate-600">{item.reviewComponents.length} مكوّنات مسودة فعلية · {item.reviewComponentState === "outline_only" ? "مقيّدة بالنشر حتى الاعتماد" : "تحتاج جردًا"}</p></div><div className="flex flex-wrap gap-2"><Badge className="border-0 bg-violet-50 text-violet-700 hover:bg-violet-50">in_review</Badge><Badge variant="outline" className="border-amber-100 bg-amber-50 text-amber-800">{item.sourceStatus ?? "غير متحقق"}</Badge>{item.isInternalPilot && <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">داخلي</Badge>}{item.publicationBlocked && <Badge variant="outline" className="border-rose-100 bg-rose-50 text-rose-700">قفل الحزمة</Badge>}</div></div><div className="mt-4 grid gap-2 md:grid-cols-2">{item.reviewComponents.map(component => <article key={component.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-black text-slate-800">{reviewComponentLabels[component.componentKey] ?? component.componentKey}</p><div className="flex gap-1.5"><Badge variant="outline" className="border-blue-100 bg-white text-[10px] text-blue-700">{component.workflowState}</Badge><Badge variant="outline" className="border-rose-100 bg-white text-[10px] text-rose-700">قفل النشر</Badge></div></div><p className="mt-2 text-xs leading-5 text-slate-600">{component.draftContentAr ?? "لا توجد حمولة مسودة بعد."}</p><p className="mt-2 text-[10px] font-bold text-slate-500">المصدر: {item.sourceTitle ?? "غير مكتمل"} · سجل {component.sourceId ?? "—"} · {component.contentStatus ?? "مسودة"}</p></article>)}</div></div>)}{!reviewQueueLoading && !reviewQueue?.length && <div className="p-10 text-center text-sm text-slate-500">لا توجد عناصر بانتظار المراجعة حاليًا.</div>}</div>
@@ -168,6 +177,17 @@ function StudioContent() {
 
 type StudioSource = { id: number; documentTitle: string; verificationStatus: "unverified" | "current_official" | "official_but_version_unconfirmed" | "historical_official"; verificationNotes?: string | null; isInternalPilot: boolean };
 type SourceVerificationInput = { sourceId: number; verificationStatus: StudioSource["verificationStatus"]; verificationNotes: string };
+type DraftParent = { id: number; titleAr: string; sourceTitle?: string | null };
+type DraftComponentInput = { parentLearningItemId: number; titleAr: string; componentKey: string; draftTextAr: string };
+
+function DraftComponentEditor({ parents, saving, onCreate }: { parents: DraftParent[]; saving: boolean; onCreate: (input: DraftComponentInput) => void }) {
+  const [parentId, setParentId] = useState<number | null>(parents[0]?.id ?? null);
+  const [titleAr, setTitleAr] = useState("");
+  const [componentKey, setComponentKey] = useState("guided_note");
+  const [draftTextAr, setDraftTextAr] = useState("");
+  const ready = Boolean(parentId) && titleAr.trim().length >= 3 && componentKey.trim().length >= 2 && draftTextAr.trim().length >= 8;
+  return <section className="soft-panel mt-6 overflow-hidden"><div className="border-b border-slate-100 p-5"><h2 className="font-black">مسودة مكوّن مرتبطة بالمصدر</h2><p className="mt-1 text-xs leading-5 text-slate-500">للمحرر أو المدير فقط. ترث المسودة الدرس والمصدر من الحزمة الأب، وتُحفظ دائمًا في Draft مع قفل نشر صريح.</p></div>{parents.length ? <div className="grid gap-4 p-5 md:grid-cols-2"><label className="grid gap-1 text-xs font-bold text-slate-600">الحزمة الأب<select aria-label="الحزمة الأب للمسودة" value={parentId ?? ""} onChange={event => setParentId(Number(event.target.value) || null)} className="h-10 rounded-xl border border-slate-200 bg-white px-2 text-sm">{parents.map(parent => <option key={parent.id} value={parent.id}>{parent.titleAr} · {parent.sourceTitle ?? "مصدر مرتبط"}</option>)}</select></label><label className="grid gap-1 text-xs font-bold text-slate-600">عنوان المسودة<input aria-label="عنوان المسودة" value={titleAr} onChange={event => setTitleAr(event.target.value)} placeholder="مثال: ملاحظة توجيهية" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600">مفتاح المكوّن<input aria-label="مفتاح المكوّن" value={componentKey} onChange={event => setComponentKey(event.target.value)} placeholder="guided_note" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><div className="flex items-end"><Badge variant="outline" className="mb-2 border-rose-100 bg-rose-50 text-rose-700">Draft · قفل النشر</Badge></div><label className="grid gap-1 text-xs font-bold text-slate-600 md:col-span-2">نص المسودة الأصلي<textarea aria-label="نص المسودة الأصلي" value={draftTextAr} onChange={event => setDraftTextAr(event.target.value)} placeholder="اكتب مسودة عربية أصلية للمراجعة الأكاديمية…" className="min-h-24 rounded-xl border border-slate-200 bg-white p-3 text-sm" /></label><div className="md:col-span-2"><Button disabled={!ready || saving} onClick={() => parentId && onCreate({ parentLearningItemId: parentId, titleAr: titleAr.trim(), componentKey: componentKey.trim(), draftTextAr: draftTextAr.trim() })} className="bg-blue-700 hover:bg-blue-800">{saving ? "جارٍ حفظ المسودة…" : "حفظ مسودة مقيدة بالنشر"}</Button></div></div> : <div className="p-5 text-sm text-slate-500">لا توجد حزمة مراجعة مرتبطة بمصدر يمكن أن ترث منها مسودة جديدة.</div>}</section>;
+}
 
 function SourceVerificationEditor({ source, saving, onSave }: { source: StudioSource; saving: boolean; onSave: (input: SourceVerificationInput) => void }) {
   const [status, setStatus] = useState<StudioSource["verificationStatus"]>(source.verificationStatus);
