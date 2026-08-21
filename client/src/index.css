@@ -133,11 +133,11 @@
   .scientific-canvas { isolation: isolate; }
   .node-float { animation: hover-node 5s var(--ease-in-out) infinite alternate; }
   .student-shell { background: var(--student-bg); color: var(--student-ink); min-height: 100vh; }
-  .student-shell :is(h1, h2, h3, h4) { color: var(--student-ink); letter-spacing: -.022em; text-wrap: balance; }
+  .student-shell :is(h1, h2, h3, h4) { color: var(--student-ink); letter-spacing: -.012em; text-wrap: balance; overflow-wrap: anywhere; }
   .student-shell :is(p, li, blockquote) { text-wrap: pretty; }
-  .student-shell h1 { line-height: 1.3; }
-  .student-shell h2 { line-height: 1.42; }
-  .student-shell h3 { line-height: 1.45; }
+  .student-shell h1 { line-height: 1.42; }
+  .student-shell h2 { line-height: 1.5; }
+  .student-shell h3 { line-height: 1.55; }
   .student-surface { background: var(--student-surface); border: 1px solid var(--student-border); box-shadow: 0 18px 44px rgba(0,0,0,.12); }
   .student-surface-subtle { background: color-mix(in srgb, var(--student-surface) 72%, transparent); border: 1px solid var(--student-border); }
   .student-muted { color: var(--student-muted); }
@@ -207,11 +207,11 @@
   .landing-brand b { font-size: .8rem; }
   .landing-brand small { margin-top: .1rem; color: var(--student-muted); font-size: .58rem; font-weight: 700; }
   .landing-hero { position: relative; }
-  .landing-title { max-width: 12.5ch; font-size: clamp(2.5rem, 5.25vw, 4.6rem); line-height: 1.28; letter-spacing: -.035em; }
+  .landing-title { max-width: 13.75ch; font-size: clamp(2.2rem, 4.4vw, 3.75rem); line-height: 1.42; letter-spacing: -.018em; overflow-wrap: anywhere; }
   .landing-title-accent { display: block; margin-top: .2em; color: var(--student-primary); }
-  .landing-copy { max-width: 38rem; color: var(--student-muted); font-size: clamp(1rem, 1.4vw, 1.125rem); line-height: 2; }
-  .landing-section-title { max-width: 23ch; line-height: 1.46; }
-  .landing-card-copy { color: color-mix(in srgb, var(--student-ink) 78%, var(--student-muted)); line-height: 1.9; }
+  .landing-copy { max-width: 40rem; color: var(--student-muted); font-size: clamp(.94rem, 1.15vw, 1.03rem); line-height: 2.05; }
+  .landing-section-title { max-width: 25ch; line-height: 1.58; letter-spacing: -.01em; }
+  .landing-card-copy { color: color-mix(in srgb, var(--student-ink) 78%, var(--student-muted)); line-height: 2; }
   .landing-hero::before { content: ""; position: absolute; width: 34rem; height: 34rem; right: -24rem; top: -12rem; border-radius: 999px; background: radial-gradient(circle, rgba(39,215,195,.12), transparent 65%); pointer-events: none; }
   .landing-accent { color: var(--student-primary); }
   .landing-steps { border-top: 1px solid var(--student-border); border-bottom: 1px solid var(--student-border); background: color-mix(in srgb, var(--student-surface) 55%, transparent); }
@@ -230,9 +230,9 @@
   .bac-feature { border: 1px solid var(--student-border); background: color-mix(in srgb, var(--student-surface-2) 65%, transparent); }
 
   @media (max-width: 639px) {
-    .landing-title { max-width: 11.6ch; font-size: clamp(2.3rem, 11vw, 3.15rem); line-height: 1.33; }
-    .landing-copy { font-size: .98rem; line-height: 1.95; }
-    .student-shell h2 { line-height: 1.5; }
+    .landing-title { max-width: 12.8ch; font-size: clamp(2rem, 9.2vw, 2.65rem); line-height: 1.48; letter-spacing: -.012em; }
+    .landing-copy { font-size: .92rem; line-height: 2.08; }
+    .student-shell h2 { line-height: 1.58; }
   }
 
   @media (min-width: 640px) {
@@ -248,7 +248,7 @@
       padding-right: 2rem;
       max-width: 1280px; /* Standard content width */
     }
-    .landing-title { max-width: none; font-size: clamp(2.8rem, 4.45vw, 4.15rem); line-height: 1.32; }
+    .landing-title { max-width: 14.25ch; font-size: clamp(2.45rem, 3.7vw, 3.55rem); line-height: 1.46; }
   }
 }
 
