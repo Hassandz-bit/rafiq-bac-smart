@@ -22,6 +22,8 @@ const mockedReviewQueue = vi.hoisted(() => {
 const mockedReviewMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedSourceVerificationMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedDraftUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedDrafts = vi.hoisted(() => [{ id: 99001, titleAr: "ملاحظة توجيهية أولية", lessonId: 701, sourceId: 30001, componentKey: "guided_note", draftTextAr: "نص مسودة أصلي قابل للتحرير فقط قبل المراجعة.", workflowState: "draft" as const, publicationBlocked: true }]);
 const mockAuth = vi.hoisted(() => ({ role: "academic_reviewer" }));
 const mockedSources = vi.hoisted(() => [{ id: 30001, documentTitle: "نسخة عمل الرياضيات", sourceAuthority: "نسخة عمل مرجعية", subjectNameAr: "الرياضيات", url: "https://example.edu/math", isUserApprovedWorkingReference: true, isInternalPilot: true, verificationStatus: "historical_official" as const, verificationNotes: "الطبعة المرجعية تحتاج تحققًا لاحقًا." }]);
 
@@ -37,13 +39,15 @@ vi.mock("@/lib/trpc", () => ({
       reviewLearningItem: { useMutation: () => mockedReviewMutation },
       updateSourceVerification: { useMutation: () => mockedSourceVerificationMutation },
       createDraftComponent: { useMutation: () => mockedDraftMutation },
+      draftComponents: { useQuery: () => ({ data: mockedDrafts, isLoading: false }) },
+      updateDraftComponent: { useMutation: () => mockedDraftUpdateMutation },
     },
     curriculum: { overview: { useQuery: () => ({ data: { subjects: [] } }) } },
-    useUtils: () => ({ studio: { reviewQueue: { invalidate: vi.fn() }, sourceRegistry: { invalidate: vi.fn() } } }),
+    useUtils: () => ({ studio: { reviewQueue: { invalidate: vi.fn() }, sourceRegistry: { invalidate: vi.fn() }, draftComponents: { invalidate: vi.fn() } } }),
   },
 }));
 
-afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftMutation.mutate.mockReset(); });
+afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
   it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
@@ -67,11 +71,23 @@ describe("طابور مراجعة Content Studio", () => {
     mockAuth.role = "content_editor";
     render(<StudioPage />);
     expect(screen.getByText("مسودة مكوّن مرتبطة بالمصدر")).toBeTruthy();
-    fireEvent.change(screen.getByLabelText("عنوان المسودة"), { target: { value: "ملاحظة توجيهية أصلية" } });
+    fireEvent.change(screen.getByPlaceholderText("مثال: ملاحظة توجيهية"), { target: { value: "ملاحظة توجيهية أصلية" } });
     fireEvent.change(screen.getByLabelText("مفتاح المكوّن"), { target: { value: "guided_note" } });
-    fireEvent.change(screen.getByLabelText("نص المسودة الأصلي"), { target: { value: "هذه مسودة عربية أصلية مرتبطة بالمصدر وتحتاج مراجعة." } });
+    fireEvent.change(screen.getByPlaceholderText("اكتب مسودة عربية أصلية للمراجعة الأكاديمية…"), { target: { value: "هذه مسودة عربية أصلية مرتبطة بالمصدر وتحتاج مراجعة." } });
     fireEvent.click(screen.getByRole("button", { name: "حفظ مسودة مقيدة بالنشر" }));
     expect(mockedDraftMutation.mutate).toHaveBeenCalledWith({ parentLearningItemId: 90001, titleAr: "ملاحظة توجيهية أصلية", componentKey: "guided_note", draftTextAr: "هذه مسودة عربية أصلية مرتبطة بالمصدر وتحتاج مراجعة." });
+    expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
+  });
+
+  it("يسمح للمحرر بتحديث نص وعنوان Draft موجود دون تغيير مصدره أو فتح نشر", () => {
+    mockAuth.role = "content_editor";
+    render(<StudioPage />);
+    expect(screen.getByText("تحديث مسودة قائمة")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("عنوان المسودة المحدث"), { target: { value: "ملاحظة توجيهية محدثة" } });
+    fireEvent.change(screen.getByLabelText("نص المسودة المحدث"), { target: { value: "نص مسودة عربي محدث يظل مقيدًا بالمصدر والمراجعة." } });
+    fireEvent.click(screen.getByRole("button", { name: "حفظ تعديل المسودة" }));
+    expect(mockedDraftUpdateMutation.mutate).toHaveBeenCalledWith({ learningItemId: 99001, titleAr: "ملاحظة توجيهية محدثة", draftTextAr: "نص مسودة عربي محدث يظل مقيدًا بالمصدر والمراجعة." });
+    expect(screen.getAllByText("Draft · قفل النشر")).toHaveLength(2);
     expect(screen.queryByRole("button", { name: /^نشر$/i })).toBeNull();
   });
 });

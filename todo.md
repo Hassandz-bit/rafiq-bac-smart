@@ -60,7 +60,7 @@
 - [ ] Build Hasm MVP: entry, Batch-1 diagnostic, transparent priority score, adaptive plans, 10/20-minute sessions, BAC Sprint, simulation recommendations, and calm final-night prototype.
 - [x] Build a no-sign-in free diagnostic and conversion funnel to the free experience, Season, or Hasm without personal-data storage before consent.
 - [ ] Complete product administration for pricing, subject combinations, access periods, active states, promotions, upgrades, and future local-payment abstraction without activating payment.
-- [ ] Extend automated coverage for Batch 1 access, unpublished hiding, Hasm priority/plans, Season-to-Hasm grants, free-diagnostic transfer, upgrades, and product administration.
+- [x] Extend automated coverage for Batch 1 access, unpublished hiding, Hasm priority/plans, Season-to-Hasm grants, free-diagnostic transfer, upgrades, and product administration.
 - [ ] Run student-account, RTL/mobile, accessibility, performance, production-build, backup/export, SHA/tag, and final phase QA without starting Batch 2.
 - [x] Fix the free-diagnostic mobile RTL overflow and verify the 390px experience remains fully visible and touch-friendly.
 - [x] Assemble a unified internal visual-review board for all Batch 1 visual assets, including unit, concept, source linkage, reviewer status, version, and publication block.
@@ -120,3 +120,4 @@
 - [x] Add a content-editor-only source-linked draft-component creation workflow that defaults to `draft` and has no publication action.
 - [x] Align stored Season-to-Hassem grants with each plan’s active status and administrator-configured subject capacity, including safe upgrade validation.
 - [x] Add an administrator-only non-payment promotion and upgrade audit record that documents an approved manual plan change without collecting payment data.
+- [x] Add a content-editor-only Draft component update workflow that preserves the original lesson/source linkage and cannot modify review or publication state.

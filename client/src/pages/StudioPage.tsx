@@ -21,6 +21,7 @@ function StudioContent() {
   const { user } = useAuth();
   const { data: sources, isLoading } = trpc.studio.sourceRegistry.useQuery();
   const { data: reviewQueue, isLoading: reviewQueueLoading } = trpc.studio.reviewQueue.useQuery();
+  const { data: drafts, isLoading: draftsLoading } = trpc.studio.draftComponents.useQuery({ limit: 50 });
   const utils = trpc.useUtils();
   const curriculum = trpc.curriculum.overview.useQuery();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -45,9 +46,17 @@ function StudioContent() {
   const draftMutation = trpc.studio.createDraftComponent.useMutation({
     onSuccess: async result => {
       await utils.studio.reviewQueue.invalidate();
+      await utils.studio.draftComponents.invalidate();
       toast.success(`أُنشئت المسودة #${result.id} في حالة Draft؛ النشر غير متاح.`);
     },
     onError: error => toast.error(error.message || "تعذر إنشاء المسودة المرتبطة بالمصدر."),
+  });
+  const draftUpdateMutation = trpc.studio.updateDraftComponent.useMutation({
+    onSuccess: async result => {
+      await utils.studio.draftComponents.invalidate();
+      toast.success(`حُدثت المسودة #${result.id} مع بقاء المصدر والحالة وقفل النشر كما هي.`);
+    },
+    onError: error => toast.error(error.message || "تعذر تحديث المسودة."),
   });
 
   const uploadBook = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -140,6 +149,7 @@ function StudioContent() {
             <ReviewOnlyVisualModels />
 
             {canUpload && <DraftComponentEditor parents={reviewQueue ?? []} saving={draftMutation.isPending} onCreate={input => draftMutation.mutate(input)} />}
+            {canUpload && <DraftComponentUpdateEditor drafts={drafts ?? []} loading={draftsLoading} saving={draftUpdateMutation.isPending} onUpdate={input => draftUpdateMutation.mutate(input)} />}
 
             <section className="soft-panel mt-6 overflow-hidden">
               <div className="flex items-center justify-between border-b border-slate-100 p-5"><div><h2 className="font-black">طابور المراجعة الأكاديمية</h2><p className="mt-1 text-xs text-slate-500">قرار بشري موثق: اعتماد أو إعادة للمسودة فقط. لا توجد أي عملية نشر في هذا المسار.</p></div><Badge variant="outline" className="border-blue-100 bg-blue-50 text-blue-700">{reviewQueueLoading ? "جارٍ التحميل" : `${reviewQueue?.length ?? 0} عناصر`}</Badge></div>
@@ -179,6 +189,8 @@ type StudioSource = { id: number; documentTitle: string; verificationStatus: "un
 type SourceVerificationInput = { sourceId: number; verificationStatus: StudioSource["verificationStatus"]; verificationNotes: string };
 type DraftParent = { id: number; titleAr: string; sourceTitle?: string | null };
 type DraftComponentInput = { parentLearningItemId: number; titleAr: string; componentKey: string; draftTextAr: string };
+type EditableDraft = { id: number; titleAr: string; lessonId: number; sourceId: number | null; componentKey: string; draftTextAr: string; workflowState: "draft"; publicationBlocked: boolean };
+type DraftUpdateInput = { learningItemId: number; titleAr: string; draftTextAr: string };
 
 function DraftComponentEditor({ parents, saving, onCreate }: { parents: DraftParent[]; saving: boolean; onCreate: (input: DraftComponentInput) => void }) {
   const [parentId, setParentId] = useState<number | null>(parents[0]?.id ?? null);
@@ -187,6 +199,19 @@ function DraftComponentEditor({ parents, saving, onCreate }: { parents: DraftPar
   const [draftTextAr, setDraftTextAr] = useState("");
   const ready = Boolean(parentId) && titleAr.trim().length >= 3 && componentKey.trim().length >= 2 && draftTextAr.trim().length >= 8;
   return <section className="soft-panel mt-6 overflow-hidden"><div className="border-b border-slate-100 p-5"><h2 className="font-black">مسودة مكوّن مرتبطة بالمصدر</h2><p className="mt-1 text-xs leading-5 text-slate-500">للمحرر أو المدير فقط. ترث المسودة الدرس والمصدر من الحزمة الأب، وتُحفظ دائمًا في Draft مع قفل نشر صريح.</p></div>{parents.length ? <div className="grid gap-4 p-5 md:grid-cols-2"><label className="grid gap-1 text-xs font-bold text-slate-600">الحزمة الأب<select aria-label="الحزمة الأب للمسودة" value={parentId ?? ""} onChange={event => setParentId(Number(event.target.value) || null)} className="h-10 rounded-xl border border-slate-200 bg-white px-2 text-sm">{parents.map(parent => <option key={parent.id} value={parent.id}>{parent.titleAr} · {parent.sourceTitle ?? "مصدر مرتبط"}</option>)}</select></label><label className="grid gap-1 text-xs font-bold text-slate-600">عنوان المسودة<input aria-label="عنوان المسودة" value={titleAr} onChange={event => setTitleAr(event.target.value)} placeholder="مثال: ملاحظة توجيهية" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600">مفتاح المكوّن<input aria-label="مفتاح المكوّن" value={componentKey} onChange={event => setComponentKey(event.target.value)} placeholder="guided_note" className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><div className="flex items-end"><Badge variant="outline" className="mb-2 border-rose-100 bg-rose-50 text-rose-700">Draft · قفل النشر</Badge></div><label className="grid gap-1 text-xs font-bold text-slate-600 md:col-span-2">نص المسودة الأصلي<textarea aria-label="نص المسودة الأصلي" value={draftTextAr} onChange={event => setDraftTextAr(event.target.value)} placeholder="اكتب مسودة عربية أصلية للمراجعة الأكاديمية…" className="min-h-24 rounded-xl border border-slate-200 bg-white p-3 text-sm" /></label><div className="md:col-span-2"><Button disabled={!ready || saving} onClick={() => parentId && onCreate({ parentLearningItemId: parentId, titleAr: titleAr.trim(), componentKey: componentKey.trim(), draftTextAr: draftTextAr.trim() })} className="bg-blue-700 hover:bg-blue-800">{saving ? "جارٍ حفظ المسودة…" : "حفظ مسودة مقيدة بالنشر"}</Button></div></div> : <div className="p-5 text-sm text-slate-500">لا توجد حزمة مراجعة مرتبطة بمصدر يمكن أن ترث منها مسودة جديدة.</div>}</section>;
+}
+
+function DraftComponentUpdateEditor({ drafts, loading, saving, onUpdate }: { drafts: EditableDraft[]; loading: boolean; saving: boolean; onUpdate: (input: DraftUpdateInput) => void }) {
+  const [selectedId, setSelectedId] = useState<number | null>(drafts[0]?.id ?? null);
+  const selected = drafts.find(draft => draft.id === selectedId) ?? drafts[0];
+  return <section className="soft-panel mt-6 overflow-hidden"><div className="border-b border-slate-100 p-5"><h2 className="font-black">تحديث مسودة قائمة</h2><p className="mt-1 text-xs leading-5 text-slate-500">يُسمح بتحديث العنوان والنص الأصلي فقط للمحرر أو المدير. الدرس والمصدر والحالة وقفل النشر غير قابلة للتعديل هنا.</p></div>{loading ? <p className="p-5 text-sm text-slate-500">جارٍ تحميل المسودات…</p> : selected ? <DraftUpdateFields key={selected.id} draft={selected} saving={saving} onUpdate={onUpdate} onSelect={setSelectedId} drafts={drafts} /> : <p className="p-5 text-sm text-slate-500">لا توجد مسودات قابلة للتحديث حاليًا.</p>}</section>;
+}
+
+function DraftUpdateFields({ draft, drafts, saving, onUpdate, onSelect }: { draft: EditableDraft; drafts: EditableDraft[]; saving: boolean; onUpdate: (input: DraftUpdateInput) => void; onSelect: (id: number) => void }) {
+  const [titleAr, setTitleAr] = useState(draft.titleAr);
+  const [draftTextAr, setDraftTextAr] = useState(draft.draftTextAr);
+  const ready = titleAr.trim().length >= 3 && draftTextAr.trim().length >= 8;
+  return <div className="grid gap-4 p-5 md:grid-cols-2"><label className="grid gap-1 text-xs font-bold text-slate-600">المسودة<select aria-label="المسودة المراد تحديثها" value={draft.id} onChange={event => onSelect(Number(event.target.value))} className="h-10 rounded-xl border border-slate-200 bg-white px-2 text-sm">{drafts.map(item => <option key={item.id} value={item.id}>#{item.id} · {item.titleAr}</option>)}</select></label><div className="flex items-end gap-2"><Badge variant="outline" className="mb-2 border-slate-200 bg-slate-50 text-slate-600">درس {draft.lessonId}</Badge><Badge variant="outline" className="mb-2 border-rose-100 bg-rose-50 text-rose-700">Draft · قفل النشر</Badge></div><label className="grid gap-1 text-xs font-bold text-slate-600 md:col-span-2">عنوان المسودة<input aria-label="عنوان المسودة المحدث" value={titleAr} onChange={event => setTitleAr(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm" /></label><label className="grid gap-1 text-xs font-bold text-slate-600 md:col-span-2">نص المسودة الأصلي<textarea aria-label="نص المسودة المحدث" value={draftTextAr} onChange={event => setDraftTextAr(event.target.value)} className="min-h-28 rounded-xl border border-slate-200 bg-white p-3 text-sm" /></label><div className="md:col-span-2"><Button disabled={!ready || saving} onClick={() => onUpdate({ learningItemId: draft.id, titleAr: titleAr.trim(), draftTextAr: draftTextAr.trim() })} className="bg-slate-950 hover:bg-slate-800">{saving ? "جارٍ تحديث المسودة…" : "حفظ تعديل المسودة"}</Button></div></div>;
 }
 
 function SourceVerificationEditor({ source, saving, onSave }: { source: StudioSource; saving: boolean; onSave: (input: SourceVerificationInput) => void }) {

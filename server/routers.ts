@@ -18,7 +18,7 @@ import { reviewLearningItem } from "./contentReview";
 import { getHassemPlanForStudent } from "./hassemStudentPlan";
 import { getHassemFinalMemory, toggleHassemFinalMemory } from "./hassemFinalMemory";
 import { updateSourceVerification } from "./sourceVerification";
-import { createSourceLinkedDraftComponent } from "./draftComponents";
+import { createSourceLinkedDraftComponent, getDraftComponents, updateDraftComponent } from "./draftComponents";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -89,6 +89,14 @@ export const appRouter = router({
         if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "العنصر الأب أو مصدره غير متاح لإنشاء مسودة مرتبطة." });
         return result;
       }),
+    updateDraftComponent: contentEditorProcedure
+      .input(z.object({ learningItemId: z.number().int().positive(), titleAr: z.string().trim().min(3).max(240), draftTextAr: z.string().trim().min(8).max(6000) }))
+      .mutation(async ({ input }) => {
+        const result = await updateDraftComponent(input);
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "المسودة غير متاحة للتعديل." });
+        return result;
+      }),
+    draftComponents: contentStudioProcedure.input(z.object({ limit: z.number().int().min(1).max(100).default(50) }).optional()).query(({ input }) => getDraftComponents(input?.limit ?? 50)),
   }),
   attempts: router({
     accessibleExercises: protectedProcedure.query(({ ctx }) => getStudentAccessibleExercises(ctx.user.id)),

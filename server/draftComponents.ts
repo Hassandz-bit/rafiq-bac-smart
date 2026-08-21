@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { learningItems } from "../drizzle/schema";
 import { getDb } from "./db";
 
@@ -42,4 +42,40 @@ export async function createSourceLinkedDraftComponent(input: {
     publicationBlocked: true as const,
     inheritedSourceId: parent[0].sourceId,
   };
+}
+
+export async function updateDraftComponent(input: { learningItemId: number; titleAr: string; draftTextAr: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const existing = await db
+    .select({ id: learningItems.id, workflowState: learningItems.workflowState, body: learningItems.body, sourceId: learningItems.sourceId, lessonId: learningItems.lessonId })
+    .from(learningItems)
+    .where(eq(learningItems.id, input.learningItemId))
+    .limit(1);
+  if (!existing[0]) return null;
+  if (existing[0].workflowState !== "draft") throw new Error("لا يمكن تعديل مكوّن بعد خروجه من حالة المسودة.");
+
+  const currentBody = typeof existing[0].body === "object" && existing[0].body !== null ? existing[0].body as Record<string, unknown> : {};
+  await db.update(learningItems).set({
+    titleAr: input.titleAr,
+    body: { ...currentBody, draftTextAr: input.draftTextAr, sourceReviewRequired: true, publicationBlocked: true },
+    workflowState: "draft",
+    publishedAt: null,
+  }).where(eq(learningItems.id, input.learningItemId));
+
+  return { id: existing[0].id, workflowState: "draft" as const, publicationBlocked: true as const, sourceId: existing[0].sourceId, lessonId: existing[0].lessonId };
+}
+
+export async function getDraftComponents(limit = 50) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const rows = await db.select({ id: learningItems.id, titleAr: learningItems.titleAr, body: learningItems.body, lessonId: learningItems.lessonId, sourceId: learningItems.sourceId, authoredByUserId: learningItems.authoredByUserId })
+    .from(learningItems)
+    .where(eq(learningItems.workflowState, "draft"))
+    .orderBy(desc(learningItems.id))
+    .limit(Math.min(Math.max(limit, 1), 100));
+  return rows.map(row => {
+    const body = typeof row.body === "object" && row.body !== null ? row.body as Record<string, unknown> : {};
+    return { id: row.id, titleAr: row.titleAr, lessonId: row.lessonId, sourceId: row.sourceId, authoredByUserId: row.authoredByUserId, componentKey: typeof body.componentKey === "string" ? body.componentKey : "draft_component", draftTextAr: typeof body.draftTextAr === "string" ? body.draftTextAr : "", workflowState: "draft" as const, publicationBlocked: body.publicationBlocked === true };
+  });
 }
