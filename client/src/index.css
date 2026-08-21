@@ -207,7 +207,7 @@
   .landing-brand b { font-size: .8rem; }
   .landing-brand small { margin-top: .1rem; color: var(--student-muted); font-size: .58rem; font-weight: 700; }
   .landing-hero { position: relative; }
-  .landing-title { max-width: 13.75ch; font-size: clamp(2.2rem, 4.4vw, 3.75rem); line-height: 1.42; letter-spacing: -.018em; overflow-wrap: anywhere; }
+  .landing-title { max-width: 18ch; font-size: clamp(1.45rem, 2.2vw, 1.85rem); line-height: 1.58; letter-spacing: -.008em; overflow-wrap: anywhere; }
   .landing-title-accent { display: block; margin-top: .2em; color: var(--student-primary); }
   .landing-copy { max-width: 40rem; color: var(--student-muted); font-size: clamp(.94rem, 1.15vw, 1.03rem); line-height: 2.05; }
   .landing-section-title { max-width: 25ch; line-height: 1.58; letter-spacing: -.01em; }
@@ -230,7 +230,7 @@
   .bac-feature { border: 1px solid var(--student-border); background: color-mix(in srgb, var(--student-surface-2) 65%, transparent); }
 
   @media (max-width: 639px) {
-    .landing-title { max-width: 12.8ch; font-size: clamp(2rem, 9.2vw, 2.65rem); line-height: 1.48; letter-spacing: -.012em; }
+    .landing-title { max-width: 18ch; font-size: clamp(1.25rem, 5.8vw, 1.48rem); line-height: 1.65; letter-spacing: -.005em; }
     .landing-copy { font-size: .92rem; line-height: 2.08; }
     .student-shell h2 { line-height: 1.58; }
   }
@@ -248,7 +248,7 @@
       padding-right: 2rem;
       max-width: 1280px; /* Standard content width */
     }
-    .landing-title { max-width: 14.25ch; font-size: clamp(2.45rem, 3.7vw, 3.55rem); line-height: 1.46; }
+    .landing-title { max-width: 18ch; font-size: clamp(1.6rem, 2.1vw, 1.85rem); line-height: 1.6; }
   }
 }
 
