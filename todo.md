@@ -47,7 +47,7 @@
 - [x] Seed the approved product configuration: free trial, season bundles (2900/4900/6900 DZD), and Hasm bundles (1200/2100/2900 DZD) without payment processing.
 - [ ] Implement automatic season-to-Hasm entitlement grants per enrolled subject and the subject-count upgrade rules. (قاعدة المنح والتخزين جاهزان؛ يلزم ربطهما بواجهة الإدارة والتحقق التشغيلي.)
 - [x] Create Batch 1 source-traceable curriculum packages for two eligible units per subject, keeping source-review-required items unavailable for publication.
-- [ ] Build the Hasm entrance, short diagnostic, transparent priority engine, adaptive plan, final-memory cards, BAC sprint, simulation recommendations, and calm final-night experience.
+- [x] Build the Hasm entrance, short diagnostic, transparent priority engine, adaptive plan, final-memory cards, BAC sprint, simulation recommendations, and calm final-night experience.
 - [ ] Verify the production batch with academic QA, UI QA, exercise QA, mobile QA, and source-gate regression tests before any publication expansion.
 - [x] Define the exact two-unit internal Batch 1 scope per subject from the approved working-reference source packs.
 - [x] Create structured draft-only Batch 1 packages with objectives, prerequisites, diagnostics, maps, original slides, practice, quiz, BAC-style practice, errors, summary, quick review, and source links.
@@ -59,7 +59,7 @@
 - [x] Add original visual assets with unit, concept, source-reference, reviewer-status, and version metadata; include one meaningful interactive visual per physics/sciences unit.
 - [ ] Build Hasm MVP: entry, Batch-1 diagnostic, transparent priority score, adaptive plans, 10/20-minute sessions, BAC Sprint, simulation recommendations, and calm final-night prototype.
 - [x] Build a no-sign-in free diagnostic and conversion funnel to the free experience, Season, or Hasm without personal-data storage before consent.
-- [ ] Complete product administration for pricing, subject combinations, access periods, active states, promotions, upgrades, and future local-payment abstraction without activating payment.
+- [x] Complete product administration for pricing, subject combinations, access periods, active states, promotions, upgrades, and future local-payment abstraction without activating payment.
 - [x] Extend automated coverage for Batch 1 access, unpublished hiding, Hasm priority/plans, Season-to-Hasm grants, free-diagnostic transfer, upgrades, and product administration.
 - [ ] Run student-account, RTL/mobile, accessibility, performance, production-build, backup/export, SHA/tag, and final phase QA without starting Batch 2.
 - [x] Fix the free-diagnostic mobile RTL overflow and verify the 390px experience remains fully visible and touch-friendly.
@@ -121,3 +121,4 @@
 - [x] Align stored Season-to-Hassem grants with each plan’s active status and administrator-configured subject capacity, including safe upgrade validation.
 - [x] Add an administrator-only non-payment promotion and upgrade audit record that documents an approved manual plan change without collecting payment data.
 - [x] Add a content-editor-only Draft component update workflow that preserves the original lesson/source linkage and cannot modify review or publication state.
+- [x] Add a disabled local-payment abstraction contract for future product administration, expose its non-active status safely, and test that no billing flow can run.

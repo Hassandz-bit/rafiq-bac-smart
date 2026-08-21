@@ -19,6 +19,7 @@ import { getHassemPlanForStudent } from "./hassemStudentPlan";
 import { getHassemFinalMemory, toggleHassemFinalMemory } from "./hassemFinalMemory";
 import { updateSourceVerification } from "./sourceVerification";
 import { createSourceLinkedDraftComponent, getDraftComponents, updateDraftComponent } from "./draftComponents";
+import { getLocalPaymentStatus } from "./localPaymentAbstraction";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -156,6 +157,7 @@ export const appRouter = router({
   }),
   administration: router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
+    localPaymentStatus: adminOnlyProcedure.query(() => getLocalPaymentStatus()),
     planAssignmentAudit: adminOnlyProcedure.input(z.object({ limit: z.number().int().min(1).max(100).default(30) }).optional()).query(({ input }) => getPlanAssignmentAudit(input?.limit ?? 30)),
     planChangeAudit: adminOnlyProcedure.input(z.object({ limit: z.number().int().min(1).max(100).default(30) }).optional()).query(({ input }) => getPlanChangeAudit(input?.limit ?? 30)),
     updatePlanConfiguration: adminOnlyProcedure

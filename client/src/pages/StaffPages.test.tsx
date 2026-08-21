@@ -14,6 +14,7 @@ vi.mock("@/lib/trpc", () => ({
     useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() }, planAssignmentAudit: { invalidate: vi.fn() }, planChangeAudit: { invalidate: vi.fn() } } }),
     administration: {
       planCatalog: { useQuery: () => ({ data: [{ id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", priceDzd: 2900, durationDays: 0, subjectLimit: 1, subjectBundle: ["math"], isActive: true, entitlements: ["season:subject"] }], isLoading: false }) },
+      localPaymentStatus: { useQuery: () => ({ data: { enabled: false, provider: "none", mode: "manual_only", billingFlowAvailable: false, messageAr: "الدفع الإلكتروني غير مفعّل. تغييرات الخطط تُسجل يدويًا من الإدارة فقط ولا يوجد رابط دفع أو تحصيل.", supportedFutureCapabilities: ["checkout_intent", "payment_confirmation", "webhook_reconciliation"] }, isLoading: false }) },
       planAssignmentAudit: { useQuery: () => ({ data: [{ assignmentId: 9, userId: 42, planCode: "season_one_subject", planNameAr: "باقة الموسم — مادة واحدة", productTier: "season", selectedSubjects: ["math"], isActive: true, assignedAt: new Date(), expiresAt: null, activeEntitlements: [{ userId: 42, entitlement: "season:math", expiresAt: null }, { userId: 42, entitlement: "hasm:math", expiresAt: null }] }], isLoading: false }) },
       planChangeAudit: { useQuery: () => ({ data: [{ id: 8, userId: 42, actorUserId: 1, nextPlanNameAr: "باقة الموسم — مادة واحدة", changeKind: "promotion", noteAr: "عرض داخلي موثق", createdAt: new Date() }], isLoading: false }) },
       grantPlanAccess: { useMutation: () => ({ mutate, isPending: false, data: undefined, error: null }) },
@@ -67,5 +68,13 @@ describe("تعيين خطة الوصول الإداري", () => {
     expect(screen.getByText("Read-only audit")).toBeTruthy();
     expect(screen.getByText("سجل العروض والترقيات الداخلي")).toBeTruthy();
     expect(screen.getByText("عرض داخلي موثق")).toBeTruthy();
+  });
+
+  it("يعرض حد الدفع المحلي كحالة معطلة دون أي زر تحصيل أو بدء دفع", () => {
+    render(<AdminPage />);
+    expect(screen.getByText("حد الدفع المحلي المستقبلي")).toBeTruthy();
+    expect(screen.getByText(/الدفع الإلكتروني غير مفعّل/)).toBeTruthy();
+    expect(screen.getByText("معطّل")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /دفع|checkout|تحصيل/i })).toBeNull();
   });
 });
