@@ -409,6 +409,12 @@ export async function getPartnerOperationsReport() {
   return { mapPartners, referrals: referralRows.map(row => ({ status: row.status, count: Number(row.count) })), commissions: commissionRows.map(row => ({ status: row.status, count: Number(row.count), amountDzd: Number(row.amountDzd) })), payouts: payoutRows.map(row => ({ status: row.status, count: Number(row.count), amountDzd: Number(row.amountDzd) })), generatedFromRealRecords: true as const, automatedTransfersEnabled: false as const };
 }
 
+export async function getPartnerAuditLog(limit = 100) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db.select({ id: partnerAuditLogs.id, partnerId: partnerAuditLogs.partnerId, partnerName: partners.tradeName, partnerInstitution: partners.institutionName, actorUserId: partnerAuditLogs.actorUserId, action: partnerAuditLogs.action, entityType: partnerAuditLogs.entityType, entityId: partnerAuditLogs.entityId, noteAr: partnerAuditLogs.noteAr, createdAt: partnerAuditLogs.createdAt }).from(partnerAuditLogs).leftJoin(partners, eq(partnerAuditLogs.partnerId, partners.id)).orderBy(desc(partnerAuditLogs.createdAt)).limit(limit);
+}
+
 export async function getPartnerNetworkSummary() {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");

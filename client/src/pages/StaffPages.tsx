@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
 import { PartnerFinancePanel } from "@/components/PartnerFinancePanel";
 import { PartnerOperationsPanel } from "@/components/PartnerOperationsPanel";
+import { PartnerAuditPanel } from "@/components/PartnerAuditPanel";
 import { RoleGate } from "@/components/RoleGate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,7 @@ function AdminContent() {
       <PartnerIntakePanel />
       <PartnerFinancePanel />
       <PartnerOperationsPanel />
+      <PartnerAuditPanel />
       <section className="mt-6 rounded-[1.5rem] border border-amber-100 bg-amber-50/70 p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><p className="font-black text-slate-950">حد الدفع المحلي المستقبلي</p><p className="mt-1 max-w-3xl text-sm leading-6 text-slate-700">{isLoadingPaymentStatus ? "جارٍ التحقق من حالة الدفع…" : localPaymentStatus?.messageAr ?? "لا توجد حالة دفع متاحة."}</p><p className="mt-2 text-xs font-bold text-amber-800">المستقبل المدعوم: {localPaymentStatus?.supportedFutureCapabilities.join("، ") ?? "—"}. هذه معلومات هيكلية فقط؛ لا يوجد إنشاء طلب دفع أو تأكيد أو تحصيل.</p></div><Badge variant="outline" className="shrink-0 border-amber-200 bg-white text-amber-800">{localPaymentStatus?.enabled ? "مفعّل" : "معطّل"}</Badge></div></section>
       <section className="mt-6 grid gap-4 md:grid-cols-3">{isLoading ? <div className="soft-panel p-5 text-sm text-slate-500">جارٍ تحميل الخطط…</div> : plans?.map(plan => <ProductConfigCard key={plan.id} plan={plan} />)}</section>
       <section className="mt-6 rounded-[1.5rem] border border-blue-100 bg-white p-5 sm:p-6"><div className="flex gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-100 text-blue-700"><UsersRound className="h-5 w-5" /></div><div><p className="font-black text-slate-950">تعيين خطة وصول داخلي</p><p className="mt-1 text-sm leading-6 text-slate-600">إجراء تشغيلي محمي للمدير: يحفظ تعيين الخطة، ويمنح الحسم تلقائيًا لمواد باقة الموسم نفسها. لا يجمع معلومات دفع ولا يؤكد عملية تحصيل.</p></div></div>

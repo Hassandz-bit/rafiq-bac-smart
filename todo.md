@@ -154,12 +154,12 @@
 - [x] Add advanced but lightweight Micro-interactions for clicks, cards, navigation, progress, and scroll reveals, respecting reduced motion and preserving all existing behavior.
 - [x] Increase the Premium UI typography scale by approximately 25% while preserving RTL balance, readable line-height, responsive layout, and existing behavior.
 - [x] Add an honest launch story and future-vision narrative for Experimental Sciences and its three current subjects across Hero, Landing, materials, plans, and footer without making time-bound promises or adding features, content, prices, or payments.
-- [ ] Build a governed partner-distribution network: public applications, admin review, partner profiles, referrals and QR, configurable marginal commission tiers, manual payout requests, privacy isolation, maps, reports, and audit logs without automated collection or transfer.
+- [x] Build a governed partner-distribution network: public applications, admin review, partner profiles, referrals and QR, configurable marginal commission tiers, manual payout requests, privacy isolation, maps, reports, and audit logs without automated collection or transfer.
 - [x] Implement and test the public partner-application contract plus administrator review and approved-account linking, with no financial, entitlement, or publication side effects.
 - [x] Build an RTL public partner application route with privacy disclosure, validation, and a graceful location-picker fallback.
 - [x] Build an administrator partner-intake queue with deliberate review actions and account linking for a pre-existing OAuth user only.
 - [x] Implement owner-scoped partner profiles, referral links, QR export, and deterministic first-valid referral attribution.
-- [ ] Implement configurable marginal commission tiers, a manual eligible-conversion ledger, reversal safeguards, and no automatic commission creation.
-- [ ] Implement encrypted manual payout destinations, manual payout requests and review, and auditable ledger allocation without payment execution.
-- [ ] Build owner-isolated partner dashboards plus administration reports and map views using real data and honest empty states.
-- [ ] Complete authorization, service, router, UI, RTL, mobile, and build verification for the partner-distribution network.
+- [x] Implement configurable marginal commission tiers, a manual eligible-conversion ledger, reversal safeguards, and no automatic commission creation.
+- [x] Implement encrypted manual payout destinations, manual payout requests and review, and auditable ledger allocation without payment execution.
+- [x] Build owner-isolated partner dashboards plus administration reports and map views using real data and honest empty states.
+- [x] Complete authorization, service, router, UI, RTL, mobile, and build verification for the partner-distribution network.

@@ -27,6 +27,7 @@ vi.mock("@/lib/trpc", () => ({
       partnerCommissionTiers: { useQuery: () => ({ data: [], isLoading: false }) },
       partnerFinanceQueue: { useQuery: () => ({ data: { commissions: [], payouts: [], safeguards: { automatedTransfersEnabled: false, destinationDetailsReturned: false } }, isLoading: false }) },
       partnerOperationsReport: { useQuery: () => ({ data: { mapPartners: [], referrals: [], commissions: [], payouts: [], generatedFromRealRecords: true, automatedTransfersEnabled: false }, isLoading: false }) },
+      partnerAuditLog: { useQuery: () => ({ data: [], isLoading: false }) },
       grantPlanAccess: { useMutation: () => ({ mutate, isPending: false, data: undefined, error: null }) },
       recordReleaseQualityEvidence: { useMutation: () => ({ mutate: qualityEvidenceMutate, isPending: false, data: undefined, error: null }) },
       updatePlanConfiguration: { useMutation: () => ({ mutate: updateMutate, isPending: false, data: undefined, error: null }) },
@@ -35,6 +36,7 @@ vi.mock("@/lib/trpc", () => ({
       reviewPartnerCommission: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
       reviewPartnerPayout: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
       savePartnerCommissionTier: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
+      recordEligiblePartnerConversion: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
     },
   },
 }));
