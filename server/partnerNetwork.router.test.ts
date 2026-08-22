@@ -11,6 +11,7 @@ const partnerNetworkMocks = vi.hoisted(() => ({
   claimCapturedReferral: vi.fn(),
   getPartnerDashboard: vi.fn(),
   getCommissionTiers: vi.fn(),
+  getPartnerOperatingSettings: vi.fn(),
   getPartnerFinanceAdminQueue: vi.fn(),
   getPartnerAuditLog: vi.fn(),
   getPartnerOperationsReport: vi.fn(),
@@ -20,10 +21,12 @@ const partnerNetworkMocks = vi.hoisted(() => ({
   reviewCommission: vi.fn(),
   reviewPayoutRequest: vi.fn(),
   saveCommissionTier: vi.fn(),
+  savePartnerOperatingSettings: vi.fn(),
 }));
 
 vi.mock("./partnerNetwork", () => ({
   partnerTypes: ["support_school", "distribution_office"],
+  partnerPayoutMethods: ["ccp", "baridimob", "bank_transfer", "other"],
   partnerApplicationStatuses: ["pending", "under_review", "approved", "rejected", "needs_information", "cancelled"],
   ...partnerNetworkMocks,
 }));

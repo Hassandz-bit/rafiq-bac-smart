@@ -701,6 +701,29 @@ export const partnerOperatingSettings = mysqlTable("partner_operating_settings",
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+/** Reserved for future partner-credit B. The switch is false and no purchase or fulfillment path is implemented. */
+export const partnerCreditSettings = mysqlTable("partner_credit_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  isEnabled: boolean("isEnabled").default(false).notNull(),
+  updatedByUserId: int("updatedByUserId").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Empty, ownership-scoped balance container for a future B-only credit product. It has no payment or access side effect. */
+export const partnerCreditBalances = mysqlTable(
+  "partner_credit_balances",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").notNull().references(() => partners.id),
+    availableCredits: int("availableCredits").default(0).notNull(),
+    reservedCredits: int("reservedCredits").default(0).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({ partnerUnique: uniqueIndex("partner_credit_balance_partner_unique").on(table.partnerId) }),
+);
+
 /** A monetary ledger record may only originate from a verified eligible conversion; it does not initiate money movement. */
 export const partnerCommissions = mysqlTable(
   "partner_commissions",

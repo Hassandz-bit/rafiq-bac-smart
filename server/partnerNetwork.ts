@@ -6,6 +6,7 @@ import { encryptPayoutDestination, type PayoutMethod } from "./partnerPayoutSecu
 
 export const partnerApplicationStatuses = ["pending", "under_review", "approved", "rejected", "needs_information", "cancelled"] as const;
 export const partnerTypes = ["support_school", "distribution_office"] as const;
+export const partnerPayoutMethods = ["ccp", "baridimob", "bank_transfer", "other"] as const;
 export type PartnerApplicationStatus = typeof partnerApplicationStatuses[number];
 export type PartnerType = typeof partnerTypes[number];
 
@@ -285,6 +286,31 @@ export async function getCommissionTiers() {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
   return db.select().from(partnerCommissionTiers).orderBy(asc(partnerCommissionTiers.partnerType), asc(partnerCommissionTiers.fromEligibleCount));
+}
+
+export async function getPartnerOperatingSettings() {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const [settings] = await db.select().from(partnerOperatingSettings).orderBy(asc(partnerOperatingSettings.id)).limit(1);
+  const payoutMethods = Array.isArray(settings?.payoutMethods)
+    ? settings.payoutMethods.filter((value): value is PayoutMethod => typeof value === "string" && partnerPayoutMethods.includes(value as PayoutMethod))
+    : [...partnerPayoutMethods];
+  return { id: settings?.id ?? null, verificationDays: settings?.verificationDays ?? 7, minimumPayoutDzd: settings?.minimumPayoutDzd ?? 2000, payoutMethods: payoutMethods.length ? payoutMethods : [...partnerPayoutMethods], automatedTransfersEnabled: false as const };
+}
+
+export async function savePartnerOperatingSettings(input: { verificationDays: number; minimumPayoutDzd: number; payoutMethods: PayoutMethod[]; actorUserId: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const payoutMethods = Array.from(new Set(input.payoutMethods));
+  if (!Number.isInteger(input.verificationDays) || input.verificationDays < 0 || input.verificationDays > 365 || !Number.isInteger(input.minimumPayoutDzd) || input.minimumPayoutDzd < 0 || !payoutMethods.length || payoutMethods.some(method => !partnerPayoutMethods.includes(method))) throw new Error("إعدادات التشغيل غير صالحة.");
+  return db.transaction(async tx => {
+    const [previous] = await tx.select().from(partnerOperatingSettings).orderBy(asc(partnerOperatingSettings.id)).limit(1);
+    const values = { verificationDays: input.verificationDays, minimumPayoutDzd: input.minimumPayoutDzd, payoutMethods, updatedByUserId: input.actorUserId };
+    if (previous) await tx.update(partnerOperatingSettings).set(values).where(eq(partnerOperatingSettings.id, previous.id));
+    else await tx.insert(partnerOperatingSettings).values(values);
+    await tx.insert(partnerAuditLogs).values({ actorUserId: input.actorUserId, action: "partner_operating_settings_updated", entityType: "partner_operating_settings", entityId: previous?.id ?? 0, previousData: previous ? { verificationDays: previous.verificationDays, minimumPayoutDzd: previous.minimumPayoutDzd, payoutMethods: previous.payoutMethods } : null, nextData: values, noteAr: "تحديث إعدادات مراجعة وصرف يدوي؛ لا يفعّل تحصيلًا أو تحويلًا آليًا." });
+    return { ...values, automatedTransfersEnabled: false as const };
+  });
 }
 
 export async function saveCommissionTier(input: { id?: number; partnerType: PartnerType; fromEligibleCount: number; toEligibleCount?: number | null; commissionRate: number; isActive: boolean; actorUserId: number }) {

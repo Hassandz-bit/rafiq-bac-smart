@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
 import { PartnerFinancePanel } from "@/components/PartnerFinancePanel";
+import { PartnerOperatingSettingsPanel } from "@/components/PartnerOperatingSettingsPanel";
 import { PartnerOperationsPanel } from "@/components/PartnerOperationsPanel";
 import { PartnerAuditPanel } from "@/components/PartnerAuditPanel";
 import { RoleGate } from "@/components/RoleGate";
@@ -76,6 +77,7 @@ function AdminContent() {
       <ReleaseReadinessPanel readiness={releaseReadiness} loading={isLoadingReadiness} recording={qualityEvidence.isPending} onRecord={input => qualityEvidence.mutate(input)} />
       <PartnerIntakePanel />
       <PartnerFinancePanel />
+      <PartnerOperatingSettingsPanel />
       <PartnerOperationsPanel />
       <PartnerAuditPanel />
       <section className="mt-6 rounded-[1.5rem] border border-amber-100 bg-amber-50/70 p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><p className="font-black text-slate-950">حد الدفع المحلي المستقبلي</p><p className="mt-1 max-w-3xl text-sm leading-6 text-slate-700">{isLoadingPaymentStatus ? "جارٍ التحقق من حالة الدفع…" : localPaymentStatus?.messageAr ?? "لا توجد حالة دفع متاحة."}</p><p className="mt-2 text-xs font-bold text-amber-800">المستقبل المدعوم: {localPaymentStatus?.supportedFutureCapabilities.join("، ") ?? "—"}. هذه معلومات هيكلية فقط؛ لا يوجد إنشاء طلب دفع أو تأكيد أو تحصيل.</p></div><Badge variant="outline" className="shrink-0 border-amber-200 bg-white text-amber-800">{localPaymentStatus?.enabled ? "مفعّل" : "معطّل"}</Badge></div></section>
