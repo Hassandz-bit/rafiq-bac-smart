@@ -105,4 +105,10 @@ describe("partner network tRPC contract", () => {
     expect(partnerNetworkMocks.claimCapturedReferral).toHaveBeenCalledWith({ visitorToken: "8d5ec5bd-55ef-4e5f-9630-0f10cb5920ba", userId: 41 });
     await expect(callerFor("student").partners.me()).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
+
+  it("preserves the server-side self-referral block without exposing a partner-only route", async () => {
+    partnerNetworkMocks.claimCapturedReferral.mockResolvedValue({ claimed: false, reason: "self_referral_blocked", referralId: 9, partnerId: 33, status: "invalid" });
+    await expect(callerFor("partner").partners.claimCapturedReferral({ visitorToken: "8d5ec5bd-55ef-4e5f-9630-0f10cb5920ba" })).resolves.toMatchObject({ claimed: false, reason: "self_referral_blocked", status: "invalid" });
+    expect(partnerNetworkMocks.claimCapturedReferral).toHaveBeenCalledWith({ visitorToken: "8d5ec5bd-55ef-4e5f-9630-0f10cb5920ba", userId: 41 });
+  });
 });
