@@ -81,8 +81,16 @@ describe("partner network tRPC contract", () => {
   it("denies partner-network administration to non-admin users", async () => {
     await expect(callerFor("student").administration.partnerApplications()).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(callerFor("partner").administration.reviewPartnerApplication({ applicationId: 8, status: "approved" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(callerFor("student").administration.partnerOperatingSettings()).rejects.toMatchObject({ code: "FORBIDDEN" });
     expect(partnerNetworkMocks.getAdminPartnerApplications).not.toHaveBeenCalled();
     expect(partnerNetworkMocks.reviewPartnerApplication).not.toHaveBeenCalled();
+  });
+
+  it("يحصر إعدادات التحقق والصرف اليدوي في المدير ولا يمرر أي أمر تحويل", async () => {
+    partnerNetworkMocks.savePartnerOperatingSettings.mockResolvedValue({ verificationDays: 7, minimumPayoutDzd: 2000, payoutMethods: ["ccp", "baridimob"], automatedTransfersEnabled: false });
+    await expect(callerFor("student").administration.savePartnerOperatingSettings({ verificationDays: 7, minimumPayoutDzd: 2000, payoutMethods: ["ccp"] })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await callerFor("admin").administration.savePartnerOperatingSettings({ verificationDays: 7, minimumPayoutDzd: 2000, payoutMethods: ["ccp", "baridimob"] });
+    expect(partnerNetworkMocks.savePartnerOperatingSettings).toHaveBeenCalledWith({ verificationDays: 7, minimumPayoutDzd: 2000, payoutMethods: ["ccp", "baridimob"], actorUserId: 41 });
   });
 
   it("passes the authenticated admin as the reviewer and link actor", async () => {
