@@ -14,7 +14,7 @@ vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="ا�
 vi.mock("wouter", () => ({ useLocation: () => ["/admin", vi.fn()] }));
 vi.mock("@/lib/trpc", () => ({
   trpc: {
-    useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() }, planAssignmentAudit: { invalidate: vi.fn() }, planChangeAudit: { invalidate: vi.fn() }, releaseReadiness: { invalidate: vi.fn() }, partnerApplications: { invalidate: vi.fn() }, partnerNetworkSummary: { invalidate: vi.fn() } } }),
+    useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() }, planAssignmentAudit: { invalidate: vi.fn() }, planChangeAudit: { invalidate: vi.fn() }, releaseReadiness: { invalidate: vi.fn() }, partnerApplications: { invalidate: vi.fn() }, partnerNetworkSummary: { invalidate: vi.fn() }, partnerCommissionTiers: { invalidate: vi.fn() }, partnerFinanceQueue: { invalidate: vi.fn() } } }),
     administration: {
       planCatalog: { useQuery: () => ({ data: [{ id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", priceDzd: 2900, durationDays: 0, subjectLimit: 1, subjectBundle: ["math"], isActive: true, entitlements: ["season:subject"] }], isLoading: false }) },
       localPaymentStatus: { useQuery: () => ({ data: { enabled: false, provider: "none", mode: "manual_only", billingFlowAvailable: false, messageAr: "الدفع الإلكتروني غير مفعّل. تغييرات الخطط تُسجل يدويًا من الإدارة فقط ولا يوجد رابط دفع أو تحصيل.", supportedFutureCapabilities: ["checkout_intent", "payment_confirmation", "webhook_reconciliation"] }, isLoading: false }) },
@@ -24,11 +24,17 @@ vi.mock("@/lib/trpc", () => ({
       planChangeAudit: { useQuery: () => ({ data: [{ id: 8, userId: 42, actorUserId: 1, nextPlanNameAr: "باقة الموسم — مادة واحدة", changeKind: "promotion", noteAr: "عرض داخلي موثق", createdAt: new Date() }], isLoading: false }) },
       partnerNetworkSummary: { useQuery: () => ({ data: { pendingApplications: 1, totalPartners: 0, activePartners: 0 }, isLoading: false }) },
       partnerApplications: { useQuery: () => ({ data: [{ id: 77, partnerId: null, partnerType: "support_school", institutionName: "مركز اختبار الشراكة", contactName: "سارة مثال", phone: "0550123456", email: "partner@example.com", wilaya: "الجزائر", commune: "الجزائر الوسطى", latitude: "36.7538000", longitude: "3.0588000", expectedStudentReach: 120, status: "pending", reviewNoteAr: null, internalNoteAr: null, createdAt: new Date(), reviewedAt: null }], isLoading: false }) },
+      partnerCommissionTiers: { useQuery: () => ({ data: [], isLoading: false }) },
+      partnerFinanceQueue: { useQuery: () => ({ data: { commissions: [], payouts: [], safeguards: { automatedTransfersEnabled: false, destinationDetailsReturned: false } }, isLoading: false }) },
+      partnerOperationsReport: { useQuery: () => ({ data: { mapPartners: [], referrals: [], commissions: [], payouts: [], generatedFromRealRecords: true, automatedTransfersEnabled: false }, isLoading: false }) },
       grantPlanAccess: { useMutation: () => ({ mutate, isPending: false, data: undefined, error: null }) },
       recordReleaseQualityEvidence: { useMutation: () => ({ mutate: qualityEvidenceMutate, isPending: false, data: undefined, error: null }) },
       updatePlanConfiguration: { useMutation: () => ({ mutate: updateMutate, isPending: false, data: undefined, error: null }) },
       reviewPartnerApplication: { useMutation: () => ({ mutate: partnerReviewMutate, isPending: false, data: undefined, error: null }) },
       linkPartnerAccount: { useMutation: () => ({ mutate: partnerLinkMutate, isPending: false, data: undefined, error: null }) },
+      reviewPartnerCommission: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
+      reviewPartnerPayout: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
+      savePartnerCommissionTier: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
     },
   },
 }));

@@ -25,7 +25,7 @@ import { archiveStandaloneUnverifiedSourceRecord, createUnverifiedSourceRecord, 
 import { createDraftCurriculumLesson, createDraftCurriculumUnit, getDraftCurriculumLessonsForStudio, getDraftCurriculumUnitsForStudio, updateDraftCurriculumLesson, updateDraftCurriculumUnit } from "./curriculumDrafts";
 import { getReleaseReadinessDashboard } from "./releaseReadiness";
 import { recordReleaseQualityEvidence, releaseQualityCheckKeys } from "./releaseQualityChecks";
-import { captureReferral, claimCapturedReferral, getAdminPartnerApplications, getCommissionTiers, getPartnerDashboard, getPartnerFinanceAdminQueue, getPartnerNetworkSummary, getPartnerPayoutSnapshot, linkPartnerAccount, partnerApplicationStatuses, partnerTypes, recordEligibleConversion, requestPartnerPayout, reviewCommission, reviewPartnerApplication, reviewPayoutRequest, saveCommissionTier, submitPartnerApplication } from "./partnerNetwork";
+import { captureReferral, claimCapturedReferral, getAdminPartnerApplications, getCommissionTiers, getPartnerDashboard, getPartnerFinanceAdminQueue, getPartnerNetworkSummary, getPartnerOperationsReport, getPartnerPayoutSnapshot, linkPartnerAccount, partnerApplicationStatuses, partnerTypes, recordEligibleConversion, requestPartnerPayout, reviewCommission, reviewPartnerApplication, reviewPayoutRequest, saveCommissionTier, submitPartnerApplication } from "./partnerNetwork";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -255,6 +255,7 @@ export const appRouter = router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
     partnerNetworkSummary: adminOnlyProcedure.query(() => getPartnerNetworkSummary()),
     partnerFinanceQueue: adminOnlyProcedure.input(z.object({ limit: z.number().int().min(1).max(200).default(100) }).optional()).query(({ input }) => getPartnerFinanceAdminQueue(input?.limit ?? 100)),
+    partnerOperationsReport: adminOnlyProcedure.query(() => getPartnerOperationsReport()),
     partnerCommissionTiers: adminOnlyProcedure.query(() => getCommissionTiers()),
     savePartnerCommissionTier: adminOnlyProcedure.input(z.object({ id: z.number().int().positive().optional(), partnerType: z.enum(partnerTypes), fromEligibleCount: z.number().int().min(1).max(1_000_000), toEligibleCount: z.number().int().min(1).max(1_000_000).nullable().optional(), commissionRate: z.number().min(0).max(100), isActive: z.boolean() })).mutation(({ ctx, input }) => saveCommissionTier({ ...input, actorUserId: ctx.user.id })),
     recordEligiblePartnerConversion: adminOnlyProcedure.input(z.object({ referralId: z.number().int().positive(), studentPlanAssignmentId: z.number().int().positive(), grossAmountDzd: z.number().int().min(0).max(10_000_000), orderReference: z.string().trim().max(160).optional(), notesAr: z.string().trim().min(10).max(4000) })).mutation(({ ctx, input }) => recordEligibleConversion({ ...input, actorUserId: ctx.user.id })),

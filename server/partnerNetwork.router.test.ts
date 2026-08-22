@@ -12,6 +12,7 @@ const partnerNetworkMocks = vi.hoisted(() => ({
   getPartnerDashboard: vi.fn(),
   getCommissionTiers: vi.fn(),
   getPartnerFinanceAdminQueue: vi.fn(),
+  getPartnerOperationsReport: vi.fn(),
   getPartnerPayoutSnapshot: vi.fn(),
   recordEligibleConversion: vi.fn(),
   requestPartnerPayout: vi.fn(),

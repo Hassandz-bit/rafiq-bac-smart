@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Landmark, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 export function PartnerFinancePanel() {
   const utils = trpc.useUtils();

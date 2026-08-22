@@ -399,6 +399,16 @@ export async function getPartnerFinanceAdminQueue(limit = 100) {
   return { commissions, payouts, safeguards: { automatedTransfersEnabled: false as const, destinationDetailsReturned: false as const } };
 }
 
+export async function getPartnerOperationsReport() {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const mapPartners = await db.select({ id: partners.id, label: partners.tradeName, institutionName: partners.institutionName, partnerType: partners.partnerType, wilaya: partners.wilaya, commune: partners.commune, latitude: partners.latitude, longitude: partners.longitude, status: partners.status }).from(partners).where(and(eq(partners.status, "active"), sql`${partners.latitude} is not null`, sql`${partners.longitude} is not null`));
+  const referralRows = await db.select({ status: partnerReferrals.status, count: sql<number>`count(*)` }).from(partnerReferrals).groupBy(partnerReferrals.status);
+  const commissionRows = await db.select({ status: partnerCommissions.status, count: sql<number>`count(*)`, amountDzd: sql<number>`coalesce(sum(${partnerCommissions.commissionAmountDzd}), 0)` }).from(partnerCommissions).groupBy(partnerCommissions.status);
+  const payoutRows = await db.select({ status: partnerPayoutRequests.status, count: sql<number>`count(*)`, amountDzd: sql<number>`coalesce(sum(${partnerPayoutRequests.amountDzd}), 0)` }).from(partnerPayoutRequests).groupBy(partnerPayoutRequests.status);
+  return { mapPartners, referrals: referralRows.map(row => ({ status: row.status, count: Number(row.count) })), commissions: commissionRows.map(row => ({ status: row.status, count: Number(row.count), amountDzd: Number(row.amountDzd) })), payouts: payoutRows.map(row => ({ status: row.status, count: Number(row.count), amountDzd: Number(row.amountDzd) })), generatedFromRealRecords: true as const, automatedTransfersEnabled: false as const };
+}
+
 export async function getPartnerNetworkSummary() {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
