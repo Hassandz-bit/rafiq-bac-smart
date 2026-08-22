@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { createHash } from "node:crypto";
-import { partnerApplications, partnerAuditLogs, partnerCommissionTiers, partnerCommissions, partnerPayoutAllocations, partnerPayoutRequests, partnerReferralCodes, partnerReferrals, partners, studentPlanAssignments, users } from "../drizzle/schema";
+import { partnerApplications, partnerAuditLogs, partnerCommissionTiers, partnerCommissions, partnerOperatingSettings, partnerPayoutAllocations, partnerPayoutRequests, partnerReferralCodes, partnerReferrals, partners, studentPlanAssignments, users } from "../drizzle/schema";
 import { getDb } from "./db";
 import { encryptPayoutDestination, type PayoutMethod } from "./partnerPayoutSecurity";
 
@@ -375,6 +375,11 @@ export async function requestPartnerPayout(input: { userId: number; commissionId
     const priorAllocations = await tx.select({ commissionId: partnerPayoutAllocations.commissionId }).from(partnerPayoutAllocations).where(inArray(partnerPayoutAllocations.commissionId, ids));
     if (priorAllocations.length) throw new Error("يتضمن الطلب سجل عمولة مخصصًا لطلب صرف سابق.");
     const amountDzd = rows.reduce((sum, row) => sum + row.amountDzd, 0);
+    const [settings] = await tx.select({ minimumPayoutDzd: partnerOperatingSettings.minimumPayoutDzd, payoutMethods: partnerOperatingSettings.payoutMethods }).from(partnerOperatingSettings).orderBy(asc(partnerOperatingSettings.id)).limit(1);
+    const allowedMethods = Array.isArray(settings?.payoutMethods) ? settings.payoutMethods.filter((value): value is PayoutMethod => typeof value === "string" && ["ccp", "baridimob", "bank_transfer", "other"].includes(value)) : ["ccp", "baridimob", "bank_transfer", "other"] as PayoutMethod[];
+    const minimumPayoutDzd = settings?.minimumPayoutDzd ?? 2000;
+    if (!allowedMethods.includes(input.payoutMethod)) throw new Error("طريقة الصرف غير مفعّلة في الإعدادات التشغيلية.");
+    if (amountDzd < minimumPayoutDzd) throw new Error(`الحد الأدنى لطلب الصرف هو ${minimumPayoutDzd.toLocaleString("ar-DZ")} دج.`);
     const encrypted = encryptPayoutDestination(input.payoutMethod, input.destination);
     const created = await tx.insert(partnerPayoutRequests).values({ partnerId: partner.id, amountDzd, payoutMethod: input.payoutMethod, paymentDetailsCiphertext: encrypted.ciphertext, paymentDetailsIv: encrypted.iv, destinationMasked: encrypted.masked, status: "requested" });
     const payoutRequestId = Number(created[0].insertId);

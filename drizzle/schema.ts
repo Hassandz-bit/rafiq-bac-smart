@@ -690,6 +690,17 @@ export const partnerCommissionTiers = mysqlTable(
   table => ({ typeFromUnique: uniqueIndex("partner_commission_tier_type_from_unique").on(table.partnerType, table.fromEligibleCount) }),
 );
 
+/** Singleton-style operating configuration. It governs manual review and payout eligibility only, never a payment rail. */
+export const partnerOperatingSettings = mysqlTable("partner_operating_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  verificationDays: int("verificationDays").default(7).notNull(),
+  minimumPayoutDzd: int("minimumPayoutDzd").default(2000).notNull(),
+  payoutMethods: json("payoutMethods").notNull(),
+  updatedByUserId: int("updatedByUserId").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 /** A monetary ledger record may only originate from a verified eligible conversion; it does not initiate money movement. */
 export const partnerCommissions = mysqlTable(
   "partner_commissions",

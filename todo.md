@@ -173,6 +173,6 @@
 - [x] Align editable product defaults and messaging with the approved season and Hasm prices without enabling payment collection.
 - [ ] Replace tier-based partner defaults with the specified school/office starting rates, verification window, payout minimum, and manual-only payment methods as configurable administration settings.
 - [x] Seed one open, editable 20% school rate and one open, editable 10% distribution-office rate, with no escalation tiers or automatic commission creation.
-- [ ] Extend partner application and profile metadata with business identity, responsible-person role, public links, expected reach, and operational notes while preserving privacy boundaries.
+- [x] Extend partner application and profile metadata with business identity, responsible-person role, public links, expected reach, and operational notes while preserving privacy boundaries.
 - [ ] Add a safe partner-credit B scaffold that excludes purchases, credit pricing, subscription fulfillment, discounts, and automatic payment until separately activated.
 - [ ] Add financial and attribution regression tests for free trials, single/two/three-subject pricing, manual commission eligibility, refunds/reversals, payout thresholds, and A/B mutual exclusion.
