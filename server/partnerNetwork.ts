@@ -238,6 +238,12 @@ export async function claimCapturedReferral(input: { visitorToken: string; userI
     const [captured] = await tx.select({ id: partnerReferrals.id, partnerId: partnerReferrals.partnerId, status: partnerReferrals.status })
       .from(partnerReferrals).where(eq(partnerReferrals.visitorTokenHash, tokenHash)).orderBy(partnerReferrals.firstSeenAt).limit(1);
     if (!captured || captured.status !== "captured") return { claimed: false as const, reason: "no_unclaimed_capture" as const };
+    const [partnerOwner] = await tx.select({ userId: partners.userId }).from(partners).where(eq(partners.id, captured.partnerId)).limit(1);
+    if (partnerOwner?.userId === input.userId) {
+      await tx.update(partnerReferrals).set({ status: "invalid", invalidReasonAr: "مُنع ربط الشريك بإحالته الذاتية." }).where(eq(partnerReferrals.id, captured.id));
+      await tx.insert(partnerAuditLogs).values({ partnerId: captured.partnerId, actorUserId: input.userId, action: "self_referral_blocked", entityType: "partner_referral", entityId: captured.id, previousData: { status: captured.status }, nextData: { status: "invalid" }, noteAr: "مُنع ربط الشريك بإحالته الذاتية؛ لا ينشئ ذلك عمولة أو وصولًا." });
+      return { claimed: false as const, reason: "self_referral_blocked" as const, referralId: captured.id, partnerId: captured.partnerId, status: "invalid" as const };
+    }
     const now = new Date();
     await tx.update(partnerReferrals).set({ userId: input.userId, status: "registered", registeredAt: now, lockedAt: now }).where(eq(partnerReferrals.id, captured.id));
     await tx.insert(partnerAuditLogs).values({ partnerId: captured.partnerId, actorUserId: input.userId, action: "referral_attribution_locked", entityType: "partner_referral", entityId: captured.id, previousData: { status: captured.status }, nextData: { status: "registered" }, noteAr: "تم قفل أول إحالة صحيحة عند التسجيل؛ لا ينشئ ذلك عمولة أو وصولًا." });
@@ -255,11 +261,23 @@ export async function getPartnerDashboard(userId: number) {
   const referralRows = await db.select({ status: partnerReferrals.status, count: sql<number>`count(*)` })
     .from(partnerReferrals).where(eq(partnerReferrals.partnerId, partner.id)).groupBy(partnerReferrals.status);
   const referralSummary = referralRows.reduce<Record<string, number>>((acc, row) => ({ ...acc, [row.status]: Number(row.count) }), {});
+  const [eligibleCountRow] = await db.select({ count: sql<number>`count(*)` }).from(partnerCommissions)
+    .where(and(eq(partnerCommissions.partnerId, partner.id), sql`${partnerCommissions.status} not in ('cancelled', 'reversed')`));
+  const eligibleCount = Number(eligibleCountRow?.count ?? 0);
+  const tiers = await db.select({ id: partnerCommissionTiers.id, fromEligibleCount: partnerCommissionTiers.fromEligibleCount, toEligibleCount: partnerCommissionTiers.toEligibleCount, commissionRate: partnerCommissionTiers.commissionRate })
+    .from(partnerCommissionTiers).where(and(eq(partnerCommissionTiers.partnerType, partner.partnerType), eq(partnerCommissionTiers.isActive, true))).orderBy(asc(partnerCommissionTiers.fromEligibleCount));
+  const currentTier = tiers.filter(tier => tier.fromEligibleCount <= Math.max(eligibleCount, 1) && (tier.toEligibleCount === null || tier.toEligibleCount >= Math.max(eligibleCount, 1))).at(-1) ?? null;
+  const nextTier = tiers.find(tier => tier.fromEligibleCount > eligibleCount) ?? null;
+  const referredSubscribers = await db.select({ studentId: partnerReferrals.userId, assignmentId: studentPlanAssignments.id, productTier: studentPlanAssignments.productTier, assignedAt: studentPlanAssignments.assignedAt, expiresAt: studentPlanAssignments.expiresAt, assignmentActive: studentPlanAssignments.isActive, commissionStatus: partnerCommissions.status })
+    .from(partnerReferrals).innerJoin(studentPlanAssignments, eq(partnerReferrals.userId, studentPlanAssignments.userId)).leftJoin(partnerCommissions, eq(partnerCommissions.studentPlanAssignmentId, studentPlanAssignments.id))
+    .where(and(eq(partnerReferrals.partnerId, partner.id), sql`${partnerReferrals.userId} is not null`)).orderBy(desc(studentPlanAssignments.assignedAt)).limit(30);
   return {
     profile: { id: partner.id, partnerType: partner.partnerType, institutionName: partner.institutionName, tradeName: partner.tradeName, wilaya: partner.wilaya, commune: partner.commune, partnerCode: partner.partnerCode, referralPath: partner.referralUrl, referralActive: partner.referralActive, status: partner.status },
     referralCodes: referralCodes.map(code => ({ ...code, referralPath: referralPath(code.code) })),
     referralSummary,
-    finance: { enabled: false as const, messageAr: "لا توجد عمولات مكتسبة أو طلبات صرف في هذه المرحلة. لا ينشئ تسجيل الإحالة أي عمولة تلقائيًا." },
+    tierProgress: { eligibleCount, currentTier: currentTier ? { id: currentTier.id, rate: Number(currentTier.commissionRate), fromEligibleCount: currentTier.fromEligibleCount, toEligibleCount: currentTier.toEligibleCount } : null, nextTier: nextTier ? { rate: Number(nextTier.commissionRate), fromEligibleCount: nextTier.fromEligibleCount, remainingEligibleCount: Math.max(0, nextTier.fromEligibleCount - eligibleCount) } : null },
+    referredSubscribers: referredSubscribers.map(row => ({ studentId: row.studentId, assignmentId: row.assignmentId, productTier: row.productTier, assignedAt: row.assignedAt, expiresAt: row.expiresAt, isActive: row.assignmentActive, commissionStatus: row.commissionStatus ?? "not_recorded" })),
+    finance: { enabled: false as const, messageAr: "تُعرض العمولات المسجلة والموافق عليها فقط. لا ينشئ تسجيل الإحالة عمولة تلقائيًا، ولا ينفذ النظام تحويلًا آليًا." },
   };
 }
 

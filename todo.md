@@ -163,3 +163,9 @@
 - [x] Implement encrypted manual payout destinations, manual payout requests and review, and auditable ledger allocation without payment execution.
 - [x] Build owner-isolated partner dashboards plus administration reports and map views using real data and honest empty states.
 - [x] Complete authorization, service, router, UI, RTL, mobile, and build verification for the partner-distribution network.
+- [x] Reconcile the attached partner-network specification with the current implementation and document the accepted scope and intentionally deferred payment-only requirements.
+- [ ] Add a configurable attribution-policy record and self-referral protection without changing the existing locked attribution or creating automatic commissions.
+- [ ] Add partner motivational tier progress and a privacy-minimal referred-subscriber view using real eligible records only.
+- [ ] Add a partner welcome and marketing center using referral/QR sharing only, without fabricated promotional assets or customer claims.
+- [ ] Extend administration with honest coverage, territory, and export-ready reports using real records and explicit empty states.
+- [ ] Add edge-case tests for marginal tier boundaries, self-referral, attribution lock, reversal, partner isolation, and mobile regression.
