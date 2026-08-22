@@ -388,6 +388,17 @@ export async function reviewPayoutRequest(input: { payoutRequestId: number; acti
   });
 }
 
+/** Administrative queue intentionally excludes encrypted payout destination data. */
+export async function getPartnerFinanceAdminQueue(limit = 100) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const commissions = await db.select({ id: partnerCommissions.id, partnerId: partnerCommissions.partnerId, partnerName: partners.tradeName, partnerInstitution: partners.institutionName, referralId: partnerCommissions.referralId, assignmentId: partnerCommissions.studentPlanAssignmentId, grossAmountDzd: partnerCommissions.grossAmountDzd, commissionRate: partnerCommissions.commissionRate, commissionAmountDzd: partnerCommissions.commissionAmountDzd, status: partnerCommissions.status, notesAr: partnerCommissions.notesAr, reversalReasonAr: partnerCommissions.reversalReasonAr, createdAt: partnerCommissions.createdAt })
+    .from(partnerCommissions).innerJoin(partners, eq(partnerCommissions.partnerId, partners.id)).orderBy(desc(partnerCommissions.createdAt)).limit(limit);
+  const payouts = await db.select({ id: partnerPayoutRequests.id, partnerId: partnerPayoutRequests.partnerId, partnerName: partners.tradeName, partnerInstitution: partners.institutionName, amountDzd: partnerPayoutRequests.amountDzd, payoutMethod: partnerPayoutRequests.payoutMethod, destinationMasked: partnerPayoutRequests.destinationMasked, status: partnerPayoutRequests.status, requestedAt: partnerPayoutRequests.requestedAt, reviewNoteAr: partnerPayoutRequests.reviewNoteAr, paymentReference: partnerPayoutRequests.paymentReference })
+    .from(partnerPayoutRequests).innerJoin(partners, eq(partnerPayoutRequests.partnerId, partners.id)).orderBy(desc(partnerPayoutRequests.requestedAt)).limit(limit);
+  return { commissions, payouts, safeguards: { automatedTransfersEnabled: false as const, destinationDetailsReturned: false as const } };
+}
+
 export async function getPartnerNetworkSummary() {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");

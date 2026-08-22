@@ -11,6 +11,7 @@ const partnerNetworkMocks = vi.hoisted(() => ({
   claimCapturedReferral: vi.fn(),
   getPartnerDashboard: vi.fn(),
   getCommissionTiers: vi.fn(),
+  getPartnerFinanceAdminQueue: vi.fn(),
   getPartnerPayoutSnapshot: vi.fn(),
   recordEligibleConversion: vi.fn(),
   requestPartnerPayout: vi.fn(),
