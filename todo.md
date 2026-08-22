@@ -152,3 +152,4 @@
 - [x] Rebuild the landing Hero into a cohesive animated visual system with a stronger introductory title, balanced responsive composition, and an upgraded learning-path diagram without changing routes or access behavior.
 - [x] Execute the approved master UI redesign for «رفيقك الذكي للباك»: unified brand name/tagline, modern navigation, premium landing narrative, student journey, subject progress, learning surfaces, responsive motion, and full QA without changing academic content, prices, payment, roles, or engines.
 - [x] Add advanced but lightweight Micro-interactions for clicks, cards, navigation, progress, and scroll reveals, respecting reduced motion and preserving all existing behavior.
+- [x] Increase the Premium UI typography scale by approximately 25% while preserving RTL balance, readable line-height, responsive layout, and existing behavior.
