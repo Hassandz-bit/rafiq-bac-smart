@@ -6,12 +6,12 @@ import { getPlanCatalog } from "./subscriptions";
 
 const expectedCatalog = [
   { code: "trial_bundle", priceDzd: 0, entitlement: "trial:all", subjectBundle: ["math", "physics", "natural_sciences"] },
-  { code: "season_one_subject", priceDzd: 2900, entitlement: "season:subject", subjectBundle: ["math", "physics", "natural_sciences"] },
-  { code: "season_two_subjects", priceDzd: 4900, entitlement: "season:subjects", subjectBundle: ["math", "physics", "natural_sciences"] },
-  { code: "season_three_subjects", priceDzd: 6900, entitlement: "season:all", subjectBundle: ["math", "physics", "natural_sciences"] },
-  { code: "hasm_one_subject", priceDzd: 1200, entitlement: "hasm:subject", subjectBundle: ["math", "physics", "natural_sciences"] },
-  { code: "hasm_two_subjects", priceDzd: 2100, entitlement: "hasm:subjects", subjectBundle: ["math", "physics", "natural_sciences"] },
-  { code: "hasm_three_subjects", priceDzd: 2900, entitlement: "hasm:all", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "season_one_subject", priceDzd: 2000, entitlement: "season:subject", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "season_two_subjects", priceDzd: 3500, entitlement: "season:subjects", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "season_three_subjects", priceDzd: 5000, entitlement: "season:all", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "hasm_one_subject", priceDzd: 1500, entitlement: "hasm:subject", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "hasm_two_subjects", priceDzd: 2500, entitlement: "hasm:subjects", subjectBundle: ["math", "physics", "natural_sciences"] },
+  { code: "hasm_three_subjects", priceDzd: 3500, entitlement: "hasm:all", subjectBundle: ["math", "physics", "natural_sciences"] },
 ];
 
 const admin = { id: 1, openId: "admin-catalog-verification", email: "admin@example.com", name: "مدير", loginMethod: "manus", role: "admin" as const, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() };
