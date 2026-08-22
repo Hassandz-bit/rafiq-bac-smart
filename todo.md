@@ -153,3 +153,4 @@
 - [x] Execute the approved master UI redesign for «رفيقك الذكي للباك»: unified brand name/tagline, modern navigation, premium landing narrative, student journey, subject progress, learning surfaces, responsive motion, and full QA without changing academic content, prices, payment, roles, or engines.
 - [x] Add advanced but lightweight Micro-interactions for clicks, cards, navigation, progress, and scroll reveals, respecting reduced motion and preserving all existing behavior.
 - [x] Increase the Premium UI typography scale by approximately 25% while preserving RTL balance, readable line-height, responsive layout, and existing behavior.
+- [x] Add an honest launch story and future-vision narrative for Experimental Sciences and its three current subjects across Hero, Landing, materials, plans, and footer without making time-bound promises or adding features, content, prices, or payments.
