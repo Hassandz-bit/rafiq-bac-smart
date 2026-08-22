@@ -167,5 +167,5 @@
 - [x] Document and expose the adopted first-valid attribution policy with self-referral protection, without changing locked attributions or creating automatic commissions.
 - [x] Add partner motivational tier progress and a privacy-minimal referred-subscriber view using real eligible records only.
 - [x] Add a partner welcome and marketing center using referral/QR sharing only, without fabricated promotional assets or customer claims.
-- [ ] Extend administration with honest coverage, territory, and export-ready reports using real records and explicit empty states.
+- [x] Extend administration with honest coverage, territory, and export-ready reports using real records and explicit empty states.
 - [ ] Add edge-case tests for marginal tier boundaries, self-referral, attribution lock, reversal, partner isolation, and mobile regression.
