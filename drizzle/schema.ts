@@ -12,7 +12,7 @@ import {
   varchar,
 } from "drizzle-orm/mysql-core";
 
-export const userRoleValues = ["admin", "content_editor", "academic_reviewer", "student"] as const;
+export const userRoleValues = ["admin", "content_editor", "academic_reviewer", "student", "partner"] as const;
 export const sourceStatusValues = [
   "current_official",
   "official_but_version_unconfirmed",
@@ -36,6 +36,15 @@ export const exerciseTypeValues = [
   "document_analysis",
   "interactive_image",
 ] as const;
+
+export const partnerTypeValues = ["support_school", "distribution_office"] as const;
+export const partnerApplicationStatusValues = ["pending", "under_review", "approved", "rejected", "needs_information", "cancelled"] as const;
+export const partnerStatusValues = ["pending_review", "active", "suspended", "inactive", "rejected"] as const;
+export const referralStatusValues = ["captured", "registered", "eligible", "converted", "invalid", "reversed"] as const;
+export const commissionModelValues = ["marginal_tier", "retroactive_tier"] as const;
+export const commissionStatusValues = ["pending", "approved", "paid", "cancelled", "reversed"] as const;
+export const payoutStatusValues = ["requested", "under_review", "approved", "paid", "rejected"] as const;
+export const payoutMethodValues = ["ccp", "baridimob", "bank_transfer", "other"] as const;
 
 /** Core identity record. A user has one application role in the first release. */
 export const users = mysqlTable("users", {
@@ -542,6 +551,313 @@ export const releaseQualityChecks = mysqlTable(
     recordedAt: timestamp("recordedAt").defaultNow().notNull(),
   },
   table => ({ checkRecordedIndex: index("release_quality_checks_key_recorded_index").on(table.checkKey, table.recordedAt) }),
+);
+
+/** Public applications are intentionally separate from accounts so an institution can apply before it receives partner access. */
+export const partnerApplications = mysqlTable(
+  "partner_applications",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerType: mysqlEnum("partnerType", partnerTypeValues).notNull(),
+    institutionName: varchar("institutionName", { length: 240 }).notNull(),
+    tradeName: varchar("tradeName", { length: 240 }),
+    contactName: varchar("contactName", { length: 180 }).notNull(),
+    contactPosition: varchar("contactPosition", { length: 160 }),
+    phone: varchar("phone", { length: 48 }).notNull(),
+    whatsapp: varchar("whatsapp", { length: 48 }),
+    email: varchar("email", { length: 320 }),
+    wilaya: varchar("wilaya", { length: 120 }).notNull(),
+    commune: varchar("commune", { length: 160 }).notNull(),
+    address: text("address").notNull(),
+    latitude: decimal("latitude", { precision: 10, scale: 7 }).notNull(),
+    longitude: decimal("longitude", { precision: 10, scale: 7 }).notNull(),
+    websiteUrl: varchar("websiteUrl", { length: 1000 }),
+    facebookUrl: varchar("facebookUrl", { length: 1000 }),
+    notes: text("notes"),
+    expectedStudentReach: int("expectedStudentReach").default(0).notNull(),
+    discoverySource: varchar("discoverySource", { length: 240 }),
+    status: mysqlEnum("status", partnerApplicationStatusValues).default("pending").notNull(),
+    reviewNoteAr: text("reviewNoteAr"),
+    internalNoteAr: text("internalNoteAr"),
+    reviewedByUserId: int("reviewedByUserId").references(() => users.id),
+    reviewedAt: timestamp("reviewedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    statusCreatedIndex: index("partner_application_status_created_index").on(table.status, table.createdAt),
+    areaIndex: index("partner_application_area_index").on(table.wilaya, table.commune),
+  }),
+);
+
+/** Active distribution profile. userId remains nullable until an approved applicant is linked to a real OAuth account. */
+export const partners = mysqlTable(
+  "partners",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    applicationId: int("applicationId").references(() => partnerApplications.id),
+    userId: int("userId").references(() => users.id),
+    partnerType: mysqlEnum("partnerType", partnerTypeValues).notNull(),
+    status: mysqlEnum("status", partnerStatusValues).default("pending_review").notNull(),
+    institutionName: varchar("institutionName", { length: 240 }).notNull(),
+    tradeName: varchar("tradeName", { length: 240 }),
+    contactName: varchar("contactName", { length: 180 }).notNull(),
+    contactPosition: varchar("contactPosition", { length: 160 }),
+    phone: varchar("phone", { length: 48 }).notNull(),
+    whatsapp: varchar("whatsapp", { length: 48 }),
+    email: varchar("email", { length: 320 }),
+    wilaya: varchar("wilaya", { length: 120 }).notNull(),
+    commune: varchar("commune", { length: 160 }).notNull(),
+    address: text("address").notNull(),
+    latitude: decimal("latitude", { precision: 10, scale: 7 }).notNull(),
+    longitude: decimal("longitude", { precision: 10, scale: 7 }).notNull(),
+    websiteUrl: varchar("websiteUrl", { length: 1000 }),
+    facebookUrl: varchar("facebookUrl", { length: 1000 }),
+    partnerCode: varchar("partnerCode", { length: 64 }).notNull().unique(),
+    referralUrl: varchar("referralUrl", { length: 1000 }).notNull(),
+    referralActive: boolean("referralActive").default(false).notNull(),
+    commissionModel: mysqlEnum("commissionModel", commissionModelValues).default("marginal_tier").notNull(),
+    joinedAt: timestamp("joinedAt").defaultNow().notNull(),
+    suspendedAt: timestamp("suspendedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    applicationUnique: uniqueIndex("partner_application_unique").on(table.applicationId),
+    userUnique: uniqueIndex("partner_user_unique").on(table.userId),
+    statusAreaIndex: index("partner_status_area_index").on(table.status, table.wilaya, table.commune),
+  }),
+);
+
+export const partnerReferralCodes = mysqlTable(
+  "partner_referral_codes",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").notNull().references(() => partners.id),
+    code: varchar("code", { length: 80 }).notNull().unique(),
+    campaignCode: varchar("campaignCode", { length: 80 }),
+    landingPage: varchar("landingPage", { length: 500 }).default("/").notNull(),
+    isActive: boolean("isActive").default(true).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    deactivatedAt: timestamp("deactivatedAt"),
+  },
+  table => ({ partnerIndex: index("partner_referral_code_partner_index").on(table.partnerId, table.isActive) }),
+);
+
+/** Captures attribution through registration; no commission can be created until an administrator verifies an eligible paid conversion. */
+export const partnerReferrals = mysqlTable(
+  "partner_referrals",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").notNull().references(() => partners.id),
+    referralCodeId: int("referralCodeId").references(() => partnerReferralCodes.id),
+    referralCode: varchar("referralCode", { length: 80 }).notNull(),
+    userId: int("userId").references(() => users.id),
+    visitorTokenHash: varchar("visitorTokenHash", { length: 128 }),
+    campaignCode: varchar("campaignCode", { length: 80 }),
+    landingPage: varchar("landingPage", { length: 500 }),
+    status: mysqlEnum("status", referralStatusValues).default("captured").notNull(),
+    firstSeenAt: timestamp("firstSeenAt").defaultNow().notNull(),
+    registeredAt: timestamp("registeredAt"),
+    eligibleAt: timestamp("eligibleAt"),
+    convertedAt: timestamp("convertedAt"),
+    lockedAt: timestamp("lockedAt"),
+    invalidReasonAr: text("invalidReasonAr"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    visitorTokenHashUnique: uniqueIndex("partner_referral_visitor_token_unique").on(table.visitorTokenHash),
+    userUnique: uniqueIndex("partner_referral_user_unique").on(table.userId),
+    userIndex: index("partner_referral_user_index").on(table.userId, table.status),
+    partnerStatusIndex: index("partner_referral_partner_status_index").on(table.partnerId, table.status),
+  }),
+);
+
+/** Configurable marginal tiers. Existing commission rows snapshot their rate so historical amounts never change automatically. */
+export const partnerCommissionTiers = mysqlTable(
+  "partner_commission_tiers",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerType: mysqlEnum("partnerType", partnerTypeValues).notNull(),
+    fromEligibleCount: int("fromEligibleCount").notNull(),
+    toEligibleCount: int("toEligibleCount"),
+    commissionRate: decimal("commissionRate", { precision: 5, scale: 2 }).notNull(),
+    isActive: boolean("isActive").default(true).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({ typeFromUnique: uniqueIndex("partner_commission_tier_type_from_unique").on(table.partnerType, table.fromEligibleCount) }),
+);
+
+/** A monetary ledger record may only originate from a verified eligible conversion; it does not initiate money movement. */
+export const partnerCommissions = mysqlTable(
+  "partner_commissions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").notNull().references(() => partners.id),
+    referralId: int("referralId").notNull().references(() => partnerReferrals.id),
+    studentUserId: int("studentUserId").notNull().references(() => users.id),
+    studentPlanAssignmentId: int("studentPlanAssignmentId").references(() => studentPlanAssignments.id),
+    orderReference: varchar("orderReference", { length: 160 }),
+    grossAmountDzd: int("grossAmountDzd").notNull(),
+    commissionRate: decimal("commissionRate", { precision: 5, scale: 2 }).notNull(),
+    commissionAmountDzd: int("commissionAmountDzd").notNull(),
+    tierId: int("tierId").notNull().references(() => partnerCommissionTiers.id),
+    status: mysqlEnum("status", commissionStatusValues).default("pending").notNull(),
+    eligibleAt: timestamp("eligibleAt").defaultNow().notNull(),
+    approvedAt: timestamp("approvedAt"),
+    approvedByUserId: int("approvedByUserId").references(() => users.id),
+    reversedAt: timestamp("reversedAt"),
+    reversedByUserId: int("reversedByUserId").references(() => users.id),
+    reversalReasonAr: text("reversalReasonAr"),
+    notesAr: text("notesAr"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    partnerStatusIndex: index("partner_commission_partner_status_index").on(table.partnerId, table.status, table.createdAt),
+    assignmentUnique: uniqueIndex("partner_commission_assignment_unique").on(table.studentPlanAssignmentId),
+  }),
+);
+
+/** Requests are reviewed manually; destination details are stored only as ciphertext and are never returned to a partner feed. */
+export const partnerPayoutRequests = mysqlTable(
+  "partner_payout_requests",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").notNull().references(() => partners.id),
+    amountDzd: int("amountDzd").notNull(),
+    payoutMethod: mysqlEnum("payoutMethod", payoutMethodValues).notNull(),
+    paymentDetailsCiphertext: text("paymentDetailsCiphertext").notNull(),
+    paymentDetailsIv: varchar("paymentDetailsIv", { length: 64 }).notNull(),
+    destinationMasked: varchar("destinationMasked", { length: 180 }).notNull(),
+    status: mysqlEnum("status", payoutStatusValues).default("requested").notNull(),
+    requestedAt: timestamp("requestedAt").defaultNow().notNull(),
+    reviewedAt: timestamp("reviewedAt"),
+    reviewedByUserId: int("reviewedByUserId").references(() => users.id),
+    paidAt: timestamp("paidAt"),
+    paidByUserId: int("paidByUserId").references(() => users.id),
+    paymentReference: varchar("paymentReference", { length: 240 }),
+    reviewNoteAr: text("reviewNoteAr"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({ partnerStatusIndex: index("partner_payout_partner_status_index").on(table.partnerId, table.status, table.requestedAt) }),
+);
+
+export const partnerPayoutAllocations = mysqlTable(
+  "partner_payout_allocations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    payoutRequestId: int("payoutRequestId").notNull().references(() => partnerPayoutRequests.id),
+    commissionId: int("commissionId").notNull().references(() => partnerCommissions.id),
+    allocatedAmountDzd: int("allocatedAmountDzd").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({ commissionUnique: uniqueIndex("partner_payout_allocation_commission_unique").on(table.commissionId) }),
+);
+
+export const partnerAgreements = mysqlTable(
+  "partner_agreements",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").notNull().references(() => partners.id),
+    agreementDate: timestamp("agreementDate").notNull(),
+    commissionPolicy: mysqlEnum("commissionPolicy", commissionModelValues).default("marginal_tier").notNull(),
+    startDate: timestamp("startDate"),
+    endDate: timestamp("endDate"),
+    status: varchar("status", { length: 48 }).default("draft").notNull(),
+    documentReference: varchar("documentReference", { length: 1200 }),
+    approvedByUserId: int("approvedByUserId").references(() => users.id),
+    approvedAt: timestamp("approvedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({ partnerIndex: index("partner_agreement_partner_index").on(table.partnerId, table.status) }),
+);
+
+export const partnerDocuments = mysqlTable(
+  "partner_documents",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").notNull().references(() => partners.id),
+    category: varchar("category", { length: 80 }).notNull(),
+    fileKey: varchar("fileKey", { length: 600 }).notNull(),
+    fileUrl: varchar("fileUrl", { length: 1200 }).notNull(),
+    mimeType: varchar("mimeType", { length: 120 }).notNull(),
+    uploadedByUserId: int("uploadedByUserId").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({ partnerCategoryIndex: index("partner_document_partner_category_index").on(table.partnerId, table.category) }),
+);
+
+export const partnerAssets = mysqlTable(
+  "partner_assets",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").references(() => partners.id),
+    category: varchar("category", { length: 80 }).notNull(),
+    titleAr: varchar("titleAr", { length: 240 }).notNull(),
+    shareCopyAr: text("shareCopyAr"),
+    fileKey: varchar("fileKey", { length: 600 }),
+    fileUrl: varchar("fileUrl", { length: 1200 }),
+    isActive: boolean("isActive").default(true).notNull(),
+    createdByUserId: int("createdByUserId").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({ partnerActiveIndex: index("partner_asset_partner_active_index").on(table.partnerId, table.isActive) }),
+);
+
+export const partnerCampaigns = mysqlTable(
+  "partner_campaigns",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").references(() => partners.id),
+    campaignCode: varchar("campaignCode", { length: 80 }).notNull().unique(),
+    startDate: timestamp("startDate"),
+    endDate: timestamp("endDate"),
+    commissionOverrideRate: decimal("commissionOverrideRate", { precision: 5, scale: 2 }),
+    promoCode: varchar("promoCode", { length: 80 }),
+    status: varchar("status", { length: 48 }).default("draft").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({ partnerStatusIndex: index("partner_campaign_partner_status_index").on(table.partnerId, table.status) }),
+);
+
+export const partnerLeads = mysqlTable(
+  "partner_leads",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    institutionName: varchar("institutionName", { length: 240 }).notNull(),
+    partnerType: mysqlEnum("partnerType", partnerTypeValues).notNull(),
+    wilaya: varchar("wilaya", { length: 120 }).notNull(),
+    commune: varchar("commune", { length: 160 }),
+    contactName: varchar("contactName", { length: 180 }),
+    phone: varchar("phone", { length: 48 }),
+    source: varchar("source", { length: 160 }),
+    status: varchar("status", { length: 48 }).default("lead").notNull(),
+    notesAr: text("notesAr"),
+    createdByUserId: int("createdByUserId").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({ statusAreaIndex: index("partner_lead_status_area_index").on(table.status, table.wilaya, table.commune) }),
+);
+
+export const partnerAuditLogs = mysqlTable(
+  "partner_audit_logs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").references(() => partners.id),
+    actorUserId: int("actorUserId").references(() => users.id),
+    action: varchar("action", { length: 120 }).notNull(),
+    entityType: varchar("entityType", { length: 80 }).notNull(),
+    entityId: int("entityId"),
+    previousData: json("previousData"),
+    nextData: json("nextData"),
+    noteAr: text("noteAr"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({ partnerCreatedIndex: index("partner_audit_partner_created_index").on(table.partnerId, table.createdAt), actionIndex: index("partner_audit_action_index").on(table.action, table.createdAt) }),
 );
 
 export type User = typeof users.$inferSelect;

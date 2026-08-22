@@ -7,12 +7,14 @@ import { AdminPage } from "./StaffPages";
 const mutate = vi.fn();
 const updateMutate = vi.fn();
 const qualityEvidenceMutate = vi.fn();
+const partnerReviewMutate = vi.fn();
+const partnerLinkMutate = vi.fn();
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
 vi.mock("wouter", () => ({ useLocation: () => ["/admin", vi.fn()] }));
 vi.mock("@/lib/trpc", () => ({
   trpc: {
-    useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() }, planAssignmentAudit: { invalidate: vi.fn() }, planChangeAudit: { invalidate: vi.fn() }, releaseReadiness: { invalidate: vi.fn() } } }),
+    useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() }, planAssignmentAudit: { invalidate: vi.fn() }, planChangeAudit: { invalidate: vi.fn() }, releaseReadiness: { invalidate: vi.fn() }, partnerApplications: { invalidate: vi.fn() }, partnerNetworkSummary: { invalidate: vi.fn() } } }),
     administration: {
       planCatalog: { useQuery: () => ({ data: [{ id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", priceDzd: 2900, durationDays: 0, subjectLimit: 1, subjectBundle: ["math"], isActive: true, entitlements: ["season:subject"] }], isLoading: false }) },
       localPaymentStatus: { useQuery: () => ({ data: { enabled: false, provider: "none", mode: "manual_only", billingFlowAvailable: false, messageAr: "الدفع الإلكتروني غير مفعّل. تغييرات الخطط تُسجل يدويًا من الإدارة فقط ولا يوجد رابط دفع أو تحصيل.", supportedFutureCapabilities: ["checkout_intent", "payment_confirmation", "webhook_reconciliation"] }, isLoading: false }) },
@@ -20,14 +22,18 @@ vi.mock("@/lib/trpc", () => ({
       previewPlanAssignment: { useQuery: () => ({ data: { plan: { id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", subjectLimit: 1, durationDays: 0, subjectBundle: ["math"], isActive: true }, productTier: "season", selectedSubjects: ["math"], entitlements: ["season:math", "hasm:math"], expiresAt: null, isDryRun: true }, isLoading: false }) },
       planAssignmentAudit: { useQuery: () => ({ data: [{ assignmentId: 9, userId: 42, planCode: "season_one_subject", planNameAr: "باقة الموسم — مادة واحدة", productTier: "season", selectedSubjects: ["math"], isActive: true, assignedAt: new Date(), expiresAt: null, activeEntitlements: [{ userId: 42, entitlement: "season:math", expiresAt: null }, { userId: 42, entitlement: "hasm:math", expiresAt: null }] }], isLoading: false }) },
       planChangeAudit: { useQuery: () => ({ data: [{ id: 8, userId: 42, actorUserId: 1, nextPlanNameAr: "باقة الموسم — مادة واحدة", changeKind: "promotion", noteAr: "عرض داخلي موثق", createdAt: new Date() }], isLoading: false }) },
+      partnerNetworkSummary: { useQuery: () => ({ data: { pendingApplications: 1, totalPartners: 0, activePartners: 0 }, isLoading: false }) },
+      partnerApplications: { useQuery: () => ({ data: [{ id: 77, partnerId: null, partnerType: "support_school", institutionName: "مركز اختبار الشراكة", contactName: "سارة مثال", phone: "0550123456", email: "partner@example.com", wilaya: "الجزائر", commune: "الجزائر الوسطى", latitude: "36.7538000", longitude: "3.0588000", expectedStudentReach: 120, status: "pending", reviewNoteAr: null, internalNoteAr: null, createdAt: new Date(), reviewedAt: null }], isLoading: false }) },
       grantPlanAccess: { useMutation: () => ({ mutate, isPending: false, data: undefined, error: null }) },
       recordReleaseQualityEvidence: { useMutation: () => ({ mutate: qualityEvidenceMutate, isPending: false, data: undefined, error: null }) },
       updatePlanConfiguration: { useMutation: () => ({ mutate: updateMutate, isPending: false, data: undefined, error: null }) },
+      reviewPartnerApplication: { useMutation: () => ({ mutate: partnerReviewMutate, isPending: false, data: undefined, error: null }) },
+      linkPartnerAccount: { useMutation: () => ({ mutate: partnerLinkMutate, isPending: false, data: undefined, error: null }) },
     },
   },
 }));
 
-afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); });
+afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); partnerReviewMutate.mockReset(); partnerLinkMutate.mockReset(); });
 
 describe("تعيين خطة الوصول الإداري", () => {
   it("يطابق عدد المواد مع الخطة ويرسل تعيين موسم يحفظ منحه المشتقة", () => {
@@ -109,5 +115,17 @@ describe("تعيين خطة الوصول الإداري", () => {
     expect(screen.getByText(/هذه المعاينة لا تحفظ تعيينًا ولا تمنح وصولًا/)).toBeTruthy();
     expect(screen.getAllByText(/season:math، hasm:math/)).toHaveLength(2);
     expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("يعرض طلب الشراكة للمدير ويرسل قرار مراجعة فقط دون إنشاء دفع أو وصول", () => {
+    render(<AdminPage />);
+    expect(screen.getByText("مركز طلبات الشراكة")).toBeTruthy();
+    expect(screen.getByText("مركز اختبار الشراكة")).toBeTruthy();
+    expect(screen.getByText("طلبات جديدة")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("ملاحظة طلب 77"), { target: { value: "يرجى تزويدنا باسم المسؤول المفوض." } });
+    fireEvent.click(screen.getByRole("button", { name: "طلب معلومات" }));
+    expect(partnerReviewMutate).toHaveBeenCalledWith({ applicationId: 77, status: "needs_information", reviewNoteAr: "يرجى تزويدنا باسم المسؤول المفوض." });
+    expect(partnerLinkMutate).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: /دفع|تحصيل|منح وصول/i })).toBeNull();
   });
 });

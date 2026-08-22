@@ -25,6 +25,7 @@ import { archiveStandaloneUnverifiedSourceRecord, createUnverifiedSourceRecord, 
 import { createDraftCurriculumLesson, createDraftCurriculumUnit, getDraftCurriculumLessonsForStudio, getDraftCurriculumUnitsForStudio, updateDraftCurriculumLesson, updateDraftCurriculumUnit } from "./curriculumDrafts";
 import { getReleaseReadinessDashboard } from "./releaseReadiness";
 import { recordReleaseQualityEvidence, releaseQualityCheckKeys } from "./releaseQualityChecks";
+import { captureReferral, claimCapturedReferral, getAdminPartnerApplications, getCommissionTiers, getPartnerDashboard, getPartnerNetworkSummary, getPartnerPayoutSnapshot, linkPartnerAccount, partnerApplicationStatuses, partnerTypes, recordEligibleConversion, requestPartnerPayout, reviewCommission, reviewPartnerApplication, reviewPayoutRequest, saveCommissionTier, submitPartnerApplication } from "./partnerNetwork";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -54,6 +55,13 @@ const academicReviewerProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next();
 });
 
+const partnerOnlyProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "partner") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "هذه المساحة مخصصة للشريك المفعّل فقط." });
+  }
+  return next();
+});
+
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
@@ -66,6 +74,16 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+  partners: router({
+    submitApplication: publicProcedure
+      .input(z.object({ partnerType: z.enum(partnerTypes), institutionName: z.string().trim().min(3).max(240), tradeName: z.string().trim().max(240).optional(), contactName: z.string().trim().min(3).max(180), contactPosition: z.string().trim().max(160).optional(), phone: z.string().trim().min(6).max(48), whatsapp: z.string().trim().max(48).optional(), email: z.string().trim().email().max(320).optional(), wilaya: z.string().trim().min(2).max(120), commune: z.string().trim().min(2).max(160), address: z.string().trim().min(5).max(4000), latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180), websiteUrl: z.string().trim().url().max(1000).optional(), facebookUrl: z.string().trim().url().max(1000).optional(), notes: z.string().trim().max(4000).optional(), expectedStudentReach: z.number().int().min(0).max(1_000_000).optional(), discoverySource: z.string().trim().max(240).optional() }))
+      .mutation(({ input }) => submitPartnerApplication({ ...input, latitude: input.latitude.toFixed(7), longitude: input.longitude.toFixed(7) })),
+    captureReferral: publicProcedure.input(z.object({ code: z.string().trim().min(3).max(80), visitorToken: z.string().min(32).max(128).regex(/^[A-Za-z0-9-]+$/), landingPage: z.string().trim().max(500).optional() })).mutation(({ input }) => captureReferral(input)),
+    claimCapturedReferral: protectedProcedure.input(z.object({ visitorToken: z.string().min(32).max(128).regex(/^[A-Za-z0-9-]+$/) })).mutation(({ ctx, input }) => claimCapturedReferral({ ...input, userId: ctx.user.id })),
+    me: partnerOnlyProcedure.query(({ ctx }) => getPartnerDashboard(ctx.user.id)),
+    payoutSnapshot: partnerOnlyProcedure.query(({ ctx }) => getPartnerPayoutSnapshot(ctx.user.id)),
+    requestPayout: partnerOnlyProcedure.input(z.object({ commissionIds: z.array(z.number().int().positive()).min(1).max(100), payoutMethod: z.enum(["ccp", "baridimob", "bank_transfer", "other"]), destination: z.string().trim().min(6).max(1000) })).mutation(({ ctx, input }) => requestPartnerPayout({ ...input, userId: ctx.user.id })),
   }),
   curriculum: router({
     overview: publicProcedure.query(() => getCurrentCurriculumOverview()),
@@ -235,6 +253,21 @@ export const appRouter = router({
   }),
   administration: router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
+    partnerNetworkSummary: adminOnlyProcedure.query(() => getPartnerNetworkSummary()),
+    partnerCommissionTiers: adminOnlyProcedure.query(() => getCommissionTiers()),
+    savePartnerCommissionTier: adminOnlyProcedure.input(z.object({ id: z.number().int().positive().optional(), partnerType: z.enum(partnerTypes), fromEligibleCount: z.number().int().min(1).max(1_000_000), toEligibleCount: z.number().int().min(1).max(1_000_000).nullable().optional(), commissionRate: z.number().min(0).max(100), isActive: z.boolean() })).mutation(({ ctx, input }) => saveCommissionTier({ ...input, actorUserId: ctx.user.id })),
+    recordEligiblePartnerConversion: adminOnlyProcedure.input(z.object({ referralId: z.number().int().positive(), studentPlanAssignmentId: z.number().int().positive(), grossAmountDzd: z.number().int().min(0).max(10_000_000), orderReference: z.string().trim().max(160).optional(), notesAr: z.string().trim().min(10).max(4000) })).mutation(({ ctx, input }) => recordEligibleConversion({ ...input, actorUserId: ctx.user.id })),
+    reviewPartnerCommission: adminOnlyProcedure.input(z.object({ commissionId: z.number().int().positive(), action: z.enum(["approve", "reverse"]), noteAr: z.string().trim().min(5).max(4000) })).mutation(({ ctx, input }) => reviewCommission({ ...input, actorUserId: ctx.user.id })),
+    reviewPartnerPayout: adminOnlyProcedure.input(z.object({ payoutRequestId: z.number().int().positive(), action: z.enum(["under_review", "approve", "reject", "record_manual_payment"]), noteAr: z.string().trim().min(5).max(4000), paymentReference: z.string().trim().min(3).max(240).optional() })).mutation(({ ctx, input }) => reviewPayoutRequest({ ...input, actorUserId: ctx.user.id })),
+    partnerApplications: adminOnlyProcedure
+      .input(z.object({ limit: z.number().int().min(1).max(200).default(100) }).optional())
+      .query(({ input }) => getAdminPartnerApplications(input?.limit ?? 100)),
+    reviewPartnerApplication: adminOnlyProcedure
+      .input(z.object({ applicationId: z.number().int().positive(), status: z.enum(partnerApplicationStatuses).exclude(["pending", "cancelled"]), reviewNoteAr: z.string().trim().max(4000).optional(), internalNoteAr: z.string().trim().max(4000).optional() }))
+      .mutation(({ ctx, input }) => reviewPartnerApplication({ ...input, actorUserId: ctx.user.id })),
+    linkPartnerAccount: adminOnlyProcedure
+      .input(z.object({ partnerId: z.number().int().positive(), userId: z.number().int().positive() }))
+      .mutation(({ ctx, input }) => linkPartnerAccount({ ...input, actorUserId: ctx.user.id })),
     localPaymentStatus: adminOnlyProcedure.query(() => getLocalPaymentStatus()),
     releaseReadiness: adminOnlyProcedure.query(() => getReleaseReadinessDashboard()),
     recordReleaseQualityEvidence: adminOnlyProcedure
@@ -252,7 +285,7 @@ export const appRouter = router({
       .input(z.object({ userId: z.number().int().positive(), planCode: z.enum(["season_one_subject", "season_two_subjects", "season_three_subjects", "hasm_one_subject", "hasm_two_subjects", "hasm_three_subjects"]), subjects: z.array(z.enum(["math", "physics", "natural_sciences"])).min(1).max(3), changeKind: z.enum(["manual_assignment", "upgrade", "promotion"]).default("manual_assignment"), noteAr: z.string().trim().max(4000).optional(), expiresAt: z.date().nullable().optional() }))
       .mutation(({ ctx, input }) => grantPlanAccess({ ...input, actorUserId: ctx.user.id })),
     setRole: adminOnlyProcedure
-      .input(z.object({ userId: z.number().int().positive(), role: z.enum(["admin", "content_editor", "academic_reviewer", "student"]) }))
+      .input(z.object({ userId: z.number().int().positive(), role: z.enum(["admin", "content_editor", "academic_reviewer", "student", "partner"]) }))
       .mutation(async ({ input }) => {
         await setUserRole(input.userId, input.role as AppRole);
         return { success: true } as const;

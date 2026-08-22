@@ -8,6 +8,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import FreeDiagnostic from "./pages/FreeDiagnostic";
 import HassemDiagnostic from "./pages/HassemDiagnostic";
+import { ReferralAttributionCapture } from "./components/ReferralAttributionCapture";
 
 const AssessmentLab = lazy(() => import("./pages/AssessmentLab"));
 const BacPage = lazy(() => import("./pages/BacPage"));
@@ -19,6 +20,8 @@ const SubjectsPage = lazy(() => import("./pages/SubjectsPage"));
 const AdminPage = lazy(async () => ({ default: (await import("./pages/StaffPages")).AdminPage }));
 const EditorPage = lazy(async () => ({ default: (await import("./pages/StaffPages")).EditorPage }));
 const ReviewerPage = lazy(async () => ({ default: (await import("./pages/StaffPages")).ReviewerPage }));
+const PartnerApplication = lazy(() => import("./pages/PartnerApplication"));
+const PartnerDashboard = lazy(() => import("./pages/PartnerDashboard"));
 
 function RouteLoadingFallback() {
   return <main dir="rtl" className="flex min-h-screen w-full items-center justify-center bg-background px-5 text-foreground"><div role="status" aria-live="polite" className="rounded-3xl border border-border bg-card px-6 py-5 text-center shadow-2xl"><p className="text-sm font-black text-foreground">جارٍ تجهيز مساحة التعلّم…</p><p className="mt-1 text-xs text-muted-foreground">يُحمّل المسار المطلوب فقط للحفاظ على سرعة البداية.</p></div></main>;
@@ -40,6 +43,8 @@ function Router() {
       <Route path={"/assessment"} component={AssessmentLab} />
       <Route path={"/bac"} component={BacPage} />
       <Route path={"/studio"} component={StudioPage} />
+      <Route path={"/partners/apply"} component={PartnerApplication} />
+      <Route path={"/partner"} component={PartnerDashboard} />
       <Route path={"/editor"} component={EditorPage} />
       <Route path={"/review"} component={ReviewerPage} />
       <Route path={"/admin"} component={AdminPage} />
@@ -65,6 +70,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
+          <ReferralAttributionCapture />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

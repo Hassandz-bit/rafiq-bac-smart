@@ -5,7 +5,7 @@ import { uxCopy } from "@/content/uxCopy";
 import { LockKeyhole, ShieldCheck } from "lucide-react";
 import { Button } from "./ui/button";
 
-type Role = "admin" | "content_editor" | "academic_reviewer" | "student";
+type Role = "admin" | "content_editor" | "academic_reviewer" | "student" | "partner";
 
 export function RoleGate({ allowed, children, title = "هذه المساحة محمية" }: { allowed: Role[]; children: React.ReactNode; title?: string }) {
   const { user, loading } = useAuth();

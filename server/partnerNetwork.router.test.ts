@@ -1,0 +1,105 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { TrpcContext } from "./_core/context";
+
+const partnerNetworkMocks = vi.hoisted(() => ({
+  submitPartnerApplication: vi.fn(),
+  getAdminPartnerApplications: vi.fn(),
+  getPartnerNetworkSummary: vi.fn(),
+  reviewPartnerApplication: vi.fn(),
+  linkPartnerAccount: vi.fn(),
+  captureReferral: vi.fn(),
+  claimCapturedReferral: vi.fn(),
+  getPartnerDashboard: vi.fn(),
+  getCommissionTiers: vi.fn(),
+  getPartnerPayoutSnapshot: vi.fn(),
+  recordEligibleConversion: vi.fn(),
+  requestPartnerPayout: vi.fn(),
+  reviewCommission: vi.fn(),
+  reviewPayoutRequest: vi.fn(),
+  saveCommissionTier: vi.fn(),
+}));
+
+vi.mock("./partnerNetwork", () => ({
+  partnerTypes: ["support_school", "distribution_office"],
+  partnerApplicationStatuses: ["pending", "under_review", "approved", "rejected", "needs_information", "cancelled"],
+  ...partnerNetworkMocks,
+}));
+
+import { appRouter } from "./routers";
+
+type AppUser = NonNullable<TrpcContext["user"]>;
+
+function callerFor(role: AppUser["role"] | null = "student") {
+  const user = role === null ? null : {
+    id: 41,
+    openId: "partner-network-test-user",
+    email: "tester@example.com",
+    name: "Tester",
+    loginMethod: "manus",
+    role,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastSignedIn: new Date(),
+  } as AppUser;
+  return appRouter.createCaller({ user, req: {} as TrpcContext["req"], res: {} as TrpcContext["res"] });
+}
+
+const validApplication = {
+  partnerType: "support_school" as const,
+  institutionName: "ثانوية الاختبار النموذجية",
+  contactName: "أحمد مثال",
+  phone: "0550123456",
+  wilaya: "الجزائر",
+  commune: "الجزائر الوسطى",
+  address: "العنوان التشغيلي الكامل للاختبار",
+  latitude: 36.7538,
+  longitude: 3.0588,
+};
+
+describe("partner network tRPC contract", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("accepts a valid public application and normalizes coordinates for storage", async () => {
+    partnerNetworkMocks.submitPartnerApplication.mockResolvedValue({ applicationId: 12, status: "pending" });
+    await expect(callerFor(null).partners.submitApplication(validApplication)).resolves.toEqual({ applicationId: 12, status: "pending" });
+    expect(partnerNetworkMocks.submitPartnerApplication).toHaveBeenCalledWith(expect.objectContaining({ latitude: "36.7538000", longitude: "3.0588000" }));
+  });
+
+  it("rejects malformed public applications before service execution", async () => {
+    await expect(callerFor(null).partners.submitApplication({ ...validApplication, institutionName: "x" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(partnerNetworkMocks.submitPartnerApplication).not.toHaveBeenCalled();
+  });
+
+  it("denies partner-network administration to non-admin users", async () => {
+    await expect(callerFor("student").administration.partnerApplications()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(callerFor("partner").administration.reviewPartnerApplication({ applicationId: 8, status: "approved" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(partnerNetworkMocks.getAdminPartnerApplications).not.toHaveBeenCalled();
+    expect(partnerNetworkMocks.reviewPartnerApplication).not.toHaveBeenCalled();
+  });
+
+  it("passes the authenticated admin as the reviewer and link actor", async () => {
+    partnerNetworkMocks.reviewPartnerApplication.mockResolvedValue({ applicationId: 8, status: "approved", partnerId: 33, referralActive: true });
+    partnerNetworkMocks.linkPartnerAccount.mockResolvedValue({ partnerId: 33, userId: 91, role: "partner" });
+    const admin = callerFor("admin");
+    await admin.administration.reviewPartnerApplication({ applicationId: 8, status: "approved", reviewNoteAr: "تمت مراجعة الطلب واعتماده تشغيليًا." });
+    await admin.administration.linkPartnerAccount({ partnerId: 33, userId: 91 });
+    expect(partnerNetworkMocks.reviewPartnerApplication).toHaveBeenCalledWith(expect.objectContaining({ applicationId: 8, actorUserId: 41 }));
+    expect(partnerNetworkMocks.linkPartnerAccount).toHaveBeenCalledWith({ partnerId: 33, userId: 91, actorUserId: 41 });
+  });
+
+  it("validates a visitor referral before capture and forwards only the permitted attribution fields", async () => {
+    partnerNetworkMocks.captureReferral.mockResolvedValue({ captured: true, referralId: 9, partnerId: 33, status: "captured" });
+    await expect(callerFor(null).partners.captureReferral({ code: "SCHOOL-9", visitorToken: "8d5ec5bd-55ef-4e5f-9630-0f10cb5920ba", landingPage: "/diagnostic" })).resolves.toMatchObject({ captured: true });
+    expect(partnerNetworkMocks.captureReferral).toHaveBeenCalledWith({ code: "SCHOOL-9", visitorToken: "8d5ec5bd-55ef-4e5f-9630-0f10cb5920ba", landingPage: "/diagnostic" });
+    await expect(callerFor(null).partners.captureReferral({ code: "x", visitorToken: "short" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("locks an existing captured attribution to the authenticated account only", async () => {
+    partnerNetworkMocks.claimCapturedReferral.mockResolvedValue({ claimed: true, referralId: 9, partnerId: 33, status: "registered" });
+    await callerFor("student").partners.claimCapturedReferral({ visitorToken: "8d5ec5bd-55ef-4e5f-9630-0f10cb5920ba" });
+    expect(partnerNetworkMocks.claimCapturedReferral).toHaveBeenCalledWith({ visitorToken: "8d5ec5bd-55ef-4e5f-9630-0f10cb5920ba", userId: 41 });
+    await expect(callerFor("student").partners.me()).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+});
