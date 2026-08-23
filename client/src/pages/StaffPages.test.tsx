@@ -2,7 +2,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AdminPage } from "./StaffPages";
+import { AdminPage, EditorPage, ReviewerPage } from "./StaffPages";
 
 const mutate = vi.fn();
 const updateMutate = vi.fn();
@@ -11,9 +11,10 @@ const partnerReviewMutate = vi.fn();
 const partnerLinkMutate = vi.fn();
 const partnerCreditMutate = vi.fn();
 const reviewerStatusMutate = vi.fn();
+const setLocation = vi.fn();
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
-vi.mock("wouter", () => ({ useLocation: () => ["/admin", vi.fn()] }));
+vi.mock("wouter", () => ({ useLocation: () => ["/admin", setLocation] }));
 vi.mock("@/lib/trpc", () => ({
   trpc: {
     useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() }, planAssignmentAudit: { invalidate: vi.fn() }, planChangeAudit: { invalidate: vi.fn() }, releaseReadiness: { invalidate: vi.fn() }, partnerApplications: { invalidate: vi.fn() }, partnerNetworkSummary: { invalidate: vi.fn() }, partnerCommissionTiers: { invalidate: vi.fn() }, partnerOperatingSettings: { invalidate: vi.fn() }, partnerFinanceQueue: { invalidate: vi.fn() }, academicReviewerDirectory: { invalidate: vi.fn() } } }),
@@ -48,7 +49,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); partnerReviewMutate.mockReset(); partnerLinkMutate.mockReset(); partnerCreditMutate.mockReset(); reviewerStatusMutate.mockReset(); });
+afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); partnerReviewMutate.mockReset(); partnerLinkMutate.mockReset(); partnerCreditMutate.mockReset(); reviewerStatusMutate.mockReset(); setLocation.mockReset(); });
 
 describe("تعيين خطة الوصول الإداري", () => {
   it("يطابق عدد المواد مع الخطة ويرسل تعيين موسم يحفظ منحه المشتقة", () => {
@@ -153,5 +154,19 @@ describe("تعيين خطة الوصول الإداري", () => {
     fireEvent.click(screen.getByRole("button", { name: "إضافة موثقة" }));
     expect(partnerCreditMutate).toHaveBeenCalledWith(expect.objectContaining({ partnerId: 33, entryType: "credit", amount: 12, reasonAr: "تصحيح تشغيلي موثق" }));
     expect(screen.queryByRole("button", { name: /شراء|دفع|تحصيل/i })).toBeNull();
+  });
+});
+
+describe("مداخل مساحة العمل", () => {
+  it("يفتح الاستوديو من مساحة المحرر", () => {
+    render(<EditorPage />);
+    fireEvent.click(screen.getByRole("button", { name: "فتح الاستوديو وإنشاء مسودة" }));
+    expect(setLocation).toHaveBeenCalledWith("/studio");
+  });
+
+  it("يفتح الاستوديو من مساحة المراجع", () => {
+    render(<ReviewerPage />);
+    fireEvent.click(screen.getByRole("button", { name: "فتح طابور المراجعة" }));
+    expect(setLocation).toHaveBeenCalledWith("/studio");
   });
 });

@@ -79,6 +79,16 @@ vi.mock("@/lib/trpc", () => ({
 afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftLessonUpdateMutation.mutate.mockReset(); mockedDraftUnitUpdateMutation.mutate.mockReset(); mockedDraftLessonCreateMutation.mutate.mockReset(); mockedDraftUnitCreateMutation.mutate.mockReset(); mockedStandaloneSourceArchiveMutation.mutate.mockReset(); mockedStandaloneSourceUpdateMutation.mutate.mockReset(); mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
+  it("يعرض التنقل الجانبي كروابط حقيقية للأقسام الداخلية", () => {
+    render(<StudioPage />);
+    expect(screen.getByRole("link", { name: "نظرة عامة" }).getAttribute("href")).toBe("#studio-overview");
+    expect(screen.getByRole("link", { name: "المنهج" }).getAttribute("href")).toBe("#studio-curriculum");
+    expect(screen.getByRole("link", { name: "المراجعات" }).getAttribute("href")).toBe("#studio-reviews");
+    expect(screen.getByRole("link", { name: "سجل المصادر" }).getAttribute("href")).toBe("#studio-sources");
+    expect(document.getElementById("studio-overview")).not.toBeNull();
+    expect(document.getElementById("studio-reviews")).not.toBeNull();
+  });
+
   it("يعرض الوحدات الست ومكوّناتها الـ72 مع قرار مراجعة وقفل النشر دون زر نشر", () => {
     render(<StudioPage />);
     expect(screen.getByText("طابور المراجعة الأكاديمية")).toBeTruthy();

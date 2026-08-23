@@ -194,4 +194,8 @@
 - [ ] Verify Pilot navigation, registration/auth availability, pricing visibility, partner flow, and protected-data boundaries after the readiness UI change.
 - [x] Fix low-contrast text and mathematical rendering in the interactive lesson explanation card across supported themes.
 - [x] Make lesson-format tabs and explanatory icons interactive, keyboard-accessible controls with visible selected-state feedback.
-- [ ] Add regression coverage and desktop/mobile visual verification for lesson-card contrast and tab interaction.
+- [x] Add regression coverage and desktop/mobile visual verification for lesson-card contrast and tab interaction.
+- [x] Inventory every routed screen, visible navigation control, CTA, icon-only action, and role gate in the platform.
+- [ ] Execute a functional and visual audit across public, student-preview, administrator, editor, reviewer, partner, and mobile surfaces.
+- [x] Fix any broken navigation, inert control, invisible icon, contrast issue, or misleading unavailable state found during the audit.
+- [x] Produce an evidence-led Arabic audit report listing verified flows, fixes, remaining human-only checks, and explicit non-claims.

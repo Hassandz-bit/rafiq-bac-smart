@@ -17,5 +17,7 @@ describe("RoleGate mobile RTL shell", () => {
     expect(shell?.className).toContain("w-screen");
     expect(shell?.className).toContain("max-w-[100vw]");
     expect(shell?.className).toContain("overflow-x-hidden");
+    const panel = container.querySelector("section > div");
+    expect(panel?.className).toContain("!bg-white");
   });
 });

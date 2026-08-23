@@ -14,6 +14,12 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    environmentMatchGlobs: [
+      ["client/src/pages/**/*.test.tsx", "jsdom"],
+      ["client/src/pages/**/*.spec.tsx", "jsdom"],
+      ["client/src/components/**/*.test.tsx", "jsdom"],
+      ["client/src/components/**/*.spec.tsx", "jsdom"],
+    ],
     include: ["server/**/*.test.ts", "server/**/*.spec.ts", "client/src/lib/**/*.test.ts", "client/src/lib/**/*.spec.ts", "client/src/pages/**/*.test.ts", "client/src/pages/**/*.spec.ts", "client/src/pages/**/*.test.tsx", "client/src/pages/**/*.spec.tsx", "client/src/components/**/*.test.tsx", "client/src/components/**/*.spec.tsx"],
   },
 });

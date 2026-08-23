@@ -162,18 +162,18 @@ function StudioContent() {
       <div className="grid min-h-[calc(100vh-5rem)] lg:grid-cols-[250px_1fr]">
         <aside className="hidden border-l border-slate-200/70 bg-white p-5 lg:block">
           <p className="mb-4 text-xs font-black tracking-[.15em] text-slate-400">CONTENT STUDIO</p>
-          <StudioNav icon={LibraryBig} label="نظرة عامة" active />
-          <StudioNav icon={BookUp} label="المنهج" />
-          <StudioNav icon={ClipboardList} label="المراجعات" />
-          <StudioNav icon={FileUp} label="سجل المصادر" />
+          <StudioNav icon={LibraryBig} label="نظرة عامة" target="studio-overview" active />
+          <StudioNav icon={BookUp} label="المنهج" target="studio-curriculum" />
+          <StudioNav icon={ClipboardList} label="المراجعات" target="studio-reviews" />
+          <StudioNav icon={FileUp} label="سجل المصادر" target="studio-sources" />
         </aside>
-        <main className="p-5 sm:p-8">
-          <div className="mx-auto max-w-6xl">
+        <main className="min-w-0 overflow-x-hidden p-5 sm:p-8">
+          <div id="studio-overview" className="mx-auto max-w-6xl scroll-mt-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+              <div className="min-w-0">
                 <p className="section-kicker">حوكمة المحتوى</p>
-                <h1 className="mt-2 text-3xl font-black text-slate-950">كل فكرة تحتاج مسار اعتماد.</h1>
-                <p className="mt-2 text-sm text-slate-600">Draft → In Review → Approved → Published. لا يوجد نشر تلقائي بالذكاء الاصطناعي.</p>
+                <h1 className="mt-2 max-w-full break-words text-2xl font-black leading-tight text-slate-950 sm:text-3xl">كل فكرة تحتاج مسار اعتماد.</h1>
+                <p className="mt-2 max-w-full break-words text-sm leading-6 text-slate-600">Draft → In Review → Approved → Published. لا يوجد نشر تلقائي بالذكاء الاصطناعي.</p>
               </div>
               <div>
                 <Button onClick={() => fileInput.current?.click()} disabled={!canUpload || isUploading} className="h-11 rounded-xl bg-blue-700 font-bold hover:bg-blue-800">
@@ -189,7 +189,7 @@ function StudioContent() {
               <Metric icon={CheckCircle2} label="منشور" value="0" sub="الحارس يمنع النشر بلا مصدر" tone="emerald" />
             </section>
 
-            <section className="soft-panel mt-6 overflow-hidden">
+            <section id="studio-sources" className="soft-panel mt-6 scroll-mt-6 overflow-hidden">
               <div className="flex items-center justify-between border-b border-slate-100 p-5">
                 <div><h2 className="font-black">سجل المصادر الرسمي</h2><p className="mt-1 text-xs text-slate-500">يمكن اعتماد المصادر الحالية فقط للنشر الأكاديمي.</p></div>
                 <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">{isLoading ? "جارٍ التحميل" : `${sources?.length ?? 0} سجلات`}</Badge>
@@ -203,11 +203,13 @@ function StudioContent() {
               </div>
             </section>
 
-            {canUpload && <SourceCreateEditor subjects={curriculum.data?.subjects ?? []} saving={sourceCreateMutation.isPending} onCreate={input => sourceCreateMutation.mutate(input)} />}
-            {canUpload && <DraftUnitCreateEditor subjects={curriculum.data?.subjects ?? []} saving={draftUnitCreateMutation.isPending} onCreate={input => draftUnitCreateMutation.mutate(input)} />}
-            {canUpload && <DraftLessonCreateEditor units={draftUnits ?? []} saving={draftLessonCreateMutation.isPending} onCreate={input => draftLessonCreateMutation.mutate(input)} />}
-            {canUpload && <DraftStructureUpdateEditor units={draftUnits ?? []} lessons={draftLessons ?? []} savingUnit={draftUnitUpdateMutation.isPending} savingLesson={draftLessonUpdateMutation.isPending} onUpdateUnit={input => draftUnitUpdateMutation.mutate(input)} onUpdateLesson={input => draftLessonUpdateMutation.mutate(input)} />}
-            {canUpload && <StandaloneSourceUpdateEditor sources={(sources ?? []).filter(source => source.metadataEditable)} saving={standaloneSourceUpdateMutation.isPending} archiving={standaloneSourceArchiveMutation.isPending} onUpdate={input => standaloneSourceUpdateMutation.mutate(input)} onArchive={sourceId => standaloneSourceArchiveMutation.mutate({ sourceId })} />}
+            <div id="studio-curriculum" className="scroll-mt-6">
+              {canUpload && <SourceCreateEditor subjects={curriculum.data?.subjects ?? []} saving={sourceCreateMutation.isPending} onCreate={input => sourceCreateMutation.mutate(input)} />}
+              {canUpload && <DraftUnitCreateEditor subjects={curriculum.data?.subjects ?? []} saving={draftUnitCreateMutation.isPending} onCreate={input => draftUnitCreateMutation.mutate(input)} />}
+              {canUpload && <DraftLessonCreateEditor units={draftUnits ?? []} saving={draftLessonCreateMutation.isPending} onCreate={input => draftLessonCreateMutation.mutate(input)} />}
+              {canUpload && <DraftStructureUpdateEditor units={draftUnits ?? []} lessons={draftLessons ?? []} savingUnit={draftUnitUpdateMutation.isPending} savingLesson={draftLessonUpdateMutation.isPending} onUpdateUnit={input => draftUnitUpdateMutation.mutate(input)} onUpdateLesson={input => draftLessonUpdateMutation.mutate(input)} />}
+              {canUpload && <StandaloneSourceUpdateEditor sources={(sources ?? []).filter(source => source.metadataEditable)} saving={standaloneSourceUpdateMutation.isPending} archiving={standaloneSourceArchiveMutation.isPending} onUpdate={input => standaloneSourceUpdateMutation.mutate(input)} onArchive={sourceId => standaloneSourceArchiveMutation.mutate({ sourceId })} />}
+            </div>
 
             {canReview && <section className="soft-panel mt-6 overflow-hidden">
               <div className="border-b border-slate-100 p-5"><h2 className="font-black">تحقق المصدر</h2><p className="mt-1 text-xs text-slate-500">يسجل المراجع الأدلة وحالة التحقق فقط. لا يملك هذا الإجراء أي مسار للنشر، ولا يمكنه ترقية Pilot داخلي إلى مصدر رسمي حالي.</p></div>
@@ -224,7 +226,7 @@ function StudioContent() {
             {canUpload && <DraftComponentEditor parents={reviewQueue ?? []} saving={draftMutation.isPending} onCreate={input => draftMutation.mutate(input)} />}
             {canUpload && <DraftComponentUpdateEditor drafts={drafts ?? []} loading={draftsLoading} saving={draftUpdateMutation.isPending} submitting={draftReviewSubmissionMutation.isPending} discarding={draftDiscardMutation.isPending} onUpdate={input => draftUpdateMutation.mutate(input)} onSubmitForReview={learningItemId => draftReviewSubmissionMutation.mutate({ learningItemId })} onDiscard={learningItemId => draftDiscardMutation.mutate({ learningItemId })} />}
 
-            <section className="soft-panel mt-6 overflow-hidden">
+            <section id="studio-reviews" className="soft-panel mt-6 scroll-mt-6 overflow-hidden">
               <div className="flex items-center justify-between border-b border-slate-100 p-5"><div><h2 className="font-black">طابور المراجعة الأكاديمية</h2><p className="mt-1 text-xs text-slate-500">قرار بشري موثق: اعتماد أو إعادة للمسودة فقط. لا توجد أي عملية نشر في هذا المسار.</p></div><Badge variant="outline" className="border-blue-100 bg-blue-50 text-blue-700">{reviewQueueLoading ? "جارٍ التحميل" : `${reviewQueue?.length ?? 0} عناصر`}</Badge></div>
               <div className="divide-y divide-slate-100">{reviewQueue?.map(item => <div key={item.id} className="p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold text-slate-900">{item.titleAr}</p><p className="mt-1 text-xs text-slate-500">{item.subjectNameAr} · {item.unitTitleAr} · {item.lessonTitleAr} · {item.type}</p><p className="mt-1 text-xs text-slate-500">{item.sourceTitle ?? "مصدر غير مكتمل"} · {item.sourceAuthority ?? "غير موثق"}</p><p className="mt-2 text-xs font-bold text-slate-600">{item.reviewComponents.length} مكوّنات مسودة فعلية · {item.reviewComponentState === "outline_only" ? "مقيّدة بالنشر حتى الاعتماد" : "تحتاج جردًا"}</p></div><div className="flex flex-wrap gap-2"><Badge className="border-0 bg-violet-50 text-violet-700 hover:bg-violet-50">in_review</Badge><Badge variant="outline" className="border-amber-100 bg-amber-50 text-amber-800">{item.sourceStatus ?? "غير متحقق"}</Badge>{item.isInternalPilot && <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">داخلي</Badge>}{item.publicationBlocked && <Badge variant="outline" className="border-rose-100 bg-rose-50 text-rose-700">قفل الحزمة</Badge>}</div></div><div className="mt-4 grid gap-2 md:grid-cols-2">{item.reviewComponents.map(component => <article key={component.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-black text-slate-800">{reviewComponentLabels[component.componentKey] ?? component.componentKey}</p><div className="flex gap-1.5"><Badge variant="outline" className="border-blue-100 bg-white text-[10px] text-blue-700">{component.workflowState}</Badge><Badge variant="outline" className="border-rose-100 bg-white text-[10px] text-rose-700">قفل النشر</Badge></div></div><p className="mt-2 text-xs leading-5 text-slate-600">{component.draftContentAr ?? "لا توجد حمولة مسودة بعد."}</p><p className="mt-2 text-[10px] font-bold text-slate-500">المصدر: {item.sourceTitle ?? "غير مكتمل"} · سجل {component.sourceId ?? "—"} · {component.contentStatus ?? "مسودة"}</p></article>)}</div></div>)}{!reviewQueueLoading && !reviewQueue?.length && <div className="p-10 text-center text-sm text-slate-500">لا توجد عناصر بانتظار المراجعة حاليًا.</div>}</div>
             </section>
@@ -384,8 +386,8 @@ function OfficialBookIntakeEditor({ upload, saving, onSave }: { upload: Official
   return <div className="p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-bold text-slate-900">{upload.originalFilename}</p><p className="mt-1 text-xs text-slate-500">{upload.subjectNameAr} · رُفع بواسطة المستخدم #{upload.uploadedByUserId} · {upload.sourceTitle ? `مرتبط بالسجل: ${upload.sourceTitle}` : "غير مربوط بسجل مصدر"}</p></div><div className="flex flex-wrap items-center gap-2"><a href={upload.fileUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-700">فتح PDF</a><Badge variant="outline" className="border-rose-100 bg-rose-50 text-rose-700">لا تعديل للمصدر · لا نشر</Badge></div></div><fieldset className="mt-4 grid gap-2 rounded-xl border border-slate-100 bg-slate-50/70 p-3 sm:grid-cols-2 lg:grid-cols-5"><legend className="px-1 text-xs font-black text-slate-700">قائمة فحص الكتاب المرفوع</legend>{Object.entries(officialBookChecklistLabels).map(([key, label]) => <label key={key} className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={checklist[key as keyof OfficialBookChecklist]} onChange={event => setChecklist(current => ({ ...current, [key]: event.target.checked }))} />{label}</label>)}</fieldset><div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"><label className="grid gap-1 text-xs font-bold text-slate-600">حالة فحص الملف<select aria-label={`حالة فحص ${upload.originalFilename}`} value={status} onChange={event => setStatus(event.target.value as StudioSource["verificationStatus"])} className="h-10 rounded-xl border border-slate-200 bg-white px-2 text-xs"><option value="unverified">غير متحقق</option><option value="official_but_version_unconfirmed">رسمي والطبعة غير مؤكدة</option><option value="historical_official">رسمي تاريخي</option><option value="current_official" disabled={!complete}>رسمي حالي (يتطلب اكتمال الفحص)</option></select></label><Button disabled={saving} onClick={() => onSave({ uploadId: upload.id, verificationStatus: status, verificationChecklist: checklist })} className="bg-violet-700 hover:bg-violet-800">{saving ? "جارٍ حفظ الفحص…" : "حفظ فحص الملف فقط"}</Button><p className="text-xs text-slate-500">{complete ? "القائمة مكتملة؛ ما زال سجل المصدر والنشر دون تغيير." : "يمكن حفظ الفحص الناقص، لكن لا يمكن تصنيفه رسميًا حاليًا."}</p></div></div>;
 }
 
-function StudioNav({ icon: Icon, label, active }: { icon: typeof LibraryBig; label: string; active?: boolean }) {
-  return <button className={`mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right text-sm font-bold ${active ? "bg-blue-50 text-blue-800" : "text-slate-500 hover:bg-slate-50"}`}><Icon className="h-4.5 w-4.5" />{label}</button>;
+function StudioNav({ icon: Icon, label, target, active }: { icon: typeof LibraryBig; label: string; target: string; active?: boolean }) {
+  return <a href={`#${target}`} aria-current={active ? "page" : undefined} className={`mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right text-sm font-bold ${active ? "bg-blue-50 text-blue-800" : "text-slate-500 hover:bg-slate-50"}`}><Icon className="h-4.5 w-4.5" />{label}</a>;
 }
 function Metric({ icon: Icon, label, value, sub, tone }: { icon: typeof ShieldAlert; label: string; value: string; sub: string; tone: "amber" | "blue" | "emerald" }) {
   const tones = { amber: "bg-amber-100 text-amber-700", blue: "bg-blue-100 text-blue-700", emerald: "bg-emerald-100 text-emerald-700" };

@@ -321,6 +321,7 @@ export function AIChatBox({
           type="submit"
           size="icon"
           disabled={!input.trim() || isLoading}
+          aria-label={isLoading ? "جارٍ إرسال الرسالة" : "إرسال الرسالة"}
           className="shrink-0 h-[38px] w-[38px]"
         >
           {isLoading ? (
