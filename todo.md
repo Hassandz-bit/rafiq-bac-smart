@@ -192,3 +192,6 @@
 - [x] Add a Pilot readiness indicator that distinguishes technical operability from academic publication status without exposing internal acceptance warnings to students.
 - [x] Improve student-facing empty and unavailable states so no internal release, OAuth, or developer wording appears in learning, exercise, or BAC routes.
 - [ ] Verify Pilot navigation, registration/auth availability, pricing visibility, partner flow, and protected-data boundaries after the readiness UI change.
+- [x] Fix low-contrast text and mathematical rendering in the interactive lesson explanation card across supported themes.
+- [x] Make lesson-format tabs and explanatory icons interactive, keyboard-accessible controls with visible selected-state feedback.
+- [ ] Add regression coverage and desktop/mobile visual verification for lesson-card contrast and tab interaction.
