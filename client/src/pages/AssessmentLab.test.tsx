@@ -6,6 +6,7 @@ import { vi, describe, expect, it } from "vitest";
 const submit = vi.fn();
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("wouter", () => ({ useLocation: () => ["/assessment", vi.fn()] }));
+vi.mock("@/_core/hooks/useAuth", () => ({ useAuth: () => ({ user: { role: "student" } }) }));
 vi.mock("@/lib/trpc", () => ({ trpc: { attempts: { accessibleExercises: { useQuery: () => ({ data: [{ id: 7, type: "mcq", prompt: { textAr: "سؤال معتمد" }, answerDefinition: { choices: [{ labelAr: "الخيار المصدرّي الحقيقي" }] }, hints: ["تلميح مصدر أول"], revealSteps: ["خطوة مصدر أول"], provenance: "official_current" }], isLoading: false }) }, submit: { useMutation: () => ({ mutate: submit, isPending: false }) } } } }));
 
 import AssessmentLab from "./AssessmentLab";

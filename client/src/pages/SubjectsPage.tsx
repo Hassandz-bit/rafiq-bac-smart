@@ -13,7 +13,7 @@ const subjectStyles: Record<SubjectCode, { icon: typeof FunctionSquare; label: s
   natural_sciences: { icon: Leaf, label: "علوم الطبيعة والحياة", className: "subject-sciences", micro: "وثيقة · ترابط · استنتاج" },
 };
 
-export default function SubjectsPage() { return <RoleGate allowed={["student"]} title="مساراتك التعليمية تنتظرك"><SubjectsContent /></RoleGate>; }
+export default function SubjectsPage() { return <RoleGate allowed={["student", "admin"]} title="مساراتك التعليمية تنتظرك"><SubjectsContent /></RoleGate>; }
 
 function SubjectsContent() {
   const { data, isLoading } = trpc.curriculum.overview.useQuery();

@@ -24,11 +24,11 @@ describe("التنقل العام الواعي بالدور", () => {
     expect(state.navigate).toHaveBeenCalledWith("/diagnostic");
   });
 
-  it("يعيد المدير إلى مساحة الإدارة بدل صفحة مواد الطالب", () => {
+  it("يفتح للمدير معاينة المواد بدل إعادته إلى صفحة الإدارة", () => {
     state.user = { role: "admin" };
     render(<Home />);
     fireEvent.click(screen.getByRole("button", { name: /الرياضيات/ }));
-    expect(state.navigate).toHaveBeenCalledWith("/admin");
+    expect(state.navigate).toHaveBeenCalledWith("/subjects");
   });
 
   it("يفتح صفحة المواد للحساب الطالب فقط", () => {
@@ -36,5 +36,12 @@ describe("التنقل العام الواعي بالدور", () => {
     render(<Home />);
     fireEvent.click(screen.getByRole("button", { name: /الرياضيات/ }));
     expect(state.navigate).toHaveBeenCalledWith("/subjects");
+  });
+
+  it("يبقي الشريك في مساحته ولا يفتح له معاينة الطالب", () => {
+    state.user = { role: "partner" };
+    render(<Home />);
+    fireEvent.click(screen.getByRole("button", { name: /الرياضيات/ }));
+    expect(state.navigate).toHaveBeenCalledWith("/partner");
   });
 });

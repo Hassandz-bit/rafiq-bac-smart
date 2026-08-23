@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { uxCopy } from "@/content/uxCopy";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { AlertCircle, ArrowRight, BookMarked, ClipboardList, Gauge, TimerReset } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
@@ -14,17 +15,19 @@ const exerciseTypes: Array<{ label: string; type: ExerciseKind }> = [
 ];
 
 export default function AssessmentLab() {
-  return <RoleGate allowed={["student"]} title="محرك التمارين محمي"><AssessmentContent /></RoleGate>;
+  return <RoleGate allowed={["student", "admin"]} title="محرك التمارين محمي"><AssessmentContent /></RoleGate>;
 }
 
 function AssessmentContent() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const isStudentPreview = user?.role === "student";
   const [activeType, setActiveType] = useState<ExerciseKind>("mcq");
   const [hintsUsed, setHintsUsed] = useState(0);
   const [revealedSteps, setRevealedSteps] = useState(0);
   const [responseReady, setResponseReady] = useState(false);
   const [response, setResponse] = useState<string | string[]>("");
-  const exercises = trpc.attempts.accessibleExercises.useQuery();
+  const exercises = trpc.attempts.accessibleExercises.useQuery(undefined, { enabled: isStudentPreview });
   const submitAttempt = trpc.attempts.submit.useMutation({ onSuccess: (result: { isCorrect: boolean; reviewQueued: boolean }) => toast.success(result.isCorrect ? uxCopy.learning.correct : "قريب جدًا. سجّلنا هذه المحاولة لتعود إليها في الوقت المناسب."), onError: error => toast.error(error.message || uxCopy.system.unexpectedError) });
   const currentExercise = exercises.data?.[0];
   const supportedLiveTypes: ExerciseKind[] = ["mcq", "multi_select", "true_false", "fill", "matching", "ordering", "numeric", "math_expression", "interactive_image"];
@@ -32,7 +35,7 @@ function AssessmentContent() {
   const promptText = typeof currentExercise?.prompt === "object" && currentExercise?.prompt && "textAr" in currentExercise.prompt ? String((currentExercise.prompt as { textAr: unknown }).textAr) : "تمرين معتمد قيد التحميل.";
   const guidanceHints = currentExercise?.hints?.length ? currentExercise.hints : ["ابدأ بتمييز المعطيات عن المطلوب.", "حدد الأداة أو العلاقة التي تناسب المطلوب.", "اكتب الخطوة الأولى بوضوح قبل إكمال الحل."];
   const revealSteps = currentExercise?.revealSteps?.length ? currentExercise.revealSteps : ["اقرأ المطلوب دون القفز إلى النتيجة.", "حدد ما تعرفه وما يلزم إثباته أو حسابه.", "اختر طريقة الحل ثم راجع الوحدة والاستنتاج."];
-  const submitLiveAttempt = () => { if (!currentExercise || !responseReady) return; submitAttempt.mutate({ exerciseId: currentExercise.id, answerPayload: response, hintsUsed, revealedSteps, durationSeconds: 0 }); };
+  const submitLiveAttempt = () => { if (!isStudentPreview || !currentExercise || !responseReady) return; submitAttempt.mutate({ exerciseId: currentExercise.id, answerPayload: response, hintsUsed, revealedSteps, durationSeconds: 0 }); };
   return <div className="assessment-workspace min-h-screen p-5 sm:p-8" dir="rtl"><main className="mx-auto max-w-6xl">
     <button onClick={() => setLocation("/app")} className="learning-back flex items-center gap-2 text-sm font-bold"><ArrowRight className="h-4 w-4" />العودة إلى رحلتك</button>
     <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="student-eyebrow">تدريب وفهم</p><h1 className="learning-title mt-2">{uxCopy.learning.errorTitle}</h1><p className="mt-2 max-w-2xl text-sm leading-7 student-muted">نربط محاولتك بنوع الخطأ والتلميحات والمراجعة التي تساعدك لاحقًا.</p></div><Badge className="learning-source-badge px-3 py-2">ينتظر محتوى معتمدًا</Badge></div>

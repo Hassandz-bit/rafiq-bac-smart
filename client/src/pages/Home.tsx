@@ -27,6 +27,11 @@ export default function Home() {
       setLocation("/diagnostic");
       return;
     }
+    if (user.role === "admin") {
+      const adminPreviewRoute = path === "/hassem" || path === "/bac" ? "/lab" : path === "/app" ? "/subjects" : path;
+      setLocation(adminPreviewRoute);
+      return;
+    }
     setLocation(user.role === "student" ? path : accountRoute);
   };
   return <div className="student-shell landing-shell overflow-hidden" dir="rtl">

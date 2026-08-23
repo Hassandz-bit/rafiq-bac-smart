@@ -186,3 +186,5 @@
 - [ ] Add UI tests, RTL/mobile verification, and release evidence for B-credit administration and partner-owned balance views.
 - [x] Identify and fix navigation entries that direct the current account to forbidden subject or feature routes instead of an available destination.
 - [x] Add regression coverage for public/student navigation and forbidden-role redirect behavior without weakening role-based protection.
+- [x] Allow the administrator to intentionally preview approved student routes from the public materials and learning navigation without granting student routes to other non-student roles.
+- [x] Add regression coverage proving administrator preview works while partner, editor, and reviewer access remains restricted.
