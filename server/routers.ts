@@ -20,6 +20,7 @@ import { getHassemFinalMemory, toggleHassemFinalMemory } from "./hassemFinalMemo
 import { updateSourceVerification } from "./sourceVerification";
 import { createSourceLinkedDraftComponent, discardDraftComponent, getDraftComponents, submitDraftComponentForReview, updateDraftComponent } from "./draftComponents";
 import { getLocalPaymentStatus } from "./localPaymentAbstraction";
+import { getAcademicReviewerDirectory, setAcademicReviewerStatus } from "./reviewerDirectory";
 import { getOfficialBookIntake, reviewOfficialBookUpload } from "./officialBookIntake";
 import { archiveStandaloneUnverifiedSourceRecord, createUnverifiedSourceRecord, updateStandaloneUnverifiedSourceRecord } from "./sourceRecords";
 import { createDraftCurriculumLesson, createDraftCurriculumUnit, getDraftCurriculumLessonsForStudio, getDraftCurriculumUnitsForStudio, updateDraftCurriculumLesson, updateDraftCurriculumUnit } from "./curriculumDrafts";
@@ -254,6 +255,12 @@ export const appRouter = router({
   }),
   administration: router({
     planCatalog: adminOnlyProcedure.query(() => getPlanCatalog()),
+    academicReviewerDirectory: adminOnlyProcedure.query(() => getAcademicReviewerDirectory()),
+    setAcademicReviewerStatus: adminOnlyProcedure.input(z.object({ userId: z.number().int().positive(), enabled: z.boolean() })).mutation(async ({ ctx, input }) => {
+      const result = await setAcademicReviewerStatus({ actorUserId: ctx.user.id, targetUserId: input.userId, enabled: input.enabled });
+      if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "الحساب المحدد غير موجود." });
+      return result;
+    }),
     partnerNetworkSummary: adminOnlyProcedure.query(() => getPartnerNetworkSummary()),
     partnerFinanceQueue: adminOnlyProcedure.input(z.object({ limit: z.number().int().min(1).max(200).default(100) }).optional()).query(({ input }) => getPartnerFinanceAdminQueue(input?.limit ?? 100)),
     partnerOperationsReport: adminOnlyProcedure.query(() => getPartnerOperationsReport()),

@@ -188,3 +188,7 @@
 - [x] Add regression coverage for public/student navigation and forbidden-role redirect behavior without weakening role-based protection.
 - [x] Allow the administrator to intentionally preview approved student routes from the public materials and learning navigation without granting student routes to other non-student roles.
 - [x] Add regression coverage proving administrator preview works while partner, editor, and reviewer access remains restricted.
+- [x] Add an administrator-only reviewer directory that lists registered accounts relevant to academic review without exposing unnecessary personal data.
+- [x] Add administrator-only actions to grant or revoke the academic-reviewer role with audit logging and no ability to grant admin through this center.
+- [x] Add a clear teacher onboarding panel explaining first OAuth sign-in, reviewer access, and the continued publication block.
+- [ ] Test reviewer-directory isolation, role grant/revoke authorization, and the onboarding UI.

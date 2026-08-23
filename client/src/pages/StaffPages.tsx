@@ -5,6 +5,7 @@ import { PartnerCreditAdminPanel } from "@/components/PartnerCreditAdminPanel";
 import { PartnerOperatingSettingsPanel } from "@/components/PartnerOperatingSettingsPanel";
 import { PartnerOperationsPanel } from "@/components/PartnerOperationsPanel";
 import { PartnerAuditPanel } from "@/components/PartnerAuditPanel";
+import { AcademicReviewerDirectoryPanel } from "@/components/AcademicReviewerDirectoryPanel";
 import { RoleGate } from "@/components/RoleGate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,7 @@ function AdminContent() {
     <main className="mx-auto max-w-5xl p-5 sm:p-8">
       <section className="soft-panel p-7 sm:p-10"><p className="section-kicker">إدارة المنصة</p><h1 className="mt-2 text-3xl font-black text-slate-950">الاشتراكات جاهزة كهيكل وصول.</h1><p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">تعرض هذه الصفحة الحزم والأسعار الأولية القابلة للتعديل من مصدر البيانات، مع الاستحقاقات وحالة التفعيل. لا توجد بوابة دفع أو تحصيل في هذه المرحلة.</p><Badge className="mt-5 border-0 bg-emerald-50 px-3 py-2 text-emerald-700 hover:bg-emerald-50">Payment-ready · الدفع غير مفعّل</Badge></section>
       <ReleaseReadinessPanel readiness={releaseReadiness} loading={isLoadingReadiness} recording={qualityEvidence.isPending} onRecord={input => qualityEvidence.mutate(input)} />
+      <AcademicReviewerDirectoryPanel />
       <PartnerIntakePanel />
       <PartnerFinancePanel />
       <PartnerCreditAdminPanel />

@@ -10,14 +10,16 @@ const qualityEvidenceMutate = vi.fn();
 const partnerReviewMutate = vi.fn();
 const partnerLinkMutate = vi.fn();
 const partnerCreditMutate = vi.fn();
+const reviewerStatusMutate = vi.fn();
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
 vi.mock("wouter", () => ({ useLocation: () => ["/admin", vi.fn()] }));
 vi.mock("@/lib/trpc", () => ({
   trpc: {
-    useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() }, planAssignmentAudit: { invalidate: vi.fn() }, planChangeAudit: { invalidate: vi.fn() }, releaseReadiness: { invalidate: vi.fn() }, partnerApplications: { invalidate: vi.fn() }, partnerNetworkSummary: { invalidate: vi.fn() }, partnerCommissionTiers: { invalidate: vi.fn() }, partnerOperatingSettings: { invalidate: vi.fn() }, partnerFinanceQueue: { invalidate: vi.fn() } } }),
+    useUtils: () => ({ administration: { planCatalog: { invalidate: vi.fn() }, planAssignmentAudit: { invalidate: vi.fn() }, planChangeAudit: { invalidate: vi.fn() }, releaseReadiness: { invalidate: vi.fn() }, partnerApplications: { invalidate: vi.fn() }, partnerNetworkSummary: { invalidate: vi.fn() }, partnerCommissionTiers: { invalidate: vi.fn() }, partnerOperatingSettings: { invalidate: vi.fn() }, partnerFinanceQueue: { invalidate: vi.fn() }, academicReviewerDirectory: { invalidate: vi.fn() } } }),
     administration: {
       planCatalog: { useQuery: () => ({ data: [{ id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", priceDzd: 2000, durationDays: 0, subjectLimit: 1, subjectBundle: ["math"], isActive: true, entitlements: ["season:subject"] }], isLoading: false }) },
+      academicReviewerDirectory: { useQuery: () => ({ data: [{ id: 84, name: "أستاذة مراجعة", email: "reviewer@example.com", role: "student", lastSignedIn: new Date(), createdAt: new Date() }], isLoading: false }) },
       localPaymentStatus: { useQuery: () => ({ data: { enabled: false, provider: "none", mode: "manual_only", billingFlowAvailable: false, messageAr: "الدفع الإلكتروني غير مفعّل. تغييرات الخطط تُسجل يدويًا من الإدارة فقط ولا يوجد رابط دفع أو تحصيل.", supportedFutureCapabilities: ["checkout_intent", "payment_confirmation", "webhook_reconciliation"] }, isLoading: false }) },
       releaseReadiness: { useQuery: () => ({ data: { isReadOnly: true, technicalEvidence: { automatedTestCount: 177, testFileCount: 67, baselineTag: "premium-student-ui-v1", sourceBackupVerified: true, repositoryIntegrityVerified: true }, batch1: { inReviewPackages: 6, componentCount: 72, substantiveComponentCount: 72, blockedComponentCount: 72, publicationAllowed: false }, humanAcceptanceGates: [{ key: "academic_batch_qa", labelAr: "مراجعة أكاديمية بشرية للمصادر والوحدات والتمارين والأصول", status: "required", evidence: { latestEvidence: "محضر مراجعة معلق", recordedAt: new Date(), actorUserId: 9 } }, { key: "real_account_qa", labelAr: "اختبار عملي بأربعة حسابات OAuth حقيقية للأدوار", status: "required", evidence: null }, { key: "operational_qa", labelAr: "قبول تشغيلي يدوي للهاتف وقارئ الشاشة ولوحة المفاتيح", status: "required", evidence: null }, { key: "published_bac_session", labelAr: "توفر جلسة BAC منشورة ومعتمدة لربط BAC Focus", status: "required", evidence: null }], publicationGuard: "لا يفتح هذا الملخص النشر؛ تظل جميع بوابات المصدر والمراجعة البشرية فعالة." }, isLoading: false }) },
       previewPlanAssignment: { useQuery: () => ({ data: { plan: { id: 30002, code: "season_one_subject", nameAr: "باقة الموسم — مادة واحدة", subjectLimit: 1, durationDays: 0, subjectBundle: ["math"], isActive: true }, productTier: "season", selectedSubjects: ["math"], entitlements: ["season:math", "hasm:math"], expiresAt: null, isDryRun: true }, isLoading: false }) },
@@ -41,6 +43,7 @@ vi.mock("@/lib/trpc", () => ({
       savePartnerOperatingSettings: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
       recordEligiblePartnerConversion: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
       recordPartnerCreditEntry: { useMutation: () => ({ mutate: partnerCreditMutate, isPending: false, data: undefined, error: null }) },
+      setAcademicReviewerStatus: { useMutation: () => ({ mutate: reviewerStatusMutate, isPending: false, data: undefined, error: null }) },
     },
   },
 }));
@@ -98,6 +101,15 @@ describe("تعيين خطة الوصول الإداري", () => {
     expect(screen.getByText(/الدفع الإلكتروني غير مفعّل/)).toBeTruthy();
     expect(screen.getByText("معطّل")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /دفع|checkout|تحصيل/i })).toBeNull();
+  });
+
+  it("يعرض مركز مراجعي الأساتذة ويمنح دور المراجع فقط لحساب مسجل", () => {
+    render(<AdminPage />);
+    expect(screen.getByText("مركز مراجعي الأساتذة")).toBeTruthy();
+    expect(screen.getByText("أستاذة مراجعة")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "تعيين مراجع" }));
+    expect(reviewerStatusMutate).toHaveBeenCalledWith({ userId: 84, enabled: true });
+    expect(screen.queryByRole("button", { name: /تعيين مدير|ترقية مدير/i })).toBeNull();
   });
 
   it("يعرض أدلة الجاهزية وبوابات القبول البشرية للقراءة فقط دون اعتماد أو نشر", () => {
