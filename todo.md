@@ -181,3 +181,6 @@
 - [x] Implement owner-scoped B-credit balance and ledger-read procedures without exposing other users’ data.
 - [ ] Test B-credit add, deduct, duplicate idempotency, insufficient balance, ownership isolation, and absence of payment/subscription side effects.
 - [x] Test B-credit arithmetic, insufficient-balance rejection, administrative contract guards, owner-scoped reads, and no-payment/no-entitlement response flags.
+- [x] Build an administrator-only B-credit form to add or deduct credit with partner ID, amount, required reason, and idempotency key, without any payment controls.
+- [x] Add a partner-owned B-credit balance and immutable ledger panel that has no purchase, transfer, or subscription controls.
+- [ ] Add UI tests, RTL/mobile verification, and release evidence for B-credit administration and partner-owned balance views.

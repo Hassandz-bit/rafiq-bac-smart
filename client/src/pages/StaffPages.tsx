@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
 import { PartnerFinancePanel } from "@/components/PartnerFinancePanel";
+import { PartnerCreditAdminPanel } from "@/components/PartnerCreditAdminPanel";
 import { PartnerOperatingSettingsPanel } from "@/components/PartnerOperatingSettingsPanel";
 import { PartnerOperationsPanel } from "@/components/PartnerOperationsPanel";
 import { PartnerAuditPanel } from "@/components/PartnerAuditPanel";
@@ -77,6 +78,7 @@ function AdminContent() {
       <ReleaseReadinessPanel readiness={releaseReadiness} loading={isLoadingReadiness} recording={qualityEvidence.isPending} onRecord={input => qualityEvidence.mutate(input)} />
       <PartnerIntakePanel />
       <PartnerFinancePanel />
+      <PartnerCreditAdminPanel />
       <PartnerOperatingSettingsPanel />
       <PartnerOperationsPanel />
       <PartnerAuditPanel />

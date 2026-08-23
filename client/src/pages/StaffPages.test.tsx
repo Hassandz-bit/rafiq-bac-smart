@@ -9,6 +9,7 @@ const updateMutate = vi.fn();
 const qualityEvidenceMutate = vi.fn();
 const partnerReviewMutate = vi.fn();
 const partnerLinkMutate = vi.fn();
+const partnerCreditMutate = vi.fn();
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
 vi.mock("wouter", () => ({ useLocation: () => ["/admin", vi.fn()] }));
@@ -39,11 +40,12 @@ vi.mock("@/lib/trpc", () => ({
       savePartnerCommissionTier: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
       savePartnerOperatingSettings: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
       recordEligiblePartnerConversion: { useMutation: () => ({ mutate: vi.fn(), isPending: false, data: undefined, error: null }) },
+      recordPartnerCreditEntry: { useMutation: () => ({ mutate: partnerCreditMutate, isPending: false, data: undefined, error: null }) },
     },
   },
 }));
 
-afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); partnerReviewMutate.mockReset(); partnerLinkMutate.mockReset(); });
+afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); partnerReviewMutate.mockReset(); partnerLinkMutate.mockReset(); partnerCreditMutate.mockReset(); });
 
 describe("تعيين خطة الوصول الإداري", () => {
   it("يطابق عدد المواد مع الخطة ويرسل تعيين موسم يحفظ منحه المشتقة", () => {
@@ -137,5 +139,16 @@ describe("تعيين خطة الوصول الإداري", () => {
     expect(partnerReviewMutate).toHaveBeenCalledWith({ applicationId: 77, status: "needs_information", reviewNoteAr: "يرجى تزويدنا باسم المسؤول المفوض." });
     expect(partnerLinkMutate).not.toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: /دفع|تحصيل|منح وصول/i })).toBeNull();
+  });
+
+  it("يعرض دفتر رصيد B الإداري بلا شراء ويُرسل قيدًا موثقًا فقط", () => {
+    render(<AdminPage />);
+    expect(screen.getByText("دفتر رصيد B التشغيلي")).toBeTruthy();
+    fireEvent.change(screen.getByPlaceholderText("معرّف الشريك"), { target: { value: "33" } });
+    fireEvent.change(screen.getByPlaceholderText("عدد الوحدات"), { target: { value: "12" } });
+    fireEvent.change(screen.getByPlaceholderText("سبب تشغيلي موثق"), { target: { value: "تصحيح تشغيلي موثق" } });
+    fireEvent.click(screen.getByRole("button", { name: "إضافة موثقة" }));
+    expect(partnerCreditMutate).toHaveBeenCalledWith(expect.objectContaining({ partnerId: 33, entryType: "credit", amount: 12, reasonAr: "تصحيح تشغيلي موثق" }));
+    expect(screen.queryByRole("button", { name: /شراء|دفع|تحصيل/i })).toBeNull();
   });
 });
