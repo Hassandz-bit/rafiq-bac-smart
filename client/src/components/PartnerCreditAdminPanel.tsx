@@ -5,7 +5,8 @@ import { trpc } from "@/lib/trpc";
 import { MinusCircle, PlusCircle, ShieldCheck, WalletCards } from "lucide-react";
 
 function newIdempotencyKey() {
-  const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID().replaceAll("-", "") : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+  const uuid = globalThis.crypto?.randomUUID?.();
+  const suffix = uuid ? uuid.replaceAll("-", "") : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
   return `b-credit-${suffix}`;
 }
 
