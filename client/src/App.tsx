@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import FreeDiagnostic from "./pages/FreeDiagnostic";
 import HassemDiagnostic from "./pages/HassemDiagnostic";
 import { ReferralAttributionCapture } from "./components/ReferralAttributionCapture";
+import { PwaInstallPrompt } from "./components/PwaInstallPrompt";
 
 const AssessmentLab = lazy(() => import("./pages/AssessmentLab"));
 const BacPage = lazy(() => import("./pages/BacPage"));
@@ -72,6 +73,7 @@ function App() {
           <Toaster />
           <ReferralAttributionCapture />
           <Router />
+          <PwaInstallPrompt />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "رفيقك الذكي للباك",
+  "short_name": "رفيق الباك",
+  "description": "منصة عربية منظمة لفهم مفاهيم البكالوريا والتدرب عليها ومراجعتها بثقة.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "orientation": "any",
+  "theme_color": "#071421",
+  "background_color": "#071421",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/manus-storage/rafiq-bac-pwa-icon_1d3de8c3.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

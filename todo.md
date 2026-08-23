@@ -199,3 +199,7 @@
 - [ ] Execute a functional and visual audit across public, student-preview, administrator, editor, reviewer, partner, and mobile surfaces.
 - [x] Fix any broken navigation, inert control, invisible icon, contrast issue, or misleading unavailable state found during the audit.
 - [x] Produce an evidence-led Arabic audit report listing verified flows, fixes, remaining human-only checks, and explicit non-claims.
+- [x] Add a standards-compliant PWA manifest, Arabic application metadata, and install icons for browser, Android, and iPhone installation.
+- [x] Add a safe offline shell and service-worker registration without caching protected responses or weakening authentication and source gates.
+- [x] Add an accessible Arabic install prompt for compatible browsers and clear manual-install guidance for iPhone Safari.
+- [x] Verify PWA metadata, service-worker behavior, responsive install UI, type checking, and production build; document installation steps.

@@ -1,0 +1,45 @@
+const CACHE_NAME = "rafiq-bac-shell-v1";
+const OFFLINE_URL = "/offline.html";
+const APP_SHELL = ["/", OFFLINE_URL, "/manifest.webmanifest"];
+
+self.addEventListener("install", event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(() => self.clients.claim()),
+  );
+});
+
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  const url = new URL(request.url);
+
+  if (request.method !== "GET" || url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
+
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put("/", copy));
+          return response;
+        })
+        .catch(() => caches.match(request).then(response => response || caches.match("/")).then(response => response || caches.match(OFFLINE_URL))),
+    );
+    return;
+  }
+
+  const isPublicStaticAsset = url.pathname.startsWith("/assets/") || url.pathname.startsWith("/manus-storage/") || url.pathname === "/manifest.webmanifest";
+  if (!isPublicStaticAsset) return;
+
+  event.respondWith(
+    caches.match(request).then(cached => cached || fetch(request).then(response => {
+      if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+      return response;
+    })),
+  );
+});
