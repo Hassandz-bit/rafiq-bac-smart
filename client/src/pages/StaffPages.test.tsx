@@ -48,7 +48,7 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); partnerReviewMutate.mockReset(); partnerLinkMutate.mockReset(); partnerCreditMutate.mockReset(); });
+afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); partnerReviewMutate.mockReset(); partnerLinkMutate.mockReset(); partnerCreditMutate.mockReset(); reviewerStatusMutate.mockReset(); });
 
 describe("تعيين خطة الوصول الإداري", () => {
   it("يطابق عدد المواد مع الخطة ويرسل تعيين موسم يحفظ منحه المشتقة", () => {
@@ -103,32 +103,23 @@ describe("تعيين خطة الوصول الإداري", () => {
     expect(screen.queryByRole("button", { name: /دفع|checkout|تحصيل/i })).toBeNull();
   });
 
-  it("يعرض مركز مراجعي الأساتذة ويمنح دور المراجع فقط لحساب مسجل", () => {
+  it("يعرض حالة Pilot وفحوصات داخلية اختيارية دون اعتماد أو نشر", () => {
     render(<AdminPage />);
-    expect(screen.getByText("مركز مراجعي الأساتذة")).toBeTruthy();
-    expect(screen.getByText("أستاذة مراجعة")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "تعيين مراجع" }));
-    expect(reviewerStatusMutate).toHaveBeenCalledWith({ userId: 84, enabled: true });
-    expect(screen.queryByRole("button", { name: /تعيين مدير|ترقية مدير/i })).toBeNull();
-  });
-
-  it("يعرض أدلة الجاهزية وبوابات القبول البشرية للقراءة فقط دون اعتماد أو نشر", () => {
-    render(<AdminPage />);
-    expect(screen.getByText("جاهزية الإصدار — قراءة فقط")).toBeTruthy();
+    expect(screen.getByText("Pilot جاهز تشغيليًا — فحوصات داخلية")).toBeTruthy();
     expect(screen.getByText("177/67")).toBeTruthy();
     expect(screen.getAllByText("72/72")).toHaveLength(2);
     expect(screen.getAllByText(/مراجعة أكاديمية بشرية/).length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText(/أربعة حسابات OAuth حقيقية/).length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText(/جلسة BAC منشورة ومعتمدة/).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText(/آخر دليل مسجل: محضر مراجعة معلق/)).toBeTruthy();
+    expect(screen.getByText(/آخر ملاحظة مسجلة: محضر مراجعة معلق/)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /اعتماد|نشر/i })).toBeNull();
   });
 
-  it("يسجل المدير وصف دليل قبول فقط دون تحويله إلى اعتماد أو نشر", () => {
+  it("يسجل المدير ملاحظة فحص داخلية دون تحويلها إلى اعتماد أو نشر", () => {
     render(<AdminPage />);
-    fireEvent.change(screen.getByLabelText("بوابة القبول"), { target: { value: "real_account_qa" } });
-    fireEvent.change(screen.getByLabelText("دليل قبول يدوي"), { target: { value: "تم توثيق اختبار الحسابات الأربعة." } });
-    fireEvent.click(screen.getByRole("button", { name: "تسجيل الدليل فقط" }));
+    fireEvent.change(screen.getByLabelText("الفحص الداخلي"), { target: { value: "real_account_qa" } });
+    fireEvent.change(screen.getByLabelText("ملاحظة فحص داخلية"), { target: { value: "تم توثيق اختبار الحسابات الأربعة." } });
+    fireEvent.click(screen.getByRole("button", { name: "حفظ الملاحظة" }));
     expect(qualityEvidenceMutate).toHaveBeenCalledWith({ checkKey: "real_account_qa", evidenceNoteAr: "تم توثيق اختبار الحسابات الأربعة." });
     expect(screen.queryByRole("button", { name: /نشر|اعتماد/i })).toBeNull();
   });
