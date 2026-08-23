@@ -207,3 +207,7 @@
 - [x] Upgrade the offline experience with a useful interactive retry flow and preserved non-sensitive learning guidance.
 - [x] Implement consent-based web-push subscription controls and secure server-side subscription storage without unsolicited sends.
 - [ ] Prepare and verify an Android wrapper/build path for APK and AAB output, documenting signing and store-delivery requirements.
+- [ ] Verify the published PWA manifest, service worker, and install assets on rafiqbac-8epdnqdn.manus.space before Android packaging.
+- [ ] Generate a signed Android wrapper project for the published domain and prepare its Digital Asset Links configuration.
+- [ ] Build and validate APK/AAB artifacts or document the exact unavailable build prerequisite without misrepresenting a release artifact.
+- [x] Fix the published production bundle split that left the React root blank, and verify the rebuilt production server renders the landing page locally.
