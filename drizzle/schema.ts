@@ -45,6 +45,7 @@ export const commissionModelValues = ["marginal_tier", "retroactive_tier"] as co
 export const commissionStatusValues = ["pending", "approved", "paid", "cancelled", "reversed"] as const;
 export const payoutStatusValues = ["requested", "under_review", "approved", "paid", "rejected"] as const;
 export const payoutMethodValues = ["ccp", "baridimob", "bank_transfer", "other"] as const;
+export const partnerCreditEntryTypeValues = ["credit", "debit"] as const;
 
 /** Core identity record. A user has one application role in the first release. */
 export const users = mysqlTable("users", {
@@ -722,6 +723,26 @@ export const partnerCreditBalances = mysqlTable(
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
   table => ({ partnerUnique: uniqueIndex("partner_credit_balance_partner_unique").on(table.partnerId) }),
+);
+
+/** Immutable B-credit movements. They are operational ledger records only and never represent a payment, order, or entitlement. */
+export const partnerCreditLedgerEntries = mysqlTable(
+  "partner_credit_ledger_entries",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId").notNull().references(() => partners.id),
+    entryType: mysqlEnum("entryType", partnerCreditEntryTypeValues).notNull(),
+    amount: int("amount").notNull(),
+    balanceAfter: int("balanceAfter").notNull(),
+    idempotencyKey: varchar("idempotencyKey", { length: 120 }).notNull(),
+    reasonAr: text("reasonAr").notNull(),
+    actorUserId: int("actorUserId").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    partnerCreatedIndex: index("partner_credit_ledger_partner_created_index").on(table.partnerId, table.createdAt),
+    idempotencyUnique: uniqueIndex("partner_credit_ledger_idempotency_unique").on(table.idempotencyKey),
+  }),
 );
 
 /** A monetary ledger record may only originate from a verified eligible conversion; it does not initiate money movement. */

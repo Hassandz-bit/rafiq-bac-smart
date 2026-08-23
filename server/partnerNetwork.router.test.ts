@@ -16,7 +16,9 @@ const partnerNetworkMocks = vi.hoisted(() => ({
   getPartnerAuditLog: vi.fn(),
   getPartnerOperationsReport: vi.fn(),
   getPartnerPayoutSnapshot: vi.fn(),
+  getPartnerCreditSnapshot: vi.fn(),
   recordEligibleConversion: vi.fn(),
+  recordPartnerCreditEntry: vi.fn(),
   requestPartnerPayout: vi.fn(),
   reviewCommission: vi.fn(),
   reviewPayoutRequest: vi.fn(),
@@ -91,6 +93,22 @@ describe("partner network tRPC contract", () => {
     await expect(callerFor("student").administration.savePartnerOperatingSettings({ verificationDays: 7, minimumPayoutDzd: 2000, payoutMethods: ["ccp"] })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await callerFor("admin").administration.savePartnerOperatingSettings({ verificationDays: 7, minimumPayoutDzd: 2000, payoutMethods: ["ccp", "baridimob"] });
     expect(partnerNetworkMocks.savePartnerOperatingSettings).toHaveBeenCalledWith({ verificationDays: 7, minimumPayoutDzd: 2000, payoutMethods: ["ccp", "baridimob"], actorUserId: 41 });
+  });
+
+  it("يحصر إضافة أو خصم رصيد B في المدير ولا يمرر أي أمر دفع", async () => {
+    partnerNetworkMocks.recordPartnerCreditEntry.mockResolvedValue({ entryId: 71, availableCredits: 24, paymentInitiated: false, entitlementChanged: false });
+    const input = { partnerId: 33, entryType: "credit" as const, amount: 24, reasonAr: "تصحيح تشغيلي موثق", idempotencyKey: "credit-b-20260823-0001" };
+    await expect(callerFor("partner").administration.recordPartnerCreditEntry(input)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await callerFor("admin").administration.recordPartnerCreditEntry(input);
+    expect(partnerNetworkMocks.recordPartnerCreditEntry).toHaveBeenCalledWith({ ...input, actorUserId: 41 });
+    await expect(callerFor("admin").administration.recordPartnerCreditEntry({ ...input, idempotencyKey: "قصير" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("يعيد كشف رصيد B للشريك نفسه فقط من دون أوامر شراء أو وصول", async () => {
+    partnerNetworkMocks.getPartnerCreditSnapshot.mockResolvedValue({ partnerId: 33, availableCredits: 24, entries: [], purchasingEnabled: false, paymentInitiated: false, entitlementChanged: false });
+    await expect(callerFor("student").partners.creditSnapshot()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(callerFor("partner").partners.creditSnapshot()).resolves.toMatchObject({ partnerId: 33, purchasingEnabled: false, paymentInitiated: false });
+    expect(partnerNetworkMocks.getPartnerCreditSnapshot).toHaveBeenCalledWith(41);
   });
 
   it("passes the authenticated admin as the reviewer and link actor", async () => {

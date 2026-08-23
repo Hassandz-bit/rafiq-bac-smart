@@ -176,3 +176,8 @@
 - [x] Extend partner application and profile metadata with business identity, responsible-person role, public links, expected reach, and operational notes while preserving privacy boundaries.
 - [x] Add a safe partner-credit B scaffold that excludes purchases, credit pricing, subscription fulfillment, discounts, and automatic payment until separately activated.
 - [ ] Add financial and attribution regression tests for free trials, single/two/three-subject pricing, manual commission eligibility, refunds/reversals, payout thresholds, and A/B mutual exclusion.
+- [x] Define and document B-credit ledger invariants: positive amounts, immutable entries, idempotency, owner isolation, no negative balance, and no payment or entitlement side effects.
+- [x] Implement protected backend procedures for an administrator to add or deduct B-credit ledger entries with a required reason and an idempotency key.
+- [x] Implement owner-scoped B-credit balance and ledger-read procedures without exposing other users’ data.
+- [ ] Test B-credit add, deduct, duplicate idempotency, insufficient balance, ownership isolation, and absence of payment/subscription side effects.
+- [x] Test B-credit arithmetic, insufficient-balance rejection, administrative contract guards, owner-scoped reads, and no-payment/no-entitlement response flags.

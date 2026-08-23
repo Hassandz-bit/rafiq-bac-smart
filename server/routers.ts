@@ -25,7 +25,7 @@ import { archiveStandaloneUnverifiedSourceRecord, createUnverifiedSourceRecord, 
 import { createDraftCurriculumLesson, createDraftCurriculumUnit, getDraftCurriculumLessonsForStudio, getDraftCurriculumUnitsForStudio, updateDraftCurriculumLesson, updateDraftCurriculumUnit } from "./curriculumDrafts";
 import { getReleaseReadinessDashboard } from "./releaseReadiness";
 import { recordReleaseQualityEvidence, releaseQualityCheckKeys } from "./releaseQualityChecks";
-import { captureReferral, claimCapturedReferral, getAdminPartnerApplications, getCommissionTiers, getPartnerAuditLog, getPartnerDashboard, getPartnerFinanceAdminQueue, getPartnerNetworkSummary, getPartnerOperatingSettings, getPartnerOperationsReport, getPartnerPayoutSnapshot, linkPartnerAccount, partnerApplicationStatuses, partnerPayoutMethods, partnerTypes, recordEligibleConversion, requestPartnerPayout, reviewCommission, reviewPartnerApplication, reviewPayoutRequest, saveCommissionTier, savePartnerOperatingSettings, submitPartnerApplication } from "./partnerNetwork";
+import { captureReferral, claimCapturedReferral, getAdminPartnerApplications, getCommissionTiers, getPartnerAuditLog, getPartnerCreditSnapshot, getPartnerDashboard, getPartnerFinanceAdminQueue, getPartnerNetworkSummary, getPartnerOperatingSettings, getPartnerOperationsReport, getPartnerPayoutSnapshot, linkPartnerAccount, partnerApplicationStatuses, partnerPayoutMethods, partnerTypes, recordEligibleConversion, recordPartnerCreditEntry, requestPartnerPayout, reviewCommission, reviewPartnerApplication, reviewPayoutRequest, saveCommissionTier, savePartnerOperatingSettings, submitPartnerApplication } from "./partnerNetwork";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -82,6 +82,7 @@ export const appRouter = router({
     captureReferral: publicProcedure.input(z.object({ code: z.string().trim().min(3).max(80), visitorToken: z.string().min(32).max(128).regex(/^[A-Za-z0-9-]+$/), landingPage: z.string().trim().max(500).optional() })).mutation(({ input }) => captureReferral(input)),
     claimCapturedReferral: protectedProcedure.input(z.object({ visitorToken: z.string().min(32).max(128).regex(/^[A-Za-z0-9-]+$/) })).mutation(({ ctx, input }) => claimCapturedReferral({ ...input, userId: ctx.user.id })),
     me: partnerOnlyProcedure.query(({ ctx }) => getPartnerDashboard(ctx.user.id)),
+    creditSnapshot: partnerOnlyProcedure.query(({ ctx }) => getPartnerCreditSnapshot(ctx.user.id)),
     payoutSnapshot: partnerOnlyProcedure.query(({ ctx }) => getPartnerPayoutSnapshot(ctx.user.id)),
     requestPayout: partnerOnlyProcedure.input(z.object({ commissionIds: z.array(z.number().int().positive()).min(1).max(100), payoutMethod: z.enum(["ccp", "baridimob", "bank_transfer", "other"]), destination: z.string().trim().min(6).max(1000) })).mutation(({ ctx, input }) => requestPartnerPayout({ ...input, userId: ctx.user.id })),
   }),
@@ -259,6 +260,9 @@ export const appRouter = router({
     partnerAuditLog: adminOnlyProcedure.input(z.object({ limit: z.number().int().min(1).max(200).default(100) }).optional()).query(({ input }) => getPartnerAuditLog(input?.limit ?? 100)),
     partnerCommissionTiers: adminOnlyProcedure.query(() => getCommissionTiers()),
     partnerOperatingSettings: adminOnlyProcedure.query(() => getPartnerOperatingSettings()),
+    recordPartnerCreditEntry: adminOnlyProcedure
+      .input(z.object({ partnerId: z.number().int().positive(), entryType: z.enum(["credit", "debit"]), amount: z.number().int().min(1).max(1_000_000), reasonAr: z.string().trim().min(5).max(1000), idempotencyKey: z.string().trim().regex(/^[A-Za-z0-9:_-]{12,120}$/) }))
+      .mutation(({ ctx, input }) => recordPartnerCreditEntry({ ...input, actorUserId: ctx.user.id })),
     savePartnerOperatingSettings: adminOnlyProcedure.input(z.object({ verificationDays: z.number().int().min(0).max(365), minimumPayoutDzd: z.number().int().min(0).max(10_000_000), payoutMethods: z.array(z.enum(partnerPayoutMethods)).min(1).max(4) })).mutation(({ ctx, input }) => savePartnerOperatingSettings({ ...input, actorUserId: ctx.user.id })),
     savePartnerCommissionTier: adminOnlyProcedure.input(z.object({ id: z.number().int().positive().optional(), partnerType: z.enum(partnerTypes), fromEligibleCount: z.number().int().min(1).max(1_000_000), toEligibleCount: z.number().int().min(1).max(1_000_000).nullable().optional(), commissionRate: z.number().min(0).max(100), isActive: z.boolean() })).mutation(({ ctx, input }) => saveCommissionTier({ ...input, actorUserId: ctx.user.id })),
     recordEligiblePartnerConversion: adminOnlyProcedure.input(z.object({ referralId: z.number().int().positive(), studentPlanAssignmentId: z.number().int().positive(), grossAmountDzd: z.number().int().min(0).max(10_000_000), orderReference: z.string().trim().max(160).optional(), notesAr: z.string().trim().min(10).max(4000) })).mutation(({ ctx, input }) => recordEligibleConversion({ ...input, actorUserId: ctx.user.id })),

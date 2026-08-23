@@ -1,7 +1,8 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { createHash } from "node:crypto";
-import { partnerApplications, partnerAuditLogs, partnerCommissionTiers, partnerCommissions, partnerOperatingSettings, partnerPayoutAllocations, partnerPayoutRequests, partnerReferralCodes, partnerReferrals, partners, studentPlanAssignments, users } from "../drizzle/schema";
+import { partnerApplications, partnerAuditLogs, partnerCommissionTiers, partnerCommissions, partnerCreditBalances, partnerCreditLedgerEntries, partnerOperatingSettings, partnerPayoutAllocations, partnerPayoutRequests, partnerReferralCodes, partnerReferrals, partners, studentPlanAssignments, users } from "../drizzle/schema";
 import { getDb } from "./db";
+import { calculatePartnerCreditBalance } from "./partnerCreditLedger";
 import { encryptPayoutDestination, type PayoutMethod } from "./partnerPayoutSecurity";
 
 export const partnerApplicationStatuses = ["pending", "under_review", "approved", "rejected", "needs_information", "cancelled"] as const;
@@ -200,6 +201,68 @@ export async function getPartnerByUserId(userId: number) {
   if (!db) throw new Error("Database unavailable");
   const rows = await db.select().from(partners).where(and(eq(partners.userId, userId), eq(partners.status, "active"))).limit(1);
   return rows[0] ?? null;
+}
+
+/**
+ * Records a B-credit movement in an operational ledger. This deliberately has no relationship to
+ * plans, entitlements, checkout, orders, commissions, payouts, or any payment provider.
+ */
+export async function recordPartnerCreditEntry(input: {
+  partnerId: number;
+  entryType: "credit" | "debit";
+  amount: number;
+  reasonAr: string;
+  idempotencyKey: string;
+  actorUserId: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const amount = Math.trunc(input.amount);
+  const reasonAr = input.reasonAr.trim();
+  const idempotencyKey = input.idempotencyKey.trim();
+  if (!Number.isInteger(amount) || amount <= 0 || amount > 1_000_000) throw new Error("يجب أن يكون مقدار الرصيد عددًا صحيحًا موجبًا ضمن الحد التشغيلي.");
+  if (reasonAr.length < 5 || reasonAr.length > 1000) throw new Error("يلزم سبب تشغيلي موثق بين 5 و1000 حرف.");
+  if (!/^[A-Za-z0-9:_-]{12,120}$/.test(idempotencyKey)) throw new Error("مفتاح منع التكرار غير صالح.");
+
+  return db.transaction(async tx => {
+    const [existing] = await tx.select().from(partnerCreditLedgerEntries).where(eq(partnerCreditLedgerEntries.idempotencyKey, idempotencyKey)).limit(1);
+    if (existing) {
+      if (existing.partnerId !== input.partnerId || existing.entryType !== input.entryType || existing.amount !== amount) throw new Error("مفتاح منع التكرار استُخدم لعملية رصيد مختلفة.");
+      return { entryId: existing.id, partnerId: existing.partnerId, entryType: existing.entryType, amount: existing.amount, availableCredits: existing.balanceAfter, idempotent: true as const, paymentInitiated: false as const, entitlementChanged: false as const };
+    }
+    const [partner] = await tx.select({ id: partners.id, status: partners.status }).from(partners).where(eq(partners.id, input.partnerId)).limit(1);
+    if (!partner || partner.status !== "active") throw new Error("لا يمكن تعديل رصيد شريك غير نشط أو غير موجود.");
+    let [balance] = await tx.select().from(partnerCreditBalances).where(eq(partnerCreditBalances.partnerId, input.partnerId)).limit(1);
+    if (!balance) {
+      try {
+        await tx.insert(partnerCreditBalances).values({ partnerId: input.partnerId, availableCredits: 0, reservedCredits: 0 });
+      } catch {
+        // A concurrent first entry may have created the unique balance container.
+      }
+      [balance] = await tx.select().from(partnerCreditBalances).where(eq(partnerCreditBalances.partnerId, input.partnerId)).limit(1);
+    }
+    if (!balance) throw new Error("تعذر تهيئة حاوية رصيد الشريك.");
+    const availableCredits = balance.availableCredits;
+    const balanceAfter = calculatePartnerCreditBalance({ availableCredits, entryType: input.entryType, amount });
+    await tx.update(partnerCreditBalances).set({ availableCredits: balanceAfter }).where(eq(partnerCreditBalances.id, balance.id));
+    const created = await tx.insert(partnerCreditLedgerEntries).values({ partnerId: input.partnerId, entryType: input.entryType, amount, balanceAfter, idempotencyKey, reasonAr, actorUserId: input.actorUserId });
+    const entryId = Number(created[0].insertId);
+    await tx.insert(partnerAuditLogs).values({ partnerId: input.partnerId, actorUserId: input.actorUserId, action: input.entryType === "credit" ? "partner_credit_added" : "partner_credit_deducted", entityType: "partner_credit_ledger_entry", entityId: entryId, previousData: { availableCredits }, nextData: { availableCredits: balanceAfter, amount, idempotencyKey }, noteAr: `${reasonAr} لا ينشئ هذا السجل دفعًا أو اشتراكًا أو وصولًا.` });
+    return { entryId, partnerId: input.partnerId, entryType: input.entryType, amount, availableCredits: balanceAfter, idempotent: false as const, paymentInitiated: false as const, entitlementChanged: false as const };
+  });
+}
+
+/** The partner can read only the balance and immutable B-credit ledger that belongs to their own OAuth account. */
+export async function getPartnerCreditSnapshot(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const partner = await getPartnerByUserId(userId);
+  if (!partner) return null;
+  const [balance] = await db.select({ availableCredits: partnerCreditBalances.availableCredits, reservedCredits: partnerCreditBalances.reservedCredits, updatedAt: partnerCreditBalances.updatedAt })
+    .from(partnerCreditBalances).where(eq(partnerCreditBalances.partnerId, partner.id)).limit(1);
+  const entries = await db.select({ id: partnerCreditLedgerEntries.id, entryType: partnerCreditLedgerEntries.entryType, amount: partnerCreditLedgerEntries.amount, balanceAfter: partnerCreditLedgerEntries.balanceAfter, reasonAr: partnerCreditLedgerEntries.reasonAr, createdAt: partnerCreditLedgerEntries.createdAt })
+    .from(partnerCreditLedgerEntries).where(eq(partnerCreditLedgerEntries.partnerId, partner.id)).orderBy(desc(partnerCreditLedgerEntries.createdAt)).limit(100);
+  return { partnerId: partner.id, availableCredits: balance?.availableCredits ?? 0, reservedCredits: balance?.reservedCredits ?? 0, updatedAt: balance?.updatedAt ?? null, entries, purchasingEnabled: false as const, paymentInitiated: false as const, entitlementChanged: false as const };
 }
 
 /** Stores only a one-way hash of a browser-held token. The first valid capture is preserved and never creates a commission. */
