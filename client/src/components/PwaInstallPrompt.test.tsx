@@ -30,4 +30,11 @@ describe("PwaInstallPrompt", () => {
       Object.defineProperty(navigator, "userAgent", { configurable: true, value: originalUserAgent });
     }
   });
+
+  it("يفتح إرشاد المتصفح عند طلب زر التثبيت المخصص دون موجه تلقائي", async () => {
+    render(<PwaInstallPrompt />);
+    fireEvent(window, new Event("rafiq:install-app"));
+    expect(await screen.findByText("يظهر أمر التثبيت من شريط عنوان Chrome أو Edge عند اكتمال جاهزية المتصفح.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "تثبيت التطبيق" })).toHaveProperty("disabled", true);
+  });
 });

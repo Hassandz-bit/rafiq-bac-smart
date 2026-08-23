@@ -4,7 +4,7 @@ import { uxCopy } from "@/content/uxCopy";
 import { useTheme } from "@/contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import React from "react";
-import { ArrowLeft, Bell, BookOpenCheck, BrainCircuit, Check, ChevronLeft, ClipboardCheck, Compass, FlaskConical, FunctionSquare, Leaf, Menu, Moon, Play, Sparkles, Sun, Target, TimerReset, UserRound, Zap } from "lucide-react";
+import { ArrowLeft, Bell, BellRing, BookOpenCheck, BrainCircuit, Check, ChevronLeft, ClipboardCheck, Compass, FlaskConical, FunctionSquare, Leaf, Menu, Moon, Play, Sparkles, Sun, Target, TimerReset, UserRound, X, Zap } from "lucide-react";
 import { useLocation } from "wouter";
 
 type SubjectCode = "math" | "physics" | "natural_sciences";
@@ -59,7 +59,56 @@ function StudentWorkspace({ data, learningItems, progress }: { data?: { curricul
   </div>;
 }
 
-function StudentHeader({ year }: { year: string }) { const { theme, setTheme } = useTheme(); return <header className="mx-auto flex h-[5.5rem] max-w-[1440px] items-center justify-between px-4 sm:px-7 lg:px-10"><div className="flex items-center gap-3"><button className="student-icon-button lg:hidden" aria-label="فتح قائمة الطالب"><Menu className="h-5 w-5" /></button><div><p className="text-xs font-bold student-muted">{uxCopy.student.greetingLabel}</p><p className="mt-0.5 text-sm font-black sm:text-base">{uxCopy.student.greetingTitle}</p></div></div><div className="flex items-center gap-2"><div className="hidden rounded-xl border border-[var(--student-border)] bg-[var(--student-surface)] p-1 sm:flex" aria-label="اختيار السمة">{(["light", "dark", "system"] as const).map(value => <button key={value} onClick={() => setTheme?.(value)} className={`rounded-lg px-2.5 py-1 text-[10px] font-black ${theme === value ? "bg-[var(--student-primary)] text-slate-950" : "student-muted"}`}>{value === "light" ? <Sun className="h-3.5 w-3.5" /> : value === "dark" ? <Moon className="h-3.5 w-3.5" /> : "تلقائي"}</button>)}</div><button className="student-icon-button" aria-label="التنبيهات"><Bell className="h-[1.1rem] w-[1.1rem]" /></button><div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-bl from-[var(--student-primary)] to-violet-500 text-slate-950"><UserRound className="h-4 w-4" /></div><span className="hidden text-[10px] font-bold student-muted lg:block">{year}</span></div></header>; }
+function StudentHeader({ year }: { year: string }) { const { theme, setTheme } = useTheme(); const [notificationsOpen, setNotificationsOpen] = React.useState(false); return <><header className="mx-auto flex h-[5.5rem] max-w-[1440px] items-center justify-between px-4 sm:px-7 lg:px-10"><div className="flex items-center gap-3"><button className="student-icon-button lg:hidden" aria-label="فتح قائمة الطالب"><Menu className="h-5 w-5" /></button><div><p className="text-xs font-bold student-muted">{uxCopy.student.greetingLabel}</p><p className="mt-0.5 text-sm font-black sm:text-base">{uxCopy.student.greetingTitle}</p></div></div><div className="flex items-center gap-2"><div className="hidden rounded-xl border border-[var(--student-border)] bg-[var(--student-surface)] p-1 sm:flex" aria-label="اختيار السمة">{(["light", "dark", "system"] as const).map(value => <button key={value} onClick={() => setTheme?.(value)} className={`rounded-lg px-2.5 py-1 text-[10px] font-black ${theme === value ? "bg-[var(--student-primary)] text-slate-950" : "student-muted"}`}>{value === "light" ? <Sun className="h-3.5 w-3.5" /> : value === "dark" ? <Moon className="h-3.5 w-3.5" /> : "تلقائي"}</button>)}</div><button onClick={() => setNotificationsOpen(true)} className="student-icon-button" aria-label="إعداد التنبيهات" aria-haspopup="dialog" aria-expanded={notificationsOpen}><Bell className="h-[1.1rem] w-[1.1rem]" /></button><div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-bl from-[var(--student-primary)] to-violet-500 text-slate-950"><UserRound className="h-4 w-4" /></div><span className="hidden text-[10px] font-bold student-muted lg:block">{year}</span></div></header>{notificationsOpen && <NotificationSettingsDialog onClose={() => setNotificationsOpen(false)} />}</>; }
+
+function urlBase64ToUint8Array(value: string) {
+  const padded = `${value}${"=".repeat((4 - (value.length % 4)) % 4)}`.replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(padded);
+  return Uint8Array.from(raw, character => character.charCodeAt(0));
+}
+
+function NotificationSettingsDialog({ onClose }: { onClose: () => void }) {
+  const supported = typeof window !== "undefined" && "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
+  const utils = trpc.useUtils();
+  const configuration = trpc.notifications.configuration.useQuery(undefined, { enabled: supported });
+  const status = trpc.notifications.status.useQuery(undefined, { enabled: supported });
+  const subscribe = trpc.notifications.subscribe.useMutation({ onSuccess: () => { void utils.notifications.status.invalidate(); } });
+  const unsubscribe = trpc.notifications.unsubscribe.useMutation({ onSuccess: () => { void utils.notifications.status.invalidate(); } });
+  const [notice, setNotice] = React.useState<string | null>(null);
+  const busy = subscribe.isPending || unsubscribe.isPending;
+
+  const enable = async () => {
+    if (!supported || !configuration.data) return;
+    if (Notification.permission === "denied") { setNotice("حُظرت التنبيهات من إعدادات المتصفح. اسمح بها لهذا الموقع ثم حاول مجددًا."); return; }
+    const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+    if (permission !== "granted") { setNotice("لم يُمنح إذن التنبيهات؛ لن نرسل أي رسالة إلى جهازك."); return; }
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const current = await registration.pushManager.getSubscription();
+      const browserSubscription = current ?? await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(configuration.data.publicKey) });
+      const json = browserSubscription.toJSON();
+      if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) throw new Error("لم يعِد المتصفح بيانات الاشتراك المطلوبة.");
+      await subscribe.mutateAsync({ endpoint: json.endpoint, expirationTime: json.expirationTime ?? null, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } });
+      setNotice("تم تفعيل التنبيهات لهذا الجهاز. يمكنك إيقافها في أي وقت.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "تعذر تفعيل التنبيهات الآن.");
+    }
+  };
+
+  const disable = async () => {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const browserSubscription = await registration.pushManager.getSubscription();
+      if (browserSubscription) {
+        await unsubscribe.mutateAsync({ endpoint: browserSubscription.endpoint });
+        await browserSubscription.unsubscribe();
+      }
+      setNotice("تم إيقاف التنبيهات لهذا الجهاز.");
+    } catch { setNotice("تعذر إيقاف التنبيهات الآن؛ أعد المحاولة من هذا الجهاز."); }
+  };
+
+  return <div className="fixed inset-0 z-[90] grid place-items-end bg-slate-950/55 p-3 sm:place-items-center" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><section dir="rtl" role="dialog" aria-modal="true" aria-label="إعداد تنبيهات المنصة" className="w-full max-w-md rounded-[1.6rem] border border-cyan-300/20 bg-slate-950 p-5 text-white shadow-2xl"><div className="flex items-start justify-between gap-4"><div className="flex gap-3"><div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-cyan-300 text-slate-950"><BellRing className="h-5 w-5" aria-hidden="true" /></div><div><h2 className="font-black">تنبيهات رفيق الباك</h2><p className="mt-1 text-xs leading-5 text-slate-300">تصل فقط عندما توافق أنت، وللمحتوى أو التحديثات المرسلة من الإدارة.</p></div></div><button type="button" onClick={onClose} aria-label="إغلاق إعداد التنبيهات" className="grid h-8 w-8 place-items-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white"><X className="h-4 w-4" aria-hidden="true" /></button></div>{!supported ? <p className="mt-5 rounded-xl border border-amber-300/20 bg-amber-300/10 p-3 text-xs leading-5 text-amber-100">لا يدعم هذا المتصفح تنبيهات الويب. جرّب Chrome أو Edge أو Safari حديثًا عبر اتصال HTTPS.</p> : <><div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-3 text-xs leading-5 text-slate-200"><p>الحالة: <strong className="text-cyan-200">{status.data?.subscribed ? `مفعّلة على ${status.data.deviceCount} جهاز` : "غير مفعّلة"}</strong></p>{configuration.data?.contactNeedsUpdate && <p className="mt-2 text-slate-400">جهة الاتصال التقنية ستحدّث قبل الإطلاق العام؛ لا يؤثر ذلك في موافقتك أو خصوصية جهازك.</p>}</div><div className="mt-4 flex gap-2"><Button type="button" disabled={busy || configuration.isLoading} onClick={() => void enable()} className="h-10 flex-1 rounded-xl bg-cyan-300 text-xs font-black text-slate-950 hover:bg-cyan-200">{busy ? "جارٍ الحفظ…" : "تفعيل التنبيهات"}</Button>{status.data?.subscribed && <Button type="button" variant="outline" disabled={busy} onClick={() => void disable()} className="h-10 rounded-xl border-white/20 text-xs font-black text-white hover:bg-white/10">إيقاف</Button>}</div></>}{notice && <p role="status" className="mt-4 rounded-xl border border-cyan-300/15 bg-cyan-300/10 p-3 text-xs leading-5 text-cyan-50">{notice}</p>}</section></div>;
+}
 
 function JourneyMilestones({ current, reviews }: { current: boolean; reviews: number }) { const steps = ["فهم", "تطبيق", "تدريب", "تصحيح", "مراجعة", "إتقان"]; const active = reviews ? 4 : current ? 2 : 0; return <div className="journey-milestones relative mt-7 grid grid-cols-6 gap-1" aria-label="مسار التعلّم"><div className="journey-milestone-line" />{steps.map((step, index) => <div className={`journey-milestone ${index <= active ? "journey-milestone-active" : ""}`} key={step}><span>{index + 1}</span><p>{step}</p></div>)}</div>; }
 

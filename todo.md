@@ -203,3 +203,7 @@
 - [x] Add a safe offline shell and service-worker registration without caching protected responses or weakening authentication and source gates.
 - [x] Add an accessible Arabic install prompt for compatible browsers and clear manual-install guidance for iPhone Safari.
 - [x] Verify PWA metadata, service-worker behavior, responsive install UI, type checking, and production build; document installation steps.
+- [x] Add a persistent, clear install-app action in the public interface with accurate browser capability states.
+- [x] Upgrade the offline experience with a useful interactive retry flow and preserved non-sensitive learning guidance.
+- [x] Implement consent-based web-push subscription controls and secure server-side subscription storage without unsolicited sends.
+- [ ] Prepare and verify an Android wrapper/build path for APK and AAB output, documenting signing and store-delivery requirements.

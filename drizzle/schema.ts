@@ -915,5 +915,33 @@ export const partnerAuditLogs = mysqlTable(
   table => ({ partnerCreatedIndex: index("partner_audit_partner_created_index").on(table.partnerId, table.createdAt), actionIndex: index("partner_audit_action_index").on(table.action, table.createdAt) }),
 );
 
+/** Singleton configuration for browser push. The private VAPID key is stored only as ciphertext. */
+export const pushVapidSettings = mysqlTable("push_vapid_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  publicKey: varchar("publicKey", { length: 256 }).notNull(),
+  privateKeyCiphertext: text("privateKeyCiphertext").notNull(),
+  privateKeyIv: varchar("privateKeyIv", { length: 64 }).notNull(),
+  subject: varchar("subject", { length: 320 }).notNull(),
+  createdByUserId: int("createdByUserId").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** A user-owned browser subscription. Endpoint and keys stay encrypted; the hash is only for deduplication. */
+export const pushSubscriptions = mysqlTable(
+  "push_subscriptions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    endpointHash: varchar("endpointHash", { length: 64 }).notNull(),
+    subscriptionCiphertext: text("subscriptionCiphertext").notNull(),
+    subscriptionIv: varchar("subscriptionIv", { length: 64 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    lastUsedAt: timestamp("lastUsedAt").defaultNow().notNull(),
+  },
+  table => ({ endpointUnique: uniqueIndex("push_subscription_endpoint_unique").on(table.endpointHash), userUpdatedIndex: index("push_subscription_user_updated_index").on(table.userId, table.updatedAt) }),
+);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;

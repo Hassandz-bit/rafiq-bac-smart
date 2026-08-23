@@ -11,13 +11,18 @@
       main { width: min(31rem, calc(100% - 2rem)); box-sizing: border-box; padding: 2.25rem; border: 1px solid rgba(150, 220, 255, .24); border-radius: 1.5rem; background: rgba(7, 20, 33, .8); text-align: center; box-shadow: 0 1.25rem 4rem rgba(0, 0, 0, .25); }
       .mark { width: 3.5rem; height: 3.5rem; margin: 0 auto 1rem; display: grid; place-items: center; border-radius: 1.2rem; color: #071421; background: #44d8d1; font-size: 1.5rem; }
       h1 { margin: 0; font-size: 1.5rem; } p { margin: 1rem 0 0; color: #c2d3e5; line-height: 1.9; }
+      .tips { margin: 1.5rem 0 0; padding: 1rem; border-radius: 1rem; background: rgba(96, 222, 218, .08); text-align: right; }
+      .tips b { color: #83f4ed; } .tips ul { margin: .6rem 0 0; padding-right: 1.1rem; color: #d7e7f7; line-height: 1.9; }
+      .actions { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; margin-top: 1.5rem; } button, a { min-height: 2.75rem; box-sizing: border-box; border-radius: .9rem; padding: .7rem 1rem; font: inherit; font-weight: bold; text-decoration: none; cursor: pointer; } button { border: 0; background: #44d8d1; color: #071421; } a { border: 1px solid rgba(150, 220, 255, .3); color: #f8fbff; }
     </style>
   </head>
   <body>
     <main>
       <div class="mark" aria-hidden="true">✦</div>
       <h1>أنت خارج الاتصال حاليًا</h1>
-      <p>أعد الاتصال بالإنترنت ثم حدّث الصفحة لمتابعة الدروس والبيانات المحمية بأمان.</p>
+      <p>الدروس والبيانات المحمية تحتاج اتصالًا آمنًا بالإنترنت. عند عودة الشبكة يمكنك المتابعة من حيث توقفت.</p>
+      <div class="tips"><b>حتى تعود الشبكة:</b><ul><li>راجع خطواتك الأخيرة أو دوّن السؤال الذي تريد متابعته.</li><li>تجنب إدخال إجابات أو إرسال نماذج الآن حتى لا تفقد التغييرات.</li><li>سيبقى حسابك وصلاحياتك محميين؛ لا يُخزّن التطبيق بياناتك الشخصية هنا.</li></ul></div>
+      <div class="actions"><button type="button" onclick="window.location.reload()">أعد محاولة الاتصال</button><a href="/">العودة إلى البداية</a></div>
     </main>
   </body>
 </html>

@@ -11,6 +11,7 @@ const partnerReviewMutate = vi.fn();
 const partnerLinkMutate = vi.fn();
 const partnerCreditMutate = vi.fn();
 const reviewerStatusMutate = vi.fn();
+const announcementMutate = vi.fn();
 const setLocation = vi.fn();
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
@@ -46,10 +47,13 @@ vi.mock("@/lib/trpc", () => ({
       recordPartnerCreditEntry: { useMutation: () => ({ mutate: partnerCreditMutate, isPending: false, data: undefined, error: null }) },
       setAcademicReviewerStatus: { useMutation: () => ({ mutate: reviewerStatusMutate, isPending: false, data: undefined, error: null }) },
     },
+    notifications: {
+      sendAnnouncement: { useMutation: () => ({ mutate: announcementMutate, isPending: false, data: undefined, error: null }) },
+    },
   },
 }));
 
-afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); partnerReviewMutate.mockReset(); partnerLinkMutate.mockReset(); partnerCreditMutate.mockReset(); reviewerStatusMutate.mockReset(); setLocation.mockReset(); });
+afterEach(() => { cleanup(); mutate.mockReset(); updateMutate.mockReset(); qualityEvidenceMutate.mockReset(); partnerReviewMutate.mockReset(); partnerLinkMutate.mockReset(); partnerCreditMutate.mockReset(); reviewerStatusMutate.mockReset(); announcementMutate.mockReset(); setLocation.mockReset(); });
 
 describe("تعيين خطة الوصول الإداري", () => {
   it("يطابق عدد المواد مع الخطة ويرسل تعيين موسم يحفظ منحه المشتقة", () => {
@@ -102,6 +106,18 @@ describe("تعيين خطة الوصول الإداري", () => {
     expect(screen.getByText(/الدفع الإلكتروني غير مفعّل/)).toBeTruthy();
     expect(screen.getByText("معطّل")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /دفع|checkout|تحصيل/i })).toBeNull();
+  });
+
+  it("لا يرسل تنبيهًا إلا من النموذج الإداري وبعد إدخال رسالة ومسار داخليين", () => {
+    render(<AdminPage />);
+    const send = screen.getByRole("button", { name: "إرسال التنبيه للمشتركين" }) as HTMLButtonElement;
+    expect(send.disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText("عنوان تنبيه التحديث"), { target: { value: "تحديث جديد" } });
+    fireEvent.change(screen.getByLabelText("نص تنبيه التحديث"), { target: { value: "تحديث موجز وواضح" } });
+    fireEvent.change(screen.getByLabelText("مسار تنبيه التحديث"), { target: { value: "/lab" } });
+    expect(send.disabled).toBe(false);
+    fireEvent.click(send);
+    expect(announcementMutate).toHaveBeenCalledWith({ title: "تحديث جديد", body: "تحديث موجز وواضح", url: "/lab" });
   });
 
   it("يعرض حالة Pilot وفحوصات داخلية اختيارية دون اعتماد أو نشر", () => {

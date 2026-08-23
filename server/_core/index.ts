@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { uploadOfficialBook } from "../bookUpload";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { ensurePushVapidKeys } from "../pushNotifications";
 
 async function startServer() {
   const app = express();
@@ -37,6 +38,7 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    void ensurePushVapidKeys().then(() => console.log("[Push] VAPID keys ready")).catch((error: unknown) => console.warn("[Push] VAPID initialization deferred:", error));
   });
 }
 

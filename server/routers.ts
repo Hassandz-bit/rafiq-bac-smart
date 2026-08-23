@@ -27,6 +27,7 @@ import { getReleaseReadinessDashboard } from "./releaseReadiness";
 import { recordReleaseQualityEvidence, releaseQualityCheckKeys } from "./releaseQualityChecks";
 import { getAcademicReviewerDirectory, setAcademicReviewerStatus } from "./reviewerDirectory";
 import { captureReferral, claimCapturedReferral, getAdminPartnerApplications, getCommissionTiers, getPartnerAuditLog, getPartnerCreditSnapshot, getPartnerDashboard, getPartnerFinanceAdminQueue, getPartnerNetworkSummary, getPartnerOperatingSettings, getPartnerOperationsReport, getPartnerPayoutSnapshot, linkPartnerAccount, partnerApplicationStatuses, partnerPayoutMethods, partnerTypes, recordEligibleConversion, recordPartnerCreditEntry, requestPartnerPayout, reviewCommission, reviewPartnerApplication, reviewPayoutRequest, saveCommissionTier, savePartnerOperatingSettings, submitPartnerApplication } from "./partnerNetwork";
+import { getPushPublicConfiguration, getPushSubscriptionStatus, removePushSubscription, savePushSubscription, sendPushAnnouncement } from "./pushNotifications";
 
 const contentStudioProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!hasAnyRole(ctx.user.role, ["admin", "content_editor", "academic_reviewer"])) {
@@ -75,6 +76,17 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+  notifications: router({
+    configuration: protectedProcedure.query(({ ctx }) => getPushPublicConfiguration(ctx.user.id)),
+    status: protectedProcedure.query(({ ctx }) => getPushSubscriptionStatus(ctx.user.id)),
+    subscribe: protectedProcedure
+      .input(z.object({ endpoint: z.string().trim().min(12).max(2000), expirationTime: z.number().nullable().optional(), keys: z.object({ p256dh: z.string().min(12).max(512), auth: z.string().min(8).max(256) }) }))
+      .mutation(({ ctx, input }) => savePushSubscription(ctx.user.id, input)),
+    unsubscribe: protectedProcedure.input(z.object({ endpoint: z.string().trim().min(12).max(2000) })).mutation(({ ctx, input }) => removePushSubscription(ctx.user.id, input.endpoint)),
+    sendAnnouncement: adminOnlyProcedure
+      .input(z.object({ title: z.string().trim().min(3).max(120), body: z.string().trim().min(3).max(500), url: z.string().trim().startsWith("/").max(500).optional() }))
+      .mutation(({ ctx, input }) => sendPushAnnouncement({ actorUserId: ctx.user.id, ...input })),
   }),
   partners: router({
     submitApplication: publicProcedure

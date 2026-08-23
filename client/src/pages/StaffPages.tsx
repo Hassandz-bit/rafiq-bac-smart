@@ -77,6 +77,7 @@ function AdminContent() {
     <main className="mx-auto max-w-5xl p-5 sm:p-8">
       <section className="soft-panel !bg-white p-7 text-slate-950 sm:p-10"><p className="section-kicker">إدارة المنصة</p><h1 className="mt-2 text-3xl font-black text-slate-950">الاشتراكات جاهزة كهيكل وصول.</h1><p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">تعرض هذه الصفحة الحزم والأسعار الأولية القابلة للتعديل من مصدر البيانات، مع الاستحقاقات وحالة التفعيل. لا توجد بوابة دفع أو تحصيل في هذه المرحلة.</p><Badge className="mt-5 border-0 bg-emerald-50 px-3 py-2 text-emerald-700 hover:bg-emerald-50">Payment-ready · الدفع غير مفعّل</Badge></section>
       <ReleaseReadinessPanel readiness={releaseReadiness} loading={isLoadingReadiness} recording={qualityEvidence.isPending} onRecord={input => qualityEvidence.mutate(input)} />
+      <PushAnnouncementPanel />
       <AcademicReviewerDirectoryPanel />
       <PartnerIntakePanel />
       <PartnerFinancePanel />
@@ -134,6 +135,15 @@ function ReleaseQualityEvidenceForm({ gates, recording, onRecord }: { gates: Rel
 }
 
 function ReadinessMetric({ label, value }: { label: string; value: string }) { return <div className="rounded-xl border border-violet-100 bg-white p-3"><p className="text-xs font-bold text-slate-500">{label}</p><p className="mt-2 text-xl font-black text-slate-950">{value}</p></div>; }
+
+function PushAnnouncementPanel() {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [url, setUrl] = useState("/");
+  const announcement = trpc.notifications.sendAnnouncement.useMutation({ onSuccess: () => { setTitle(""); setBody(""); } });
+  const valid = title.trim().length >= 3 && body.trim().length >= 3 && url.trim().startsWith("/");
+  return <section className="mt-6 rounded-[1.5rem] border border-cyan-100 bg-cyan-50/60 p-5 sm:p-6"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="font-black text-slate-950">إرسال تحديث للمشتركين</p><p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">يُرسل هذا التنبيه يدويًا إلى الأجهزة التي فعّل أصحابها التنبيهات صراحةً. لا ينشر محتوى أكاديميًا، ولا يرسل أي رسالة تلقائيًا عند إنشاء مسودة أو مراجعتها.</p></div><Badge variant="outline" className="w-fit border-cyan-200 bg-white text-cyan-800">Opt-in only</Badge></div><div className="mt-5 grid gap-3 md:grid-cols-2"><label className="grid gap-2 text-xs font-black text-slate-700">العنوان<input aria-label="عنوان تنبيه التحديث" maxLength={120} value={title} onChange={event => setTitle(event.target.value)} placeholder="مثال: تحديث جديد في مساحة التعلّم" className="h-10 rounded-xl border border-cyan-100 bg-white px-3 text-sm font-medium outline-none ring-cyan-300 focus:ring-2" /></label><label className="grid gap-2 text-xs font-black text-slate-700">المسار عند النقر<input aria-label="مسار تنبيه التحديث" value={url} onChange={event => setUrl(event.target.value)} placeholder="/lab" className="h-10 rounded-xl border border-cyan-100 bg-white px-3 text-sm font-medium outline-none ring-cyan-300 focus:ring-2" /></label><label className="grid gap-2 text-xs font-black text-slate-700 md:col-span-2">النص<textarea aria-label="نص تنبيه التحديث" maxLength={500} value={body} onChange={event => setBody(event.target.value)} placeholder="اكتب وصفًا قصيرًا ودقيقًا للتحديث…" className="min-h-24 rounded-xl border border-cyan-100 bg-white p-3 text-sm font-medium outline-none ring-cyan-300 focus:ring-2" /></label></div><div className="mt-4 flex flex-wrap items-center gap-3"><Button type="button" disabled={!valid || announcement.isPending} onClick={() => announcement.mutate({ title: title.trim(), body: body.trim(), url: url.trim() })} className="h-11 rounded-xl bg-cyan-700 px-5 font-black hover:bg-cyan-800">{announcement.isPending ? "جارٍ الإرسال…" : "إرسال التنبيه للمشتركين"}</Button><p className="text-xs font-bold text-slate-600">يُحذف الاشتراك المنتهي تلقائيًا فقط إذا أعاد مزود الإشعارات رمز الإلغاء.</p></div>{announcement.data && <p role="status" className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-xs font-bold text-emerald-800">أُرسل إلى {announcement.data.sent} جهازًا من أصل {announcement.data.attempted} اشتراكًا، وأزيل {announcement.data.removed} اشتراكًا منتهيًا.</p>}{announcement.error && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-3 text-xs font-bold text-rose-800">تعذر إرسال التنبيه: {announcement.error.message}</p>}</section>;
+}
 
 function ProductConfigCard({ plan }: { plan: CatalogPlan }) {
   const utils = trpc.useUtils();

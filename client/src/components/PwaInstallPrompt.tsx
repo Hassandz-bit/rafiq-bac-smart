@@ -21,6 +21,7 @@ export function PwaInstallPrompt() {
   const [dismissed, setDismissed] = useState(false);
   const [installed, setInstalled] = useState(false);
   const [ios, setIos] = useState(false);
+  const [openedManually, setOpenedManually] = useState(false);
 
   useEffect(() => {
     setIos(isIosDevice());
@@ -35,12 +36,19 @@ export function PwaInstallPrompt() {
       setDeferredPrompt(null);
       setShowIosGuide(false);
     };
+    const handleInstallRequest = () => {
+      setDismissed(false);
+      setOpenedManually(true);
+      if (isIosDevice()) setShowIosGuide(true);
+    };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     window.addEventListener("appinstalled", handleAppInstalled);
+    window.addEventListener("rafiq:install-app", handleInstallRequest);
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
+      window.removeEventListener("rafiq:install-app", handleInstallRequest);
     };
   }, []);
 
@@ -56,7 +64,7 @@ export function PwaInstallPrompt() {
     setDeferredPrompt(null);
   };
 
-  if (installed || dismissed || (!ios && !deferredPrompt)) return null;
+  if (installed || dismissed || (!ios && !deferredPrompt && !openedManually)) return null;
 
   return (
     <aside dir="rtl" aria-label="تثبيت تطبيق رفيق الباك" className="fixed inset-x-3 bottom-3 z-[80] mx-auto w-auto max-w-lg rounded-2xl border border-cyan-300/25 bg-slate-950/95 p-3 text-white shadow-2xl shadow-slate-950/50 backdrop-blur-md sm:bottom-5 sm:p-4">
@@ -64,9 +72,9 @@ export function PwaInstallPrompt() {
         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-cyan-300 text-slate-950"><Smartphone className="h-5 w-5" aria-hidden="true" /></div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-black">ثبّت رفيق الباك كتطبيق</p>
-          <p className="mt-1 text-xs leading-5 text-slate-300">{ios ? "أضفه إلى الشاشة الرئيسية لفتحه كتطبيق مستقل." : "افتحه سريعًا من شاشة جهازك أو من سطح المكتب."}</p>
+          <p className="mt-1 text-xs leading-5 text-slate-300">{ios ? "أضفه إلى الشاشة الرئيسية لفتحه كتطبيق مستقل." : deferredPrompt ? "افتحه سريعًا من شاشة جهازك أو من سطح المكتب." : "يظهر أمر التثبيت من شريط عنوان Chrome أو Edge عند اكتمال جاهزية المتصفح."}</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button type="button" onClick={() => void handleInstall()} className="h-9 rounded-xl bg-cyan-300 px-3 text-xs font-black text-slate-950 hover:bg-cyan-200">
+            <Button type="button" disabled={!ios && !deferredPrompt} onClick={() => void handleInstall()} className="h-9 rounded-xl bg-cyan-300 px-3 text-xs font-black text-slate-950 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60">
               {ios ? <Share2 className="ms-1 h-4 w-4" aria-hidden="true" /> : <Download className="ms-1 h-4 w-4" aria-hidden="true" />}
               {ios ? "طريقة التثبيت على iPhone" : "تثبيت التطبيق"}
             </Button>

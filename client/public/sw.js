@@ -43,3 +43,25 @@ self.addEventListener("fetch", event => {
     })),
   );
 });
+
+self.addEventListener("push", event => {
+  const data = event.data?.json?.() ?? {};
+  const title = typeof data.title === "string" ? data.title : "رفيق الباك";
+  const options = {
+    body: typeof data.body === "string" ? data.body : "لديك تحديث جديد في المنصة.",
+    icon: "/manus-storage/rafiq-bac-pwa-icon_1d3de8c3.png",
+    badge: "/manus-storage/rafiq-bac-pwa-icon_1d3de8c3.png",
+    tag: typeof data.tag === "string" ? data.tag : "rafiq-bac-update",
+    data: { url: typeof data.url === "string" && data.url.startsWith("/") ? data.url : "/" },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || "/";
+  event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(openClients => {
+    const current = openClients.find(client => new URL(client.url).pathname === targetUrl);
+    return current ? current.focus() : clients.openWindow(targetUrl);
+  }));
+});
