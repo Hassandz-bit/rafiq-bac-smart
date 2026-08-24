@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
+import path from "path";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
@@ -17,6 +18,14 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  const assetLinksPath = process.env.NODE_ENV === "development"
+    ? path.resolve(import.meta.dirname, "../..", "client", "public", ".well-known", "assetlinks.json")
+    : path.resolve(import.meta.dirname, "public", ".well-known", "assetlinks.json");
+  app.get("/.well-known/assetlinks.json", (_req, res, next) => {
+    res.type("application/json").sendFile(assetLinksPath, error => {
+      if (error) next(error);
+    });
+  });
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   // tRPC API
