@@ -58,7 +58,7 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, { dotfiles: "allow" }));
 
   // fall through to index.html if the file doesn't exist
   app.use("*", (_req, res) => {
