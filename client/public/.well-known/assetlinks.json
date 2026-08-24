@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "space.manus.rafiqbac_8epdnqdn.twa",
+      "sha256_cert_fingerprints": [
+        "D6:92:FA:08:46:D9:C1:16:A5:AC:BC:02:03:A9:A8:67:4B:F9:7F:EE:6C:B0:D0:AA:1E:FA:B6:CD:D3:E5:9B:B0"
+      ]
+    }
+  }
+]

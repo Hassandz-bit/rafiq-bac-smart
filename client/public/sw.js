@@ -49,8 +49,8 @@ self.addEventListener("push", event => {
   const title = typeof data.title === "string" ? data.title : "رفيق الباك";
   const options = {
     body: typeof data.body === "string" ? data.body : "لديك تحديث جديد في المنصة.",
-    icon: "/manus-storage/rafiq-bac-pwa-icon_1d3de8c3.png",
-    badge: "/manus-storage/rafiq-bac-pwa-icon_1d3de8c3.png",
+    icon: "/manus-storage/rafiq-bac-pwa-icon_5178ecbb.png",
+    badge: "/manus-storage/rafiq-bac-pwa-icon_5178ecbb.png",
     tag: typeof data.tag === "string" ? data.tag : "rafiq-bac-update",
     data: { url: typeof data.url === "string" && data.url.startsWith("/") ? data.url : "/" },
   };
