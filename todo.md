@@ -227,3 +227,4 @@
 - [x] Replace the visible launch-copy phrase «نوسّعها معكم» with «نطوّرها معكم» on the specified home-page launch section only.
 - [x] Restrict the requested launch-copy change to the home page and restore unaffected pages to their prior wording.
 - [x] Make the administrator notification and operating-principle cards actionable with clear, truthful destinations.
+- [ ] Route the academic-review queue action to its actual protected section and distinguish status counters from clickable controls.
