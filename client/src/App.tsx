@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/sonner";
 import React, { lazy, Suspense } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
+import { Home as HomeIcon } from "lucide-react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -59,6 +60,23 @@ function Router() {
   );
 }
 
+export function GlobalHomeControl() {
+  const [location, setLocation] = useLocation();
+  const routesWithOwnHomeControl = new Set(["/", "/404", "/diagnostic", "/hassem/diagnostic", "/partners/apply", "/admin", "/admin/subscriptions"]);
+  if (routesWithOwnHomeControl.has(location)) return null;
+
+  return <button
+    type="button"
+    onClick={() => setLocation("/")}
+    className="global-home-control"
+    aria-label="الرجوع إلى الصفحة الرئيسية"
+    title="الرجوع إلى الرئيسية"
+  >
+    <HomeIcon className="h-4 w-4" aria-hidden="true" />
+    <span>الرئيسية</span>
+  </button>;
+}
+
 // NOTE: About Theme
 // - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
 //   to keep consistent foreground/background color across components
@@ -75,6 +93,7 @@ function App() {
           <Toaster />
           <ReferralAttributionCapture />
           <Router />
+          <GlobalHomeControl />
           <PwaInstallPrompt />
         </TooltipProvider>
       </ThemeProvider>

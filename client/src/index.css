@@ -343,6 +343,8 @@
   .admin-info-note { display: flex; align-items: flex-start; gap: .75rem; min-width: 0; border-right: 3px solid #cbd5e1; padding-right: 1rem; color: #334155; }
   .admin-info-icon { flex: none; height: 1.15rem; width: 1.15rem; margin-top: .18rem; }
   .admin-info-label { margin-bottom: .28rem; color: #64748b; font-size: .68rem; font-weight: 800; letter-spacing: .08em; }
+  .global-home-control { position: fixed; z-index: 45; top: 1rem; left: 1rem; display: inline-flex; align-items: center; gap: .45rem; min-height: 2.65rem; border: 1px solid color-mix(in srgb, var(--student-primary) 48%, var(--student-border)); border-radius: .9rem; padding-inline: .85rem; color: var(--student-ink); background: color-mix(in srgb, var(--student-surface) 92%, var(--student-primary)); box-shadow: 0 10px 28px rgba(0,0,0,.16); font-size: .78rem; font-weight: 900; backdrop-filter: blur(14px); transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out), background .18s var(--ease-out); }
+  .global-home-control:hover { transform: translateY(-2px); background: color-mix(in srgb, var(--student-primary) 21%, var(--student-surface)); box-shadow: 0 14px 32px rgba(0,0,0,.2); }
   .learning-title { color: var(--student-ink); font-size: clamp(1.7rem, 3.6vw, 2.6rem); font-weight: 900; letter-spacing: -.035em; }
   .learning-surface { border: 1px solid var(--student-border); border-radius: 1.5rem; color: var(--student-ink); background: var(--student-surface); box-shadow: 0 18px 44px rgba(0,0,0,.1); }
   .learning-source-badge { border: 1px solid rgba(251,191,36,.28); color: #f6c95d; background: rgba(251,191,36,.09); }
@@ -375,6 +377,7 @@
     .learning-status { bottom: .8rem; right: .8rem; left: .8rem; }
     .journey-track::before { display: none; }
     .landing-section-display { font-size: clamp(1.75rem, 8vw, 2.3rem); }
+    .global-home-control { top: auto; bottom: 1rem; left: 1rem; min-height: 2.5rem; }
   }
 
   @media (min-width: 640px) {
@@ -400,4 +403,9 @@
 @keyframes live-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(84,232,186,.54); } 55% { box-shadow: 0 0 0 7px rgba(84,232,186,0); } }
 @keyframes launch-path-pulse { 0%, 100% { opacity: .42; transform: scaleX(.88); } 50% { opacity: 1; transform: scaleX(1); } }
 
-@media (prefers-reduced-motion: reduce) { .node-float, .learning-orbit-ring, .learning-path-dash, .live-dot, .launch-path-line i { animation: none; } .student-button, .student-card-interactive, .student-nav-item, .student-rail-item, .student-icon-button, .landing-plan-card, .problem-chip, .journey-step, [data-reveal] { transition: none; } .student-button:hover, .student-card-interactive:hover, .student-nav-item:hover, .student-rail-item:hover, .student-icon-button:hover, .landing-plan-card:hover, .problem-chip:hover, .journey-step:hover { transform: none; } [data-reveal] { opacity: 1; transform: none; } }
+@media (hover: hover) {
+  button:not(:disabled):not([data-static]), [role="button"]:not([aria-disabled="true"]) { transition: transform .16s var(--ease-out), filter .16s var(--ease-out), box-shadow .16s var(--ease-out); }
+  button:not(:disabled):not([data-static]):hover, [role="button"]:not([aria-disabled="true"]):hover { filter: brightness(1.035); }
+}
+
+@media (prefers-reduced-motion: reduce) { .node-float, .learning-orbit-ring, .learning-path-dash, .live-dot, .launch-path-line i { animation: none; } .student-button, .student-card-interactive, .student-nav-item, .student-rail-item, .student-icon-button, .landing-plan-card, .problem-chip, .journey-step, .global-home-control, [data-reveal] { transition: none; } .student-button:hover, .student-card-interactive:hover, .student-nav-item:hover, .student-rail-item:hover, .student-icon-button:hover, .landing-plan-card:hover, .problem-chip:hover, .journey-step:hover, .global-home-control:hover { transform: none; } [data-reveal] { opacity: 1; transform: none; } }

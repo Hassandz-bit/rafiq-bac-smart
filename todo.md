@@ -220,3 +220,5 @@
 - [x] Audit and fix light/dark theme contrast, visible back navigation, and icon visibility across public, student, and staff interfaces.
 - [x] Remove or restyle non-interactive elements that visually mimic buttons, and repair any confirmed inert controls across the user interface.
 - [x] Restyle non-interactive administration explanation cards so their icons and containers do not imply a clickable action.
+- [x] Add a clear homepage-return control across subpages and ensure it remains visible in light and dark themes.
+- [x] Standardize high-contrast light/dark surfaces and hover feedback for actionable controls only across all routed pages.
