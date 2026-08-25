@@ -158,7 +158,7 @@ function StudioContent() {
       <header className="flex h-20 items-center justify-between gap-3 border-b border-slate-200/70 bg-white px-5 sm:px-8">
         <BrandMark />
         <div className="flex shrink-0 items-center gap-2">
-          <Button variant="outline" onClick={() => setLocation("/")} className="rounded-xl font-bold"><ArrowRight className="ml-2 h-4 w-4" />الرئيسية</Button>
+          {user?.role === "admin" ? <Button aria-label="العودة إلى لوحة المدير" onClick={() => setLocation("/admin")} className="rounded-xl border border-blue-700 bg-blue-700 px-4 font-black text-white shadow-sm hover:bg-blue-800"><ArrowRight className="ml-2 h-4 w-4" />لوحة المدير</Button> : <Button variant="outline" onClick={() => setLocation("/")} className="rounded-xl border-slate-300 bg-white font-bold text-slate-900 hover:bg-slate-100"><ArrowRight className="ml-2 h-4 w-4" />الرئيسية</Button>}
           <Button variant="outline" aria-label="تسجيل الخروج من الحساب" disabled={isAuthLoading} onClick={() => void logout()} className="rounded-xl border-rose-200 bg-rose-50 font-bold text-rose-800 hover:bg-rose-100 hover:text-rose-900"><LogOut className="ml-2 h-4 w-4" />{isAuthLoading ? "جارٍ الخروج…" : "تسجيل الخروج"}</Button>
         </div>
       </header>

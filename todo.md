@@ -215,3 +215,4 @@
 - [x] Diagnose the logged-in account's missing administrator access and confirm the safe role-promotion path for an existing OAuth account.
 - [x] Confirm and communicate the documented sign-out route for the manager access recovery flow.
 - [x] Add a visible, accessible sign-out control to the content-studio and administration staff header.
+- [x] Make the Content Studio return-to-admin control visibly high contrast and route it explicitly to the administrator dashboard.
