@@ -30,4 +30,11 @@ describe("لوحة المدير", () => {
     fireEvent.click(screen.getByRole("button", { name: "تسجيل الخروج من حساب المدير" }));
     expect(mockedLogout).toHaveBeenCalledTimes(1);
   });
+
+  it("يعرض ملاحظات التشغيل كمعلومات لا كأزرار خاملة", () => {
+    render(<AdminDashboardPage />);
+    expect(screen.getAllByRole("note")).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: "إشعارات المشتركين" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "مبدأ التشغيل" })).toBeNull();
+  });
 });

@@ -92,9 +92,9 @@ function AdminDashboardContent() {
         })}
       </section>
 
-      <section className="mt-7 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-[1.5rem] border border-cyan-100 bg-cyan-50/60 p-5 sm:p-6"><div className="flex gap-3"><BellRing className="mt-0.5 h-5 w-5 shrink-0 text-cyan-700" /><div><h2 className="font-black text-slate-950">إشعارات المشتركين</h2><p className="mt-1 text-sm leading-6 text-slate-600">إرسال التحديثات يدويًا للمستخدمين الذين فعّلوا الإشعارات فقط، من قسم إدارة التشغيل.</p></div></div></div>
-        <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 sm:p-6"><div className="flex gap-3"><Settings2 className="mt-0.5 h-5 w-5 shrink-0 text-slate-700" /><div><h2 className="font-black text-slate-950">مبدأ التشغيل</h2><p className="mt-1 text-sm leading-6 text-slate-600">كل إجراء حساس يظل يدويًا ومدققًا: لا تحصيل أو شراء رصيد B أو تحويل تلقائي من هذه اللوحة.</p></div></div></div>
+      <section aria-label="ملاحظات تشغيلية" className="admin-info-notes mt-7 grid gap-6 border-t border-slate-200 pt-6 lg:grid-cols-2">
+        <aside role="note" className="admin-info-note"><BellRing aria-hidden="true" className="admin-info-icon text-cyan-700" /><div><p className="admin-info-label">معلومة تشغيلية</p><h2 className="font-black text-slate-950">إشعارات المشتركين</h2><p className="mt-1 text-sm leading-6 text-slate-600">إرسال التحديثات يدويًا للمستخدمين الذين فعّلوا الإشعارات فقط، من قسم إدارة التشغيل.</p></div></aside>
+        <aside role="note" className="admin-info-note"><Settings2 aria-hidden="true" className="admin-info-icon text-slate-700" /><div><p className="admin-info-label">معلومة تشغيلية</p><h2 className="font-black text-slate-950">مبدأ التشغيل</h2><p className="mt-1 text-sm leading-6 text-slate-600">كل إجراء حساس يظل يدويًا ومدققًا: لا تحصيل أو شراء رصيد B أو تحويل تلقائي من هذه اللوحة.</p></div></aside>
       </section>
     </main>
   </div>;

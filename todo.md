@@ -218,3 +218,5 @@
 - [x] Make the Content Studio return-to-admin control visibly high contrast and route it explicitly to the administrator dashboard.
 - [x] Create a distinct administrator home dashboard and move subscription administration behind a clearly named management route.
 - [x] Audit and fix light/dark theme contrast, visible back navigation, and icon visibility across public, student, and staff interfaces.
+- [x] Remove or restyle non-interactive elements that visually mimic buttons, and repair any confirmed inert controls across the user interface.
+- [x] Restyle non-interactive administration explanation cards so their icons and containers do not imply a clickable action.

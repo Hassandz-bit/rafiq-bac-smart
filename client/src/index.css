@@ -287,7 +287,8 @@
   .journey-icon svg { height: 1.15rem; width: 1.15rem; }
   .journey-step p { color: var(--student-ink); font-size: 1rem; font-weight: 900; }
   .journey-step small { display: block; margin-top: .3rem; color: var(--student-muted); font-size: .85rem; }
-  .parent-points > div { display: flex; align-items: center; gap: .55rem; border: 1px solid var(--student-border); border-radius: 1rem; padding: 1rem; color: var(--student-ink); font-size: .98rem; font-weight: 800; background: var(--student-surface-2); }
+  .parent-points { margin: 0; padding: 0; list-style: none; }
+  .parent-points > li { display: flex; align-items: center; gap: .55rem; min-height: 3.1rem; border-right: 3px solid color-mix(in srgb, var(--student-primary) 62%, var(--student-border)); padding: .55rem .8rem; color: var(--student-ink); font-size: .98rem; font-weight: 800; background: color-mix(in srgb, var(--student-surface-2) 48%, transparent); }
   .parent-points svg { height: 1rem; width: 1rem; color: var(--student-primary); }
   .landing-plan-card { min-height: 15rem; border: 1px solid var(--student-border); border-radius: 1.6rem; padding: 1.5rem; color: var(--student-ink); background: var(--student-surface); transition: transform .2s var(--ease-out), border-color .2s var(--ease-out), box-shadow .2s var(--ease-out); }
   .landing-plan-card { position: relative; overflow: hidden; }
@@ -305,8 +306,8 @@
   .landing-arrow-cta:hover span { transform: translateX(-4px); }
   [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity .52s var(--ease-out), transform .52s var(--ease-out); }
   [data-reveal][data-reveal-visible="true"] { opacity: 1; transform: translateY(0); }
-  .student-button, .landing-plan-card, .problem-chip, .journey-step, .parent-points > div, .student-card-interactive, .student-rail-item, .student-mobile-nav { will-change: transform; }
-  .student-button:active, .landing-plan-card:active, .problem-chip:active, .journey-step:active, .parent-points > div:active, .student-card-interactive:active, .student-rail-item:active, .student-mobile-nav:active { transform: scale(.975); }
+  .student-button, .landing-plan-card, .problem-chip, .journey-step, .student-card-interactive, .student-rail-item, .student-mobile-nav { will-change: transform; }
+  .student-button:active, .landing-plan-card:active, .problem-chip:active, .journey-step:active, .student-card-interactive:active, .student-rail-item:active, .student-mobile-nav:active { transform: scale(.975); }
   .brand-orbit, .landing-brand > span { position: relative; overflow: hidden; isolation: isolate; background: conic-gradient(from 210deg, #39e4d0, #6d72f5 40%, #163454 70%, #39e4d0); }
   .brand-orbit::after, .landing-brand > span::after { position: absolute; inset: .32rem; z-index: -1; border-radius: inherit; background: #0c1a2c; content: ""; }
   .brand-orbit::before, .landing-brand > span::before { position: absolute; top: .32rem; right: .38rem; z-index: 1; height: .34rem; width: .34rem; border-radius: 50%; background: #9af7e9; box-shadow: 0 0 12px #9af7e9; content: ""; }
@@ -339,6 +340,9 @@
   .bac-back:hover { background: rgba(14,116,144,.42); transform: translateX(-2px); }
   .theme-install-button { border-color: color-mix(in srgb, var(--student-primary) 55%, var(--student-border)) !important; background: color-mix(in srgb, var(--student-primary) 13%, var(--student-surface)) !important; color: var(--student-ink) !important; box-shadow: 0 5px 14px rgba(0,0,0,.08); }
   .theme-install-button:hover { background: color-mix(in srgb, var(--student-primary) 22%, var(--student-surface)) !important; color: var(--student-ink) !important; }
+  .admin-info-note { display: flex; align-items: flex-start; gap: .75rem; min-width: 0; border-right: 3px solid #cbd5e1; padding-right: 1rem; color: #334155; }
+  .admin-info-icon { flex: none; height: 1.15rem; width: 1.15rem; margin-top: .18rem; }
+  .admin-info-label { margin-bottom: .28rem; color: #64748b; font-size: .68rem; font-weight: 800; letter-spacing: .08em; }
   .learning-title { color: var(--student-ink); font-size: clamp(1.7rem, 3.6vw, 2.6rem); font-weight: 900; letter-spacing: -.035em; }
   .learning-surface { border: 1px solid var(--student-border); border-radius: 1.5rem; color: var(--student-ink); background: var(--student-surface); box-shadow: 0 18px 44px rgba(0,0,0,.1); }
   .learning-source-badge { border: 1px solid rgba(251,191,36,.28); color: #f6c95d; background: rgba(251,191,36,.09); }
@@ -396,4 +400,4 @@
 @keyframes live-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(84,232,186,.54); } 55% { box-shadow: 0 0 0 7px rgba(84,232,186,0); } }
 @keyframes launch-path-pulse { 0%, 100% { opacity: .42; transform: scaleX(.88); } 50% { opacity: 1; transform: scaleX(1); } }
 
-@media (prefers-reduced-motion: reduce) { .node-float, .learning-orbit-ring, .learning-path-dash, .live-dot, .launch-path-line i { animation: none; } .student-button, .student-card-interactive, .student-nav-item, .student-rail-item, .student-icon-button, .landing-plan-card, .problem-chip, .journey-step, .parent-points > div, [data-reveal] { transition: none; } .student-button:hover, .student-card-interactive:hover, .student-nav-item:hover, .student-rail-item:hover, .student-icon-button:hover, .landing-plan-card:hover, .problem-chip:hover, .journey-step:hover, .parent-points > div:hover { transform: none; } [data-reveal] { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .node-float, .learning-orbit-ring, .learning-path-dash, .live-dot, .launch-path-line i { animation: none; } .student-button, .student-card-interactive, .student-nav-item, .student-rail-item, .student-icon-button, .landing-plan-card, .problem-chip, .journey-step, [data-reveal] { transition: none; } .student-button:hover, .student-card-interactive:hover, .student-nav-item:hover, .student-rail-item:hover, .student-icon-button:hover, .landing-plan-card:hover, .problem-chip:hover, .journey-step:hover { transform: none; } [data-reveal] { opacity: 1; transform: none; } }
