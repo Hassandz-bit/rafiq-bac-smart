@@ -212,3 +212,6 @@
 - [x] Build and validate APK/AAB artifacts or document the exact unavailable build prerequisite without misrepresenting a release artifact.
 - [x] Fix the published production bundle split that left the React root blank, and verify the rebuilt production server renders the landing page locally.
 - [x] Install the Android SDK under the user-approved Android SDK terms and use it only for the requested APK/AAB build.
+- [x] Diagnose the logged-in account's missing administrator access and confirm the safe role-promotion path for an existing OAuth account.
+- [x] Confirm and communicate the documented sign-out route for the manager access recovery flow.
+- [x] Add a visible, accessible sign-out control to the content-studio and administration staff header.

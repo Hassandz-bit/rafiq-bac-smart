@@ -5,7 +5,7 @@ import { RoleGate } from "@/components/RoleGate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { ArrowRight, BookUp, CheckCircle2, ClipboardList, FileUp, GitPullRequest, LibraryBig, ShieldAlert, UploadCloud } from "lucide-react";
+import { ArrowRight, BookUp, CheckCircle2, ClipboardList, FileUp, GitPullRequest, LibraryBig, LogOut, ShieldAlert, UploadCloud } from "lucide-react";
 import React, { ChangeEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -18,7 +18,7 @@ export default function StudioPage() {
 
 function StudioContent() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, logout, loading: isAuthLoading } = useAuth();
   const { data: sources, isLoading } = trpc.studio.sourceRegistry.useQuery();
   const { data: draftUnits } = trpc.studio.draftCurriculumUnits.useQuery();
   const { data: draftLessons } = trpc.studio.draftCurriculumLessons.useQuery();
@@ -155,9 +155,12 @@ function StudioContent() {
 
   return (
     <div className="min-h-screen bg-[#f6f8ff]" dir="rtl">
-      <header className="flex h-20 items-center justify-between border-b border-slate-200/70 bg-white px-5 sm:px-8">
+      <header className="flex h-20 items-center justify-between gap-3 border-b border-slate-200/70 bg-white px-5 sm:px-8">
         <BrandMark />
-        <Button variant="outline" onClick={() => setLocation("/")} className="rounded-xl font-bold"><ArrowRight className="ml-2 h-4 w-4" />الرئيسية</Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button variant="outline" onClick={() => setLocation("/")} className="rounded-xl font-bold"><ArrowRight className="ml-2 h-4 w-4" />الرئيسية</Button>
+          <Button variant="outline" aria-label="تسجيل الخروج من الحساب" disabled={isAuthLoading} onClick={() => void logout()} className="rounded-xl border-rose-200 bg-rose-50 font-bold text-rose-800 hover:bg-rose-100 hover:text-rose-900"><LogOut className="ml-2 h-4 w-4" />{isAuthLoading ? "جارٍ الخروج…" : "تسجيل الخروج"}</Button>
+        </div>
       </header>
       <div className="grid min-h-[calc(100vh-5rem)] lg:grid-cols-[250px_1fr]">
         <aside className="hidden border-l border-slate-200/70 bg-white p-5 lg:block">

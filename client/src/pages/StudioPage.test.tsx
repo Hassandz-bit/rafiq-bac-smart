@@ -33,6 +33,7 @@ const mockedDraftMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: fals
 const mockedDraftUpdateMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftReviewSubmissionMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 const mockedDraftDiscardMutation = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+const mockedLogout = vi.hoisted(() => vi.fn());
 const mockedDrafts = vi.hoisted(() => [{ id: 99001, titleAr: "ملاحظة توجيهية أولية", lessonId: 701, sourceId: 30001, componentKey: "guided_note", draftTextAr: "نص مسودة أصلي قابل للتحرير فقط قبل المراجعة.", workflowState: "draft" as const, publicationBlocked: true }]);
 const mockAuth = vi.hoisted(() => ({ role: "academic_reviewer" }));
 const mockedSources = vi.hoisted(() => [
@@ -45,7 +46,7 @@ const mockedOfficialBookIntake = vi.hoisted(() => [{ id: 70001, subjectNameAr: "
 
 vi.mock("@/components/RoleGate", () => ({ RoleGate: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock("@/components/BrandMark", () => ({ BrandMark: () => <div aria-label="الهوية" /> }));
-vi.mock("@/_core/hooks/useAuth", () => ({ useAuth: () => ({ user: { role: mockAuth.role } }) }));
+vi.mock("@/_core/hooks/useAuth", () => ({ useAuth: () => ({ user: { role: mockAuth.role }, logout: mockedLogout, loading: false }) }));
 vi.mock("wouter", () => ({ useLocation: () => ["/studio", vi.fn()] }));
 vi.mock("@/lib/trpc", () => ({
   trpc: {
@@ -76,9 +77,15 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
-afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedDraftLessonUpdateMutation.mutate.mockReset(); mockedDraftUnitUpdateMutation.mutate.mockReset(); mockedDraftLessonCreateMutation.mutate.mockReset(); mockedDraftUnitCreateMutation.mutate.mockReset(); mockedStandaloneSourceArchiveMutation.mutate.mockReset(); mockedStandaloneSourceUpdateMutation.mutate.mockReset(); mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
+afterEach(() => { cleanup(); mockAuth.role = "academic_reviewer"; mockedLogout.mockReset(); mockedDraftLessonUpdateMutation.mutate.mockReset(); mockedDraftUnitUpdateMutation.mutate.mockReset(); mockedDraftLessonCreateMutation.mutate.mockReset(); mockedDraftUnitCreateMutation.mutate.mockReset(); mockedStandaloneSourceArchiveMutation.mutate.mockReset(); mockedStandaloneSourceUpdateMutation.mutate.mockReset(); mockedSourceCreateMutation.mutate.mockReset(); mockedOfficialBookReviewMutation.mutate.mockReset(); mockedDraftMutation.mutate.mockReset(); mockedDraftUpdateMutation.mutate.mockReset(); mockedDraftReviewSubmissionMutation.mutate.mockReset(); mockedDraftDiscardMutation.mutate.mockReset(); });
 
 describe("طابور مراجعة Content Studio", () => {
+  it("يعرض زر تسجيل خروج واضحًا ويستدعي إجراء الخروج", () => {
+    render(<StudioPage />);
+    fireEvent.click(screen.getByRole("button", { name: "تسجيل الخروج من الحساب" }));
+    expect(mockedLogout).toHaveBeenCalledTimes(1);
+  });
+
   it("يعرض التنقل الجانبي كروابط حقيقية للأقسام الداخلية", () => {
     render(<StudioPage />);
     expect(screen.getByRole("link", { name: "نظرة عامة" }).getAttribute("href")).toBe("#studio-overview");
