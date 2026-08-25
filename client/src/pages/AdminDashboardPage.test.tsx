@@ -31,10 +31,11 @@ describe("لوحة المدير", () => {
     expect(mockedLogout).toHaveBeenCalledTimes(1);
   });
 
-  it("يعرض ملاحظات التشغيل كمعلومات لا كأزرار خاملة", () => {
+  it("يربط مداخل التشغيل بإدارة الاشتراكات بدل تركها أزرارًا خاملة", () => {
     render(<AdminDashboardPage />);
-    expect(screen.getAllByRole("note")).toHaveLength(2);
-    expect(screen.queryByRole("button", { name: "إشعارات المشتركين" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "مبدأ التشغيل" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /إشعارات المشتركين/ }));
+    expect(mockedSetLocation).toHaveBeenCalledWith("/admin/subscriptions");
+    fireEvent.click(screen.getByRole("button", { name: /مبدأ التشغيل/ }));
+    expect(mockedSetLocation).toHaveBeenCalledWith("/admin/subscriptions");
   });
 });
