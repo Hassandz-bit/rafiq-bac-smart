@@ -18,7 +18,8 @@ const HassemPage = lazy(() => import("./pages/HassemPage"));
 const StudentHome = lazy(() => import("./pages/StudentHome"));
 const StudioPage = lazy(() => import("./pages/StudioPage"));
 const SubjectsPage = lazy(() => import("./pages/SubjectsPage"));
-const AdminPage = lazy(async () => ({ default: (await import("./pages/StaffPages")).AdminPage }));
+const AdminDashboardPage = lazy(async () => ({ default: (await import("./pages/AdminDashboardPage")).AdminDashboardPage }));
+const AdminOperationsPage = lazy(async () => ({ default: (await import("./pages/StaffPages")).AdminPage }));
 const EditorPage = lazy(async () => ({ default: (await import("./pages/StaffPages")).EditorPage }));
 const ReviewerPage = lazy(async () => ({ default: (await import("./pages/StaffPages")).ReviewerPage }));
 const PartnerApplication = lazy(() => import("./pages/PartnerApplication"));
@@ -48,7 +49,8 @@ function Router() {
       <Route path={"/partner"} component={PartnerDashboard} />
       <Route path={"/editor"} component={EditorPage} />
       <Route path={"/review"} component={ReviewerPage} />
-      <Route path={"/admin"} component={AdminPage} />
+      <Route path={"/admin/subscriptions"} component={AdminOperationsPage} />
+      <Route path={"/admin"} component={AdminDashboardPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

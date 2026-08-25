@@ -216,3 +216,4 @@
 - [x] Confirm and communicate the documented sign-out route for the manager access recovery flow.
 - [x] Add a visible, accessible sign-out control to the content-studio and administration staff header.
 - [x] Make the Content Studio return-to-admin control visibly high contrast and route it explicitly to the administrator dashboard.
+- [x] Create a distinct administrator home dashboard and move subscription administration behind a clearly named management route.
