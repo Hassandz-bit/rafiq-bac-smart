@@ -17,7 +17,7 @@ export function LaunchStory({ onNavigate }: { onNavigate: (path: string) => void
           <p className="launch-path-label">الآن <span>01</span></p>
           <div className="launch-now-core"><Atom className="h-6 w-6" /><div><b>العلوم التجريبية</b><small>ثلاث مواد أساسية، ومسار واحد متكامل.</small></div></div>
           <div className="launch-subject-list"><span><Target />الرياضيات</span><span><FlaskConical />العلوم الفيزيائية</span><span><Leaf />علوم الطبيعة والحياة</span></div>
-          <div className="launch-path-line"><i /><span>نوسّعها معكم</span><i /></div>
+          <div className="launch-path-line"><i /><span>نطوّرها معكم</span><i /></div>
           <div className="launch-future-card"><Compass className="h-5 w-5" /><div><b>والخطوة التالية؟</b><small>شعب أخرى، مواد أخرى، وتجربة أكبر.</small></div><em>في الطريق</em></div>
         </div>
       </div>

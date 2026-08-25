@@ -224,3 +224,5 @@
 - [x] Standardize high-contrast light/dark surfaces and hover feedback for actionable controls only across all routed pages.
 - [x] Add clear loading and repeat-click prevention states to asynchronous submission, save, and start-operation controls.
 - [x] Fix low-contrast review-step text and surfaces shown in the diagnostic/learning review card across light and dark themes.
+- [x] Replace the visible launch-copy phrase «نوسّعها معكم» with «نطوّرها معكم» on the specified home-page launch section only.
+- [x] Restrict the requested launch-copy change to the home page and restore unaffected pages to their prior wording.
