@@ -65,7 +65,7 @@ function BacFocus() {
 
   return <div className="bac-shell min-h-screen" dir="rtl">
     <header className="bac-header flex h-18 items-center justify-between px-5 py-4 sm:px-8">
-      <button onClick={() => setLocation("/app")} className="flex items-center gap-2 text-sm font-bold text-blue-200"><ArrowRight className="h-4 w-4" />العودة إلى رحلتك</button>
+      <button aria-label="العودة إلى رحلة التعلّم" onClick={() => setLocation("/app")} className="bac-back flex items-center gap-2 text-sm font-bold"><ArrowRight className="h-4 w-4" />العودة إلى رحلتك</button>
       <div className="flex items-center gap-2"><LockKeyhole className="h-4 w-4 text-cyan-300" /><span className="text-sm font-black">وضع المحاكاة</span></div>
       <Badge className="border-0 bg-white/10 text-blue-100 hover:bg-white/10">{sessionId ? "الحفظ التلقائي نشط" : "حفظ تلقائي مهيأ"}</Badge>
     </header>

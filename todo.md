@@ -217,3 +217,4 @@
 - [x] Add a visible, accessible sign-out control to the content-studio and administration staff header.
 - [x] Make the Content Studio return-to-admin control visibly high contrast and route it explicitly to the administrator dashboard.
 - [x] Create a distinct administrator home dashboard and move subscription administration behind a clearly named management route.
+- [x] Audit and fix light/dark theme contrast, visible back navigation, and icon visibility across public, student, and staff interfaces.

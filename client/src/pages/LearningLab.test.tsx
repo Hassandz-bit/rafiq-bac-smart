@@ -12,6 +12,12 @@ vi.mock("wouter", () => ({ useLocation: () => ["/lab", setLocation] }));
 afterEach(() => { cleanup(); setLocation.mockReset(); });
 
 describe("بطاقة شرح الدرس", () => {
+  it("يعرض زر رجوع مسمى ويعيد المستخدم إلى رحلته", () => {
+    render(<LearningLab />);
+    fireEvent.click(screen.getByRole("button", { name: "العودة إلى رحلة التعلّم" }));
+    expect(setLocation).toHaveBeenCalledWith("/app");
+  });
+
   it("تبدّل النوع التوضيحي بالنقر وبالسهم مع حالة تبويب واضحة", () => {
     const { container } = render(<LearningLab />);
     expect(container.querySelector(".mfrac")).not.toBeNull();
