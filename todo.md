@@ -222,3 +222,5 @@
 - [x] Restyle non-interactive administration explanation cards so their icons and containers do not imply a clickable action.
 - [x] Add a clear homepage-return control across subpages and ensure it remains visible in light and dark themes.
 - [x] Standardize high-contrast light/dark surfaces and hover feedback for actionable controls only across all routed pages.
+- [x] Add clear loading and repeat-click prevention states to asynchronous submission, save, and start-operation controls.
+- [x] Fix low-contrast review-step text and surfaces shown in the diagnostic/learning review card across light and dark themes.

@@ -58,7 +58,7 @@ function AdminDashboardContent() {
       <BrandMark />
       <div className="flex shrink-0 items-center gap-2">
         <Button variant="outline" onClick={() => setLocation("/")} className="rounded-xl border-slate-300 bg-white font-bold text-slate-900 hover:bg-slate-100">الواجهة العامة</Button>
-        <Button variant="outline" aria-label="تسجيل الخروج من حساب المدير" disabled={loading} onClick={() => void logout()} className="rounded-xl border-rose-200 bg-rose-50 font-bold text-rose-800 hover:bg-rose-100 hover:text-rose-900"><LogOut className="ml-2 h-4 w-4" />{loading ? "جارٍ الخروج…" : "تسجيل الخروج"}</Button>
+        <Button variant="outline" aria-label="تسجيل الخروج من حساب المدير" isLoading={loading} loadingText="جارٍ الخروج…" onClick={() => void logout()} className="rounded-xl border-rose-200 bg-rose-50 font-bold text-rose-800 hover:bg-rose-100 hover:text-rose-900"><LogOut className="ml-2 h-4 w-4" />تسجيل الخروج</Button>
       </div>
     </header>
 
