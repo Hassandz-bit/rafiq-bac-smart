@@ -228,3 +228,4 @@
 - [x] Restrict the requested launch-copy change to the home page and restore unaffected pages to their prior wording.
 - [x] Make the administrator notification and operating-principle cards actionable with clear, truthful destinations.
 - [ ] Route the academic-review queue action to its actual protected section and distinguish status counters from clickable controls.
+- [ ] Verify the GitHub repository link and ensure the current saved project version is available in the private remote repository.
